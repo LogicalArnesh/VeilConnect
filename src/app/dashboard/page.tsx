@@ -25,7 +25,7 @@ import { Progress } from '@/components/ui/progress';
 import { AISuggestions } from '@/components/dashboard/ai-suggestions';
 import { useRouter } from 'next/navigation';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { query, collection, where, doc, updateDoc, addDoc, orderBy } from 'firebase/firestore';
+import { query, collection, where, doc, updateDoc, orderBy } from 'firebase/firestore';
 import { sendApprovalStatusEmail } from '@/app/actions/email-actions';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -82,17 +82,22 @@ export default function DashboardPage() {
     if (!approvingUser) return;
     setIsProcessing(true);
     try {
+      // 1. Update Firestore
       await updateDoc(doc(db, 'userProfiles', approvingUser.id), {
         status: 'active',
         role: selectedRole.toLowerCase() === 'admin' ? 'admin' : 'user',
         assignedRoleName: selectedRole,
         updatedAt: new Date().toISOString()
       });
+      
+      // 2. Send Emails (User receives approval, Admin receives confirmation)
       await sendApprovalStatusEmail(approvingUser.email, approvingUser.name, 'approved', selectedRole);
-      toast({ title: "User Approved", description: `Assigned as ${selectedRole}. Notification sent.` });
+      
+      toast({ title: "User Approved", description: `Assigned as ${selectedRole}. Notifications sent to user and administration.` });
       setApprovingUser(null);
     } catch (e) {
-      toast({ variant: "destructive", title: "Action Failed", description: "Database update error." });
+      console.error(e);
+      toast({ variant: "destructive", title: "Action Failed", description: "Database update or email transmission error." });
     } finally {
       setIsProcessing(false);
     }
@@ -105,7 +110,7 @@ export default function DashboardPage() {
         updatedAt: new Date().toISOString()
       });
       await sendApprovalStatusEmail(email, name, 'denied');
-      toast({ title: "User Denied", description: "Notification email sent." });
+      toast({ title: "User Denied", description: "Access restricted. Notification email sent." });
     } catch (e) {
       toast({ variant: "destructive", title: "Action Failed" });
     }
