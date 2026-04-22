@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Mail, CheckCircle2, AlertCircle, ShieldCheck } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { sendAdminNotification } from '@/app/actions/email-actions';
 import { MOCK_USERS } from '@/lib/users';
@@ -50,25 +50,27 @@ export default function TwoFactorPage() {
         if (now > expiresAt) {
           setError('Verification key has expired. Please log in again.');
         } else if (data.code === code) {
-          // Check Firestore profile
           const userProfileDoc = await getDoc(doc(db, 'userProfiles', userId));
           const userData = userProfileDoc.data();
-          const mockUser = MOCK_USERS.find(u => u.userId === userId);
 
           if (userData?.status === 'pending') {
+            // Fetch all admin emails individually
+            const adminQuery = query(collection(db, 'userProfiles'), where('role', '==', 'admin'));
+            const adminSnap = await getDocs(adminQuery);
+            const adminEmails = adminSnap.docs.map(doc => doc.data().email);
+            // Fallback for mock admin
+            if (adminEmails.length === 0) adminEmails.push('meet.arnesh@gmail.com');
+
             await sendAdminNotification({
               userId: userData.id,
               email: userData.email,
               fullName: userData.fullName
-            });
+            }, adminEmails);
+            
             setIsAwaitingApproval(true);
             localStorage.removeItem('pending_verification_user');
-          } else if (userData?.status === 'active' || mockUser) {
-            // Success for approved or hardcoded users
-            localStorage.removeItem('pending_verification_user');
-            router.push('/dashboard');
           } else {
-            setError('Account restricted. Please contact an administrator.');
+            router.push('/dashboard');
           }
         } else {
           setError('Invalid verification key. Please try again.');
@@ -94,17 +96,8 @@ export default function TwoFactorPage() {
           </div>
           <div className="space-y-2">
             <h2 className="text-2xl font-bold">Verification Successful</h2>
-            <p className="text-muted-foreground">
-              Your ID creation process has started and will be done as soon as an admin approves it with a role.
-            </p>
-          </div>
-          <div className="bg-secondary/20 p-4 rounded-lg border border-border">
-            <div className="flex items-center gap-2 text-accent text-sm font-semibold mb-2">
-              <ShieldCheck className="h-4 w-4" />
-              What's next?
-            </div>
-            <p className="text-xs text-muted-foreground text-left">
-              An administrator has been notified. You will receive a confirmation email once your account access level has been assigned.
+            <p className="text-muted-foreground text-sm">
+              Your identity has been established. Our administrators have been notified and will finalize your role assignment shortly.
             </p>
           </div>
           <Button onClick={() => router.push('/login')} variant="outline" className="w-full">
@@ -126,7 +119,7 @@ export default function TwoFactorPage() {
         <div className="space-y-2 text-center">
           <h2 className="text-xl font-semibold tracking-tight">Security Verification</h2>
           <p className="text-sm text-muted-foreground">
-            Please check the mail sent to your email address by <strong>noreply.veilconfessions@gmail.com</strong>
+            Please enter the 6-digit key sent to your registered email address.
           </p>
         </div>
 
@@ -142,7 +135,7 @@ export default function TwoFactorPage() {
             <Label htmlFor="code" className="sr-only">Security Key</Label>
             <Input
               id="code"
-              placeholder="0 0 0 0 0 0"
+              placeholder="000000"
               className="text-center text-2xl tracking-[0.5em] h-14 font-mono"
               maxLength={6}
               value={code}
@@ -161,7 +154,7 @@ export default function TwoFactorPage() {
             onClick={() => router.push('/login')}
             className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
           >
-            Back to login
+            Cancel and back to login
           </button>
         </div>
       </div>

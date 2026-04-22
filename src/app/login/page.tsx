@@ -7,7 +7,7 @@ import { AuthLayout } from '@/components/auth/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import { User, Lock, ArrowRight, AlertCircle, HelpCircle } from 'lucide-react';
 import { validateUser } from '@/lib/users';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { doc, setDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
@@ -47,8 +47,6 @@ export default function LoginPage() {
       );
       const querySnapshot = await getDocs(q);
 
-      let targetUser = mockUser;
-
       if (!querySnapshot.empty) {
         const data = querySnapshot.docs[0].data();
         if (data.status === 'denied') {
@@ -56,33 +54,33 @@ export default function LoginPage() {
           setLoading(false);
           return;
         }
-        targetUser = {
+
+        const targetUser = {
           userId: data.id,
           fullName: data.fullName,
           email: data.email,
           role: data.role as any,
           passcode: data.passcode
         };
-      }
 
-      if (targetUser) {
+        // If user is already active, log in directly without OTP
+        if (data.status === 'active') {
+          localStorage.setItem('veil_user', JSON.stringify(targetUser));
+          router.push('/dashboard');
+          return;
+        }
+
+        // If user is still pending, they might need to verify their email (first time)
         const code = Math.floor(100000 + Math.random() * 900000).toString();
-        
         await setDoc(doc(db, 'verificationCodes', targetUser.userId), {
           userId: targetUser.userId,
           code: code,
           expiresAt: new Date(Date.now() + 10 * 60000).toISOString(),
         });
 
-        const emailResult = await sendSecurityEmail(targetUser.email, code, targetUser.fullName);
-        
-        if (emailResult.success) {
-          localStorage.setItem('veil_user', JSON.stringify(targetUser));
-          localStorage.setItem('pending_verification_user', targetUser.userId);
-          router.push('/login/2fa');
-        } else {
-          setError(`Security key transmission failed: ${emailResult.error || 'Check system credentials'}`);
-        }
+        await sendSecurityEmail(targetUser.email, code, targetUser.fullName);
+        localStorage.setItem('pending_verification_user', targetUser.userId);
+        router.push('/login/2fa');
       } else {
         setError('Invalid User ID or passcode.');
       }
@@ -98,9 +96,9 @@ export default function LoginPage() {
     <AuthLayout>
       <div className="space-y-6">
         <div className="space-y-2 text-center">
-          <h2 className="text-xl font-semibold tracking-tight">Welcome Back</h2>
+          <h2 className="text-xl font-semibold tracking-tight">Access Control</h2>
           <p className="text-sm text-muted-foreground">
-            Enter your credentials to access your secure dashboard
+            Enter your secure operational credentials
           </p>
         </div>
 
@@ -115,7 +113,12 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="userId">User ID</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="userId">User ID</Label>
+              <Link href="/login/forgot-uid" className="text-[10px] text-accent hover:underline flex items-center gap-1">
+                <HelpCircle className="h-2 w-2" /> Forgot UID?
+              </Link>
+            </div>
             <div className="relative">
               <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
@@ -131,13 +134,9 @@ export default function LoginPage() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="passcode">Passcode</Label>
-              <button 
-                type="button"
-                onClick={() => alert("Please contact the administrator for a passcode reset.")}
-                className="text-xs text-accent hover:underline font-medium"
-              >
-                Forgot Passcode?
-              </button>
+              <Link href="/login/forgot-password" title="Forgot Passcode" className="text-[10px] text-accent hover:underline flex items-center gap-1">
+                 <HelpCircle className="h-2 w-2" /> Forgot Passcode?
+              </Link>
             </div>
             <div className="relative">
               <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -153,16 +152,16 @@ export default function LoginPage() {
             </div>
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Processing..." : "Continue"}
+            {loading ? "Decrypting..." : "Establish Connection"}
             {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
           </Button>
         </form>
 
         <div className="text-center space-y-2">
           <p className="text-sm text-muted-foreground">
-            Don't have an account?{" "}
+            New Operative?{" "}
             <Link href="/register" className="text-accent hover:underline font-medium">
-              Create an account
+              Initialize Account
             </Link>
           </p>
         </div>

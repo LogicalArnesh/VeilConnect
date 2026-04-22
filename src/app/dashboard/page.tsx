@@ -19,14 +19,16 @@ import {
   ShieldAlert,
   Loader2,
   Plus,
-  Video
+  Video,
+  Mail,
+  VideoIcon
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { AISuggestions } from '@/components/dashboard/ai-suggestions';
 import { useRouter } from 'next/navigation';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { query, collection, where, doc, updateDoc, orderBy } from 'firebase/firestore';
-import { sendApprovalStatusEmail } from '@/app/actions/email-actions';
+import { query, collection, where, doc, updateDoc, orderBy, getDocs, addDoc } from 'firebase/firestore';
+import { sendApprovalStatusEmail, sendMeetingInvite } from '@/app/actions/email-actions';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -45,6 +47,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -55,6 +58,10 @@ export default function DashboardPage() {
   // Approval state
   const [approvingUser, setApprovingUser] = useState<{ id: string; email: string; name: string } | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>("Field Operative");
+  
+  // Meeting state
+  const [isMeetingDialogOpen, setIsMeetingDialogOpen] = useState(false);
+  const [meetingData, setMeetingData] = useState({ title: '', time: '', link: '', type: 'GMeet' });
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
@@ -73,6 +80,12 @@ export default function DashboardPage() {
   
   const { data: pendingUsers } = useCollection(pendingUsersQuery as any);
 
+  const meetingsQuery = useMemoFirebase(() => {
+    if (!db) return null;
+    return query(collection(db, 'meetings'), orderBy('createdAt', 'desc'));
+  }, [db]);
+  const { data: teamMeetings } = useCollection(meetingsQuery as any);
+
   if (!user) return null;
 
   const isAdmin = user.role === 'admin';
@@ -82,7 +95,11 @@ export default function DashboardPage() {
     if (!approvingUser) return;
     setIsProcessing(true);
     try {
-      // 1. Update Firestore
+      const adminQuery = query(collection(db, 'userProfiles'), where('role', '==', 'admin'));
+      const adminSnap = await getDocs(adminQuery);
+      const adminEmails = adminSnap.docs.map(doc => doc.data().email);
+      if (adminEmails.length === 0) adminEmails.push('meet.arnesh@gmail.com');
+
       await updateDoc(doc(db, 'userProfiles', approvingUser.id), {
         status: 'active',
         role: selectedRole.toLowerCase() === 'admin' ? 'admin' : 'user',
@@ -90,29 +107,47 @@ export default function DashboardPage() {
         updatedAt: new Date().toISOString()
       });
       
-      // 2. Send Emails (User receives approval, Admin receives confirmation)
-      await sendApprovalStatusEmail(approvingUser.email, approvingUser.name, 'approved', selectedRole);
+      await sendApprovalStatusEmail(approvingUser.email, approvingUser.name, 'approved', adminEmails, selectedRole);
       
-      toast({ title: "User Approved", description: `Assigned as ${selectedRole}. Notifications sent to user and administration.` });
+      toast({ title: "User Approved", description: `Assigned as ${selectedRole}. Notifications sent to individual admins.` });
       setApprovingUser(null);
     } catch (e) {
       console.error(e);
-      toast({ variant: "destructive", title: "Action Failed", description: "Database update or email transmission error." });
+      toast({ variant: "destructive", title: "Action Failed" });
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handleDeny = async (userId: string, email: string, name: string) => {
+  const handleCreateMeeting = async () => {
+    if (!meetingData.title || !meetingData.time || !meetingData.link) {
+      toast({ variant: "destructive", title: "Missing Fields" });
+      return;
+    }
+    setIsProcessing(true);
     try {
-      await updateDoc(doc(db, 'userProfiles', userId), {
-        status: 'denied',
-        updatedAt: new Date().toISOString()
+      await addDoc(collection(db, 'meetings'), {
+        ...meetingData,
+        createdBy: user.userId,
+        createdAt: new Date().toISOString()
       });
-      await sendApprovalStatusEmail(email, name, 'denied');
-      toast({ title: "User Denied", description: "Access restricted. Notification email sent." });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Action Failed" });
+
+      // Notify team members
+      const teamQuery = query(collection(db, 'userProfiles'), where('status', '==', 'active'));
+      const teamSnap = await getDocs(teamQuery);
+      const teamEmails = teamSnap.docs.map(doc => doc.data().email);
+
+      for (const email of teamEmails) {
+        await sendMeetingInvite(email, meetingData);
+      }
+
+      toast({ title: "Meeting Created", description: "Team members have been notified via individual emails." });
+      setIsMeetingDialogOpen(false);
+      setMeetingData({ title: '', time: '', link: '', type: 'GMeet' });
+    } catch (err) {
+      toast({ variant: "destructive", title: "Failed to schedule meeting" });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -132,7 +167,9 @@ export default function DashboardPage() {
           </div>
           {isAdmin && (
             <div className="flex gap-3">
-              <Button variant="outline" size="sm">Download Reports</Button>
+              <Button variant="outline" size="sm" onClick={() => setIsMeetingDialogOpen(true)}>
+                <Video className="h-4 w-4 mr-2" /> Schedule Meeting
+              </Button>
               <Button size="sm" className="bg-primary hover:bg-primary/90">
                 <Plus className="h-4 w-4 mr-2" /> New Assignment
               </Button>
@@ -161,7 +198,6 @@ export default function DashboardPage() {
                       size="sm" 
                       variant="outline" 
                       className="text-destructive hover:bg-destructive/10"
-                      onClick={() => handleDeny(pUser.id, pUser.email, pUser.fullName)}
                     >
                       <UserX className="h-4 w-4 mr-1" /> Deny
                     </Button>
@@ -181,9 +217,9 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard title="Total Tasks" value={isNewUser ? "0" : "24"} trend={isNewUser ? "No tasks yet" : "+12% from last week"} icon={<CheckCircle2 className="h-4 w-4 text-emerald-500" />} />
-          <StatCard title="Meetings" value={isNewUser ? "0" : "3"} trend={isNewUser ? "None scheduled" : "Next at 2:00 PM"} icon={<Calendar className="h-4 w-4 text-accent" />} />
+          <StatCard title="Meetings" value={teamMeetings?.length.toString() || "0"} trend={isNewUser ? "None scheduled" : "Operational briefings"} icon={<Calendar className="h-4 w-4 text-accent" />} />
           <StatCard title="Project Progress" value={isNewUser ? "0%" : "76%"} trend={isNewUser ? "Awaiting start" : "On track"} icon={<TrendingUp className="h-4 w-4 text-primary" />} />
-          <StatCard title="Team Activity" value="Active" trend="12 members online" icon={<Activity className="h-4 w-4 text-orange-500" />} />
+          <StatCard title="Team Activity" value="Active" trend="Connected" icon={<Activity className="h-4 w-4 text-orange-500" />} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -191,20 +227,18 @@ export default function DashboardPage() {
             <Tabs defaultValue="tasks" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-4">
                 <TabsTrigger value="tasks">Active Tasks</TabsTrigger>
-                <TabsTrigger value="meetings">Team Meetings</TabsTrigger>
+                <TabsTrigger value="meetings">Team Briefings</TabsTrigger>
               </TabsList>
               
               <TabsContent value="tasks">
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                      <CardTitle>Security Assignments</CardTitle>
-                      <CardDescription>Current operational priorities</CardDescription>
-                    </div>
+                  <CardHeader>
+                    <CardTitle>Security Assignments</CardTitle>
+                    <CardDescription>Current operational priorities</CardDescription>
                   </CardHeader>
                   <CardContent className={isNewUser ? "p-12 flex flex-col items-center justify-center text-center opacity-60" : "p-0"}>
                     {isNewUser ? (
-                      <EmptyState icon={<Inbox className="h-12 w-12" />} title="No tasks assigned" description="Your administrator will assign your first mission once your role is fully synchronized." />
+                      <EmptyState icon={<Inbox className="h-12 w-12" />} title="No tasks assigned" description="Awaiting role synchronization." />
                     ) : (
                       <div className="divide-y divide-border">
                         <TaskItem title="Firewall Log Analysis" due="Today" priority="High" progress={80} />
@@ -220,16 +254,16 @@ export default function DashboardPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Upcoming Sessions</CardTitle>
-                    <CardDescription>Coordinated team briefings</CardDescription>
+                    <CardDescription>Coordinated team briefings and syncs</CardDescription>
                   </CardHeader>
-                  <CardContent className={isNewUser ? "p-12 flex flex-col items-center justify-center text-center opacity-60" : "p-0"}>
-                    {isNewUser ? (
-                      <EmptyState icon={<Video className="h-12 w-12" />} title="No briefings scheduled" description="You haven't been invited to any security briefings yet." />
+                  <CardContent className={!teamMeetings?.length ? "p-12 flex flex-col items-center justify-center text-center opacity-60" : "p-0"}>
+                    {!teamMeetings?.length ? (
+                      <EmptyState icon={<Video className="h-12 w-12" />} title="No briefings scheduled" description="Stay tuned for operational updates." />
                     ) : (
                       <div className="divide-y divide-border">
-                        <MeetingItem title="Daily Stand-up" time="09:00 AM" date="May 24" participants={8} />
-                        <MeetingItem title="Project X Briefing" time="02:00 PM" date="May 24" participants={3} />
-                        <MeetingItem title="Tech Sync" time="11:00 AM" date="May 25" participants={5} />
+                        {teamMeetings.map((mt: any) => (
+                          <MeetingItem key={mt.id} title={mt.title} time={mt.time} date="Active" participants={5} link={mt.link} />
+                        ))}
                       </div>
                     )}
                   </CardContent>
@@ -249,13 +283,6 @@ export default function DashboardPage() {
                 <ProgressSection label="Intelligence" value={isNewUser ? 0 : 92} color="bg-primary" />
                 <ProgressSection label="Operations" value={isNewUser ? 0 : 78} color="bg-accent" />
                 <ProgressSection label="Cyber Defense" value={isNewUser ? 0 : 64} color="bg-emerald-500" />
-                <div className="pt-4 mt-4 border-t border-border">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold">Total Efficiency</span>
-                    <span className="text-sm text-accent font-bold">82%</span>
-                  </div>
-                  <Progress value={82} className="h-1.5" />
-                </div>
               </CardContent>
             </Card>
           </div>
@@ -297,6 +324,39 @@ export default function DashboardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Create Meeting Dialog */}
+      <Dialog open={isMeetingDialogOpen} onOpenChange={setIsMeetingDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Schedule Operation Briefing</DialogTitle>
+            <DialogDescription>
+              Team members will be notified individually via their secure email.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <Label>Meeting Title</Label>
+              <Input placeholder="e.g., Weekly Ops Sync" value={meetingData.title} onChange={(e) => setMeetingData({...meetingData, title: e.target.value})} />
+            </div>
+            <div className="space-y-2">
+              <Label>Scheduled Time</Label>
+              <Input placeholder="Tomorrow, 2:00 PM" value={meetingData.time} onChange={(e) => setMeetingData({...meetingData, time: e.target.value})} />
+            </div>
+            <div className="space-y-2">
+              <Label>Meeting Link (GMeet)</Label>
+              <Input placeholder="https://meet.google.com/..." value={meetingData.link} onChange={(e) => setMeetingData({...meetingData, link: e.target.value})} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsMeetingDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleCreateMeeting} disabled={isProcessing}>
+               {isProcessing ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Mail className="h-4 w-4 mr-2" />}
+               Schedule and Notify Team
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -327,26 +387,25 @@ function TaskItem({ title, due, priority, progress }: { title: string; due: stri
   );
 }
 
-function MeetingItem({ title, time, date, participants }: { title: string; time: string; date: string; participants: number }) {
+function MeetingItem({ title, time, date, participants, link }: { title: string; time: string; date: string; participants: number; link?: string }) {
   return (
     <div className="flex items-center justify-between p-4 hover:bg-secondary/10 transition-colors">
       <div className="flex gap-4">
         <div className="flex flex-col items-center justify-center bg-secondary/50 rounded-lg p-2 min-w-[60px]">
-          <span className="text-[10px] uppercase font-bold text-muted-foreground">{date.split(' ')[0]}</span>
-          <span className="text-sm font-bold">{date.split(' ')[1]}</span>
+          <span className="text-[10px] uppercase font-bold text-muted-foreground">{date}</span>
+          <VideoIcon className="h-4 w-4 text-primary" />
         </div>
         <div>
           <h4 className="text-sm font-semibold">{title}</h4>
           <div className="flex items-center gap-2 mt-1">
             <Clock className="h-3 w-3 text-accent" />
             <span className="text-xs text-muted-foreground">{time}</span>
-            <span className="text-xs text-muted-foreground">•</span>
-            <Users className="h-3 w-3 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">{participants} participants</span>
           </div>
         </div>
       </div>
-      <Button variant="outline" size="sm" className="text-xs h-8">Join</Button>
+      <Button variant="outline" size="sm" className="text-xs h-8" asChild>
+        <a href={link} target="_blank" rel="noopener noreferrer">Join</a>
+      </Button>
     </div>
   );
 }
