@@ -9,13 +9,14 @@ import {
   Activity, 
   Trash2, 
   User, 
-  Clock,
-  CheckCircle,
   Eye,
   EyeOff,
   Moon,
   Zap,
-  Coffee
+  Coffee,
+  CheckCircle,
+  Mail,
+  Calendar
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
@@ -63,7 +64,6 @@ export default function DashboardPage() {
       setPresence(snap.docs.map(d => ({ ...d.data(), id: d.id })));
     });
 
-    // Initial presence check-in
     setDoc(doc(db, 'presence', user.userId), {
       userId: user.userId,
       status: 'online',
@@ -98,7 +98,7 @@ export default function DashboardPage() {
     try {
       const userRef = doc(db, 'userProfiles', userId);
       const targetUser = allUsers.find(u => u.id === userId);
-      const adminEmails = allUsers.filter(u => u.role === 'admin' || u.role === 'head_admin').map(u => u.email);
+      const adminEmails = allUsers.filter(u => u.role === 'admin' || u.role === 'HeadAdmin').map(u => u.email);
 
       if (action === 'delete') {
         await deleteDoc(userRef);
@@ -138,8 +138,8 @@ export default function DashboardPage() {
 
   if (!currentUser) return null;
 
-  const isAdmin = currentUser.role === 'admin' || currentUser.role === 'head_admin';
-  const isHeadAdmin = currentUser.role === 'head_admin';
+  const isAdmin = currentUser.role === 'admin' || currentUser.role === 'HeadAdmin';
+  const isHeadAdmin = currentUser.role === 'HeadAdmin';
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -172,8 +172,8 @@ export default function DashboardPage() {
                 <CardTitle>Security Briefing</CardTitle>
                 <CardDescription>Operational status remains optimal. All encryption layers are active.</CardDescription>
               </CardHeader>
-              <CardContent className="h-32 flex items-center justify-center text-muted-foreground italic border-t border-dashed">
-                Strategic data stream active... No anomalies detected.
+              <CardContent className="h-32 flex items-center justify-center text-muted-foreground italic border-t border-dashed text-center px-6">
+                Strategic data stream active... No anomalies detected in Sector 01.
               </CardContent>
             </Card>
           </TabsContent>
@@ -251,8 +251,8 @@ export default function DashboardPage() {
                       )}
                     </div>
                     <div className="text-center">
-                      <Badge variant="outline" className="text-lg px-6 py-1 border-primary/40 text-primary">{currentUser.role.toUpperCase()}</Badge>
-                      <p className="text-xs text-muted-foreground mt-4 font-mono font-bold tracking-widest">UID: {currentUser.userId}</p>
+                      <Badge variant="outline" className="text-lg px-6 py-1 border-primary/40 text-primary">{currentUser.role.replace('_', ' ').toUpperCase()}</Badge>
+                      <p className="text-xs text-muted-foreground mt-4 font-mono font-bold tracking-widest uppercase">UID: {currentUser.userId}</p>
                     </div>
                   </div>
                 </div>
@@ -275,7 +275,9 @@ export default function DashboardPage() {
                           <th className="pb-4 pl-2">Operative</th>
                           <th className="pb-4">Status</th>
                           <th className="pb-4">Role</th>
+                          {isHeadAdmin && <th className="pb-4">Email</th>}
                           <th className="pb-4">Passcode</th>
+                          {isHeadAdmin && <th className="pb-4">Joined</th>}
                           <th className="pb-4 text-right pr-2">Actions</th>
                         </tr>
                       </thead>
@@ -288,8 +290,8 @@ export default function DashboardPage() {
                                   {user.photoUrl ? <img src={user.photoUrl} className="object-cover h-full w-full" /> : <User className="h-4 w-4" />}
                                 </div>
                                 <div>
-                                  <p className="font-bold">@{user.id}</p>
-                                  <p className="text-[10px] text-muted-foreground font-mono">{user.fullName}</p>
+                                  <p className="font-bold text-xs">@{user.id}</p>
+                                  <p className="text-[9px] text-muted-foreground font-mono">{user.fullName}</p>
                                 </div>
                               </div>
                             </td>
@@ -299,8 +301,16 @@ export default function DashboardPage() {
                               </Badge>
                             </td>
                             <td className="py-4">
-                              <span className="capitalize text-xs font-mono font-bold text-accent">{user.role}</span>
+                              <span className="capitalize text-[10px] font-mono font-bold text-accent">{user.role}</span>
                             </td>
+                            {isHeadAdmin && (
+                              <td className="py-4">
+                                <div className="flex items-center gap-1 text-[10px] font-mono">
+                                  <Mail className="h-3 w-3 text-muted-foreground" />
+                                  {user.email}
+                                </div>
+                              </td>
+                            )}
                             <td className="py-4 font-mono text-xs">
                               <div className="flex items-center gap-2">
                                 {showPasswords[user.id] ? (isHeadAdmin ? user.passcode : '••••••••') : '••••••••'}
@@ -314,6 +324,14 @@ export default function DashboardPage() {
                                 </Button>
                               </div>
                             </td>
+                            {isHeadAdmin && (
+                              <td className="py-4">
+                                <div className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground">
+                                  <Calendar className="h-3 w-3" />
+                                  {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                                </div>
+                              </td>
+                            )}
                             <td className="py-4 text-right pr-2 space-x-2">
                               {user.status === 'pending' && (
                                 <Button size="sm" variant="default" className="h-8" onClick={() => handleAction(user.id, 'approve')}>

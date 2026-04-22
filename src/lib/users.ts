@@ -1,4 +1,4 @@
-export type UserRole = 'head_admin' | 'admin' | 'user' | 'pending';
+export type UserRole = 'HeadAdmin' | 'admin' | 'user' | 'pending';
 
 export interface UserCredential {
   userId: string;
@@ -17,7 +17,7 @@ export const MOCK_USERS: UserCredential[] = [
   {
     userId: "ArneshBarik",
     passcode: "veilowner77",
-    role: "head_admin",
+    role: "HeadAdmin",
     fullName: "Arnesh Barik",
     email: HEAD_ADMIN_EMAIL,
     status: "active"

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -7,10 +6,10 @@ import { AuthLayout } from '@/components/auth/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Lock, ArrowRight, AlertCircle, HelpCircle, Clock } from 'lucide-react';
+import { User, Lock, ArrowRight, AlertCircle, Clock } from 'lucide-react';
 import { validateUser } from '@/lib/users';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import Link from 'next/link';
 
@@ -47,7 +46,6 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // Manual head admin check
       const mockUser = validateUser(formData.userId, formData.passcode);
       if (mockUser) {
         localStorage.setItem('veil_user', JSON.stringify({

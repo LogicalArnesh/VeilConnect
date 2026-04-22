@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 
 interface DashboardHeaderProps {
   userId: string;
-  role: 'admin' | 'user' | 'head_admin';
+  role: string;
 }
 
 export function DashboardHeader({ userId, role }: DashboardHeaderProps) {
@@ -67,7 +67,7 @@ export function DashboardHeader({ userId, role }: DashboardHeaderProps) {
             <div className="flex items-center gap-2">
               <span className="text-sm font-black text-foreground">@{userId}</span>
               <Badge 
-                variant={role === 'head_admin' ? 'default' : (role === 'admin' ? 'secondary' : 'outline')} 
+                variant={role === 'HeadAdmin' ? 'default' : (role === 'admin' ? 'secondary' : 'outline')} 
                 className="capitalize h-5 px-2 text-[9px] font-black tracking-tighter"
               >
                 {role.replace('_', ' ')}
