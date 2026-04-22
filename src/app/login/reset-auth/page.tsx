@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, Suspense } from 'react';
@@ -30,7 +31,7 @@ function ResetAuthContent() {
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId) {
-      setError('Missing session data.');
+      setError('System session timeout. Please restart recovery process.');
       return;
     }
     setError(null);
@@ -45,7 +46,7 @@ function ResetAuthContent() {
         } else if (data.code === code) {
           setIsVerified(true);
         } else {
-          setError('Invalid key.');
+          setError('Invalid operational key.');
         }
       } else {
         setError('Verification session not found.');
@@ -66,7 +67,7 @@ function ResetAuthContent() {
       const userRef = doc(db, 'userProfiles', userId);
       const userSnap = await getDoc(userRef);
       if (!userSnap.exists()) {
-        throw new Error('User profile not found.');
+        throw new Error('User profile not found in secure database.');
       }
       const userData = userSnap.data();
 
@@ -76,11 +77,13 @@ function ResetAuthContent() {
         await updateDoc(userRef, { passcode: newValue, updatedAt: new Date().toISOString() });
       }
 
-      await sendResetConfirmationEmail(email!, userData?.fullName || 'Operative', type);
+      if (email) {
+        await sendResetConfirmationEmail(email, userData?.fullName || 'Operative', type);
+      }
       await deleteDoc(doc(db, 'verificationCodes', userId));
       setSuccess(true);
     } catch (err: any) {
-      setError(err.message || 'Reset failed.');
+      setError(err.message || 'Identity update failed.');
     } finally {
       setLoading(false);
     }
@@ -115,7 +118,7 @@ function ResetAuthContent() {
           <form onSubmit={handleVerify} className="space-y-4">
             <div className="space-y-2 text-center">
               <p className="text-sm text-muted-foreground">Enter the key sent to:</p>
-              <p className="text-xs font-mono bg-secondary/50 p-1 rounded">{email}</p>
+              <p className="text-xs font-mono bg-secondary/50 p-1 rounded break-all">{email || 'your registered email'}</p>
             </div>
             <Input 
               placeholder="000000" 
@@ -155,7 +158,7 @@ function ResetAuthContent() {
 
 export default function ResetAuthPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin h-8 w-8" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="animate-spin h-8 w-8 text-primary" /></div>}>
       <ResetAuthContent />
     </Suspense>
   );

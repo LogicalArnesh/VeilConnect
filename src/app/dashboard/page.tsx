@@ -54,11 +54,8 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const [user, setUser] = useState<{ userId: string; role: string; fullName: string } | null>(null);
   
-  // Approval state
   const [approvingUser, setApprovingUser] = useState<{ id: string; email: string; name: string } | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>("Field Operative");
-  
-  // Meeting state
   const [isMeetingDialogOpen, setIsMeetingDialogOpen] = useState(false);
   const [meetingData, setMeetingData] = useState({ title: '', time: '', link: '', type: 'GMeet' });
   const [isProcessing, setIsProcessing] = useState(false);
@@ -69,7 +66,11 @@ export default function DashboardPage() {
       router.push('/login');
       return;
     }
-    setUser(JSON.parse(storedUser));
+    try {
+      setUser(JSON.parse(storedUser));
+    } catch (e) {
+      router.push('/login');
+    }
   }, [router]);
 
   const pendingUsersQuery = useMemoFirebase(() => {
@@ -108,11 +109,10 @@ export default function DashboardPage() {
       
       await sendApprovalStatusEmail(approvingUser.email, approvingUser.name, 'approved', adminEmails, selectedRole);
       
-      toast({ title: "User Approved", description: `Assigned as ${selectedRole}. Notifications sent to individual admins.` });
+      toast({ title: "User Approved", description: `Assigned as ${selectedRole}. Notification logs updated.` });
       setApprovingUser(null);
     } catch (e) {
-      console.error(e);
-      toast({ variant: "destructive", title: "Action Failed" });
+      toast({ variant: "destructive", title: "Action Failed", description: "Could not finalize approval state." });
     } finally {
       setIsProcessing(false);
     }
@@ -139,11 +139,11 @@ export default function DashboardPage() {
         await sendMeetingInvite(email, meetingData);
       }
 
-      toast({ title: "Meeting Created", description: "Team members have been notified via individual emails." });
+      toast({ title: "Meeting Created", description: "Operational briefing shared with team." });
       setIsMeetingDialogOpen(false);
       setMeetingData({ title: '', time: '', link: '', type: 'GMeet' });
     } catch (err) {
-      toast({ variant: "destructive", title: "Failed to schedule meeting" });
+      toast({ variant: "destructive", title: "Schedule Failed" });
     } finally {
       setIsProcessing(false);
     }
@@ -215,7 +215,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard title="Total Tasks" value={isNewUser ? "0" : "24"} trend={isNewUser ? "No tasks yet" : "+12% from last week"} icon={<CheckCircle2 className="h-4 w-4 text-emerald-500" />} />
-          <StatCard title="Meetings" value={teamMeetings?.length.toString() || "0"} trend={isNewUser ? "None scheduled" : "Operational briefings"} icon={<Calendar className="h-4 w-4 text-accent" />} />
+          <StatCard title="Meetings" value={teamMeetings?.length?.toString() || "0"} trend={isNewUser ? "None scheduled" : "Operational briefings"} icon={<Calendar className="h-4 w-4 text-accent" />} />
           <StatCard title="Project Progress" value={isNewUser ? "0%" : "76%"} trend={isNewUser ? "On track" : "On track"} icon={<TrendingUp className="h-4 w-4 text-primary" />} />
           <StatCard title="Team Activity" value="Active" trend="Connected" icon={<Activity className="h-4 w-4 text-orange-500" />} />
         </div>
