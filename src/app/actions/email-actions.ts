@@ -58,6 +58,7 @@ export async function sendSecurityEmail(to: string, code: string, name: string) 
     });
     return { success: true };
   } catch (err: any) {
+    console.error('Email send error:', err);
     return { success: false, error: err.message };
   }
 }

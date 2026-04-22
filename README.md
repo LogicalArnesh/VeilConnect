@@ -35,11 +35,10 @@ All registered users and security codes are stored in **Firestore**.
 5. **CRITICAL STEP: Add Environment Variables**:
    - Go to **Site settings > Environment variables**.
    - Click **Add a variable** and add these:
-     - `SMTP_PASSWORD`: `xvke gjjp hzwy owsi`
+     - `SMTP_PASSWORD`: (Your new 16-character Gmail App Password)
      - `GEMINI_API_KEY`: `AIzaSyB8QtTeEsfMMBoFcVAhzPZgvu4m9svUwMQ`
-6. **Trigger Deployment**:
-   - Go to the **Deploys** tab.
-   - Click **Trigger deploy** > **Clear cache and deploy site**.
+6. **Gmail Security Note**:
+   - If you changed your Gmail account password, you **MUST** generate a new App Password at [Google Account Settings > Security > App Passwords](https://myaccount.google.com/security) and update it in Netlify.
 
 ## Automatic Updates
 Once connected, every time you make changes here and push them to your GitHub repository (using `bash deploy.sh`), the hosting provider will detect the change and **re-deploy your site automatically**.
