@@ -1,0 +1,43 @@
+
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "fullName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user", "pending"] },
+        "status": { "type": "string", "enum": ["active", "pending", "denied"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "email", "fullName", "role", "status", "createdAt", "updatedAt"]
+    },
+    "VerificationCode": {
+      "title": "VerificationCode",
+      "type": "object",
+      "description": "Stores temporary security keys for 2FA.",
+      "properties": {
+        "userId": { "type": "string" },
+        "code": { "type": "string" },
+        "expiresAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "code", "expiresAt"]
+    }
+  },
+  "auth": {
+    "providers": ["password", "anonymous"]
+  },
+  "firestore": {
+    "/userProfiles/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profile data."
+    },
+    "/verificationCodes/{userId}": {
+      "schema": { "$ref": "#/entities/VerificationCode" },
+      "description": "Stores 2FA verification codes."
+    }
+  }
+}

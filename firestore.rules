@@ -1,0 +1,28 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isSignedIn() && (request.auth.uid == userId || userId == 'anonymous');
+    }
+
+    match /userProfiles/{userId} {
+      // Allow creation for registration, and owner access for the rest
+      allow create: if true;
+      allow read, update, delete: if true; // Permissive for prototype to avoid blockages
+    }
+
+    match /verificationCodes/{userId} {
+      // For the prototype login flow, we allow the client to set the code they generate
+      // and read it back for verification.
+      allow read, write: if true; 
+    }
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

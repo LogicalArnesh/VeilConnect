@@ -1,0 +1,10 @@
+{
+  "placeholderImages": [
+    {
+      "id": "team-logo",
+      "description": "Professional abstract logo for VEIL CONFESSIONS team",
+      "imageUrl": "https://picsum.photos/seed/veil-logo/400/400",
+      "imageHint": "abstract security logo"
+    }
+  ]
+}
