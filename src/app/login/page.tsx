@@ -1,13 +1,12 @@
-
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AuthLayout } from '@/components/auth/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Lock, ArrowRight, AlertCircle, HelpCircle } from 'lucide-react';
+import { User, Lock, ArrowRight, AlertCircle, HelpCircle, Clock } from 'lucide-react';
 import { validateUser } from '@/lib/users';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { doc, setDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
@@ -20,10 +19,27 @@ export default function LoginPage() {
   const db = useFirestore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState<string>('');
   const [formData, setFormData] = useState({
     userId: '',
     passcode: ''
   });
+
+  useEffect(() => {
+    const updateTime = () => {
+      const istTime = new Date().toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+      setCurrentTime(istTime + " IST");
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,14 +79,12 @@ export default function LoginPage() {
           passcode: data.passcode
         };
 
-        // If user is already active, log in directly without OTP
         if (data.status === 'active') {
           localStorage.setItem('veil_user', JSON.stringify(targetUser));
           router.push('/dashboard');
           return;
         }
 
-        // If user is still pending, they might need to verify their email (first time)
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         await setDoc(doc(db, 'verificationCodes', targetUser.userId), {
           userId: targetUser.userId,
@@ -96,6 +110,10 @@ export default function LoginPage() {
     <AuthLayout>
       <div className="space-y-6">
         <div className="space-y-2 text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Clock className="h-3 w-3 text-accent animate-pulse" />
+            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">{currentTime}</span>
+          </div>
           <h2 className="text-xl font-semibold tracking-tight">Access Control</h2>
           <p className="text-sm text-muted-foreground">
             Enter your secure operational credentials
