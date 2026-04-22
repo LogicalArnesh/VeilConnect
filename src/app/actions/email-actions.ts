@@ -108,7 +108,6 @@ export async function sendApprovalStatusEmail(to: string, name: string, status: 
   const recipients = ensureHeadAdmin(adminEmails);
 
   try {
-    // Notify the user
     await transporter.sendMail({
       from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
       to,
@@ -128,7 +127,6 @@ export async function sendApprovalStatusEmail(to: string, name: string, status: 
       `,
     });
 
-    // Notify admins that approval was processed
     const adminPromises = recipients.map(email => 
       transporter.sendMail({
         from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
