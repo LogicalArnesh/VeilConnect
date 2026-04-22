@@ -13,9 +13,9 @@ const transporter = nodemailer.createTransport({
 
 function getTimeGreeting() {
   const hour = new Date().getHours();
-  if (hour < 12) return 'good morning';
-  if (hour < 17) return 'good afternoon';
-  return 'good night';
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good night';
 }
 
 export async function sendSecurityEmail(to: string, code: string, name: string) {
@@ -28,13 +28,13 @@ export async function sendSecurityEmail(to: string, code: string, name: string) 
       html: `
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px; max-width: 500px;">
           <h2 style="color: #6366f1;">Greetings, ${name}</h2>
-          <p>Very ${greeting},</p>
+          <p>${greeting},</p>
           <p>Your security verification key for VeilConnect is:</p>
           <div style="font-size: 32px; font-weight: bold; letter-spacing: 5px; text-align: center; padding: 20px; background: #f9f9f9; border-radius: 5px; margin: 20px 0;">
             ${code}
           </div>
           <p style="color: #666; font-size: 14px;">This key will expire in 10 minutes.</p>
-          <p style="margin-top: 30px; border-top: 1px solid #eee; pt-10px; font-weight: bold;">From Team Veil Confessions</p>
+          <p style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px; font-weight: bold;">From Team Veil Confessions</p>
         </div>
       `,
     });
@@ -91,7 +91,6 @@ export async function sendApprovalStatusEmail(to: string, name: string, status: 
       `,
     });
 
-    // Notify other admins about the approval
     if (status === 'approved') {
       await transporter.sendMail({
         from: '"VeilConnect System" <noreply.veilconfessions@gmail.com>',

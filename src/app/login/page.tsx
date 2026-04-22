@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { User, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 import { validateUser } from '@/lib/users';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { doc, setDoc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { doc, setDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { useFirestore } from '@/firebase';
 import { sendSecurityEmail } from '@/app/actions/email-actions';
 import Link from 'next/link';
@@ -30,17 +30,14 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
 
-    // 1. Check hardcoded/mock users (like super admins)
     const mockUser = validateUser(formData.userId, formData.passcode);
 
     if (mockUser && mockUser.role === 'admin') {
-      // ADMIN BYPASS: No 2FA as requested
       localStorage.setItem('veil_user', JSON.stringify(mockUser));
       router.push('/dashboard');
       return;
     }
 
-    // 2. Check Firestore users
     try {
       const q = query(
         collection(db, 'userProfiles'),
@@ -51,7 +48,6 @@ export default function LoginPage() {
       const querySnapshot = await getDocs(q);
 
       let targetUser = mockUser;
-      let isFirestoreUser = false;
 
       if (!querySnapshot.empty) {
         const data = querySnapshot.docs[0].data();
@@ -67,11 +63,9 @@ export default function LoginPage() {
           role: data.role as any,
           passcode: data.passcode
         };
-        isFirestoreUser = true;
       }
 
       if (targetUser) {
-        // Standard User or approved analyst: Send 2FA
         const code = Math.floor(100000 + Math.random() * 900000).toString();
         
         await setDoc(doc(db, 'verificationCodes', targetUser.userId), {
@@ -87,7 +81,7 @@ export default function LoginPage() {
           localStorage.setItem('pending_verification_user', targetUser.userId);
           router.push('/login/2fa');
         } else {
-          setError('Failed to send security key. Please check your network.');
+          setError(`Security key transmission failed: ${emailResult.error || 'Check system credentials'}`);
         }
       } else {
         setError('Invalid User ID or passcode.');

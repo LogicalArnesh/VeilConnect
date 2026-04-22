@@ -58,7 +58,7 @@ export default function RegisterPage() {
         localStorage.setItem('pending_verification_user', formData.userId);
         router.push('/login/2fa');
       } else {
-        setError('Failed to send verification email. System setup required.');
+        setError(`Failed to send verification email: ${emailResult.error || 'System setup required. Please contact admin.'}`);
       }
     } catch (err: any) {
       console.error('Registration Error:', err);
