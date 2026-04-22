@@ -38,7 +38,7 @@ If you need to completely clear your GitHub history and start fresh:
    - Go to **Site settings > Environment variables**.
    - Click **Add a variable** and add these:
      - `SMTP_PASSWORD`: `xvke gjjp hzwy owsi`
-     - `GEMINI_API_KEY`: (Your Google AI API Key)
+     - `GEMINI_API_KEY`: `AIzaSyB8QtTeEsfMMBoFcVAhzPZgvu4m9svUwMQ`
      - `NEXT_PUBLIC_FIREBASE_CONFIG`: (Copy the JSON from your `src/firebase/config.ts`)
 
 ### Option B: Firebase App Hosting
@@ -47,7 +47,8 @@ If you need to completely clear your GitHub history and start fresh:
 3. Click **Get Started** and connect your GitHub repository.
 4. **Add Environment Variables**:
    - In the App Hosting dashboard, go to **Settings > Environment variables**.
-   - Add `SMTP_PASSWORD` and `GEMINI_API_KEY`.
+   - Add `SMTP_PASSWORD`: `xvke gjjp hzwy owsi`
+   - Add `GEMINI_API_KEY`: `AIzaSyB8QtTeEsfMMBoFcVAhzPZgvu4m9svUwMQ`
 
 ## Automatic Updates
 Once connected, every time you make changes here and push them to your GitHub repository (using `bash deploy.sh`), the hosting provider will detect the change and **re-deploy your site automatically**.
