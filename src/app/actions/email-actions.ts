@@ -38,7 +38,7 @@ export async function sendSecurityEmail(to: string, code: string, name: string) 
       to,
       subject: 'Security Protocol: Identity Verification Key',
       html: `
-        <div style="background: #fdfdfd; padding: 30 (IST); font-family: sans-serif; color: #333;">
+        <div style="background: #fdfdfd; padding: 30px; font-family: sans-serif; color: #333;">
           <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #f0f0f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
             <div style="background: linear-gradient(135deg, ${PRIMARY_COLOR}, ${ACCENT_COLOR}); padding: 30px; text-align: center;">
               <h1 style="color: white; margin: 0; font-size: 24px;">Verification Key</h1>
