@@ -2,10 +2,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { User, Bell, Search, LogOut } from 'lucide-react';
+import { User, Search, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 
 interface DashboardHeaderProps {
@@ -14,11 +13,28 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ userId, role }: DashboardHeaderProps) {
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState<string>('');
   const router = useRouter();
 
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    const updateTime = () => {
+      const now = new Date();
+      const istTime = now.toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+      setCurrentTime(istTime + " (IST)");
+    };
+
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
     return () => clearInterval(timer);
   }, []);
 
@@ -37,11 +53,9 @@ export function DashboardHeader({ userId, role }: DashboardHeaderProps) {
 
       <div className="flex items-center gap-6">
         <div className="hidden lg:flex flex-col items-end">
-          <span className="text-sm font-medium text-foreground">
-            {format(currentTime, 'EEEE, MMMM do')}
-          </span>
-          <span className="text-xs text-muted-foreground tabular-nums">
-            {format(currentTime, 'HH:mm:ss')}
+          <span className="text-[11px] font-bold text-accent uppercase tracking-tighter">Current Deployment Time</span>
+          <span className="text-xs font-medium text-foreground tabular-nums">
+            {currentTime}
           </span>
         </div>
 

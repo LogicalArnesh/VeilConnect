@@ -1,5 +1,5 @@
 
-# VeilConnect | Deployment Guide
+# VeilConnect | Deployment & Management Guide
 
 This project is a Next.js application designed for the **Veil Confessions** security team.
 
@@ -12,16 +12,14 @@ To get your code live, follow these steps in your local terminal:
    bash deploy.sh
    ```
 
-## How to Reset and Re-Publish
-If you need to completely clear your GitHub history and start fresh:
-1. **Remove local Git folder**:
-   ```bash
-   rm -rf .git
-   ```
-2. **Re-run the deploy script**:
-   ```bash
-   bash deploy.sh
-   ```
+## How to Access User Data
+All registered users and security codes are stored in **Firestore**.
+1. Go to the [Firebase Console](https://console.firebase.google.com/).
+2. Select the project: `studio-1771046886-1b742`.
+3. Click on **Firestore Database** in the left sidebar.
+4. You can see:
+   - `userProfiles`: List of all users, their passwords, and roles.
+   - `verificationCodes`: Active OTP codes for 2FA.
 
 ## How to Publish for Free (Web App)
 
@@ -43,17 +41,5 @@ If you need to completely clear your GitHub history and start fresh:
    - Go to the **Deploys** tab.
    - Click **Trigger deploy** > **Clear cache and deploy site**.
 
-### Option B: Firebase App Hosting
-1. Go to the [Firebase Console](https://console.firebase.google.com/).
-2. Navigate to **Build > App Hosting**.
-3. Click **Get Started** and connect your GitHub repository.
-4. **Add Environment Variables**:
-   - In the App Hosting dashboard, go to **Settings > Environment variables**.
-   - Add `SMTP_PASSWORD`: `xvke gjjp hzwy owsi`
-   - Add `GEMINI_API_KEY`: `AIzaSyB8QtTeEsfMMBoFcVAhzPZgvu4m9svUwMQ`
-
 ## Automatic Updates
 Once connected, every time you make changes here and push them to your GitHub repository (using `bash deploy.sh`), the hosting provider will detect the change and **re-deploy your site automatically**.
-
-## Accessing User Data
-All registered users and security codes are stored in **Firestore**. You can access them at any time by going to your Firebase Console and clicking on **Firestore Database**.
