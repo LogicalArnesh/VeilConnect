@@ -11,9 +11,9 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const PRIMARY_COLOR = '#e14a1d'; // Reddish-Orange
-const ACCENT_COLOR = '#f59e0b'; // Golden-Yellow
-const BG_COLOR = '#110d0c';
+const PRIMARY_COLOR = '#e14a1d'; // Vibrant Red-Orange
+const ACCENT_COLOR = '#f59e0b'; // Amber-Yellow
+const BG_COLOR = '#120d0b';
 
 function getISTDateString() {
   return new Date().toLocaleString('en-IN', {
@@ -23,51 +23,46 @@ function getISTDateString() {
   }) + ' (IST)';
 }
 
-function getTimeGreeting() {
-  const hour = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })).getHours();
-  if (hour < 12) return 'Good Morning';
-  if (hour < 17) return 'Good Afternoon';
-  return 'Good Evening';
-}
-
 const EMAIL_FOOTER = `
-  <div style="margin-top: 40px; border-top: 1px solid #3d2b26; padding-top: 25px; color: #8c736c; font-size: 11px; font-family: 'Inter', sans-serif;">
-    <p style="margin: 0; font-weight: 600; color: #e14a1d;">VeilConnect Operations Security</p>
-    <p style="margin: 4px 0;">This is an automated system communication from the VeilConnect Interactive platform. Please do not respond to this address.</p>
-    <p style="margin: 4px 0;">&copy; ${new Date().getFullYear()} Veil Confessions Intelligence Unit. All rights reserved.</p>
+  <div style="margin-top: 40px; border-top: 1px solid #3d2b26; padding-top: 25px; color: #8c736c; font-size: 11px; font-family: 'Inter', sans-serif; text-align: center;">
+    <p style="margin: 0; font-weight: 600; color: ${PRIMARY_COLOR}; letter-spacing: 1px; text-transform: uppercase;">VeilConnect Operations Command</p>
+    <p style="margin: 6px 0;">This is a secure, automated communication. Do not reply to this address.</p>
+    <p style="margin: 6px 0;">&copy; ${new Date().getFullYear()} Veil Confessions Intelligence Unit. Unauthorized reproduction is strictly prohibited.</p>
   </div>
 `;
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://veilconnect.netlify.app';
 const HEAD_ADMIN_EMAIL = 'meet.arnesh@gmail.com';
 
-function ensureHeadAdmin(emails: string[]) {
-  const set = new Set(emails);
-  set.add(HEAD_ADMIN_EMAIL);
-  return Array.from(set);
+async function getAdminEmails() {
+  // In a real scenario, we'd query Firestore here. For the prototype, we ensure the head admin is included.
+  return [HEAD_ADMIN_EMAIL];
 }
 
 export async function sendSecurityEmail(to: string, code: string, name: string) {
-  const greeting = getTimeGreeting();
   const time = getISTDateString();
   try {
     await transporter.sendMail({
       from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
       to,
-      subject: 'Security Verification Protocol: Identity Key',
+      subject: 'Security Protocol: Identity Verification Key',
       html: `
-        <div style="background-color: #fcfcfc; padding: 40px; font-family: 'Inter', Helvetica, Arial, sans-serif; color: #1a1514;">
-          <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #f0e6e4; border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
-            <div style="border-left: 4px solid ${PRIMARY_COLOR}; padding-left: 20px; margin-bottom: 30px;">
-              <h2 style="color: ${PRIMARY_COLOR}; margin: 0; font-size: 24px; letter-spacing: -0.5px;">Identity Verification</h2>
-              <p style="color: #665550; margin: 5px 0 0 0; font-size: 14px;">${greeting}, ${name}.</p>
+        <div style="background-color: #f8f5f4; padding: 40px; font-family: 'Helvetica Neue', Arial, sans-serif; color: #1a1514;">
+          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
+            <div style="background: linear-gradient(135deg, ${PRIMARY_COLOR}, ${ACCENT_COLOR}); padding: 40px; text-align: center;">
+              <h1 style="color: white; margin: 0; font-size: 28px; letter-spacing: -1px; font-weight: 800;">Identity Verification</h1>
             </div>
-            <p style="font-size: 16px; line-height: 1.6; color: #4a3a35;">To proceed with your secure access request, please utilize the single-use verification key provided below:</p>
-            <div style="background: #fff8f6; border: 2px solid ${PRIMARY_COLOR}; border-radius: 12px; padding: 30px; margin: 30px 0; text-align: center;">
-              <span style="font-family: 'Courier New', monospace; font-size: 42px; font-weight: 800; letter-spacing: 12px; color: ${PRIMARY_COLOR};">${code}</span>
+            <div style="padding: 40px;">
+              <p style="font-size: 16px; line-height: 1.6; color: #4a3a35;">Greetings, <strong>${name}</strong>.</p>
+              <p style="font-size: 15px; color: #665550; line-height: 1.6;">A request has been initiated to access the VeilConnect secure environment. Please utilize the unique authorization key below:</p>
+              <div style="background: #fff8f6; border: 2px dashed ${PRIMARY_COLOR}; border-radius: 12px; padding: 30px; margin: 30px 0; text-align: center;">
+                <span style="font-family: 'Courier New', monospace; font-size: 48px; font-weight: 800; letter-spacing: 10px; color: ${PRIMARY_COLOR};">${code}</span>
+              </div>
+              <p style="font-size: 13px; color: #8c736c; text-align: center; margin-bottom: 30px;">Key issued at: <strong>${time}</strong> (Valid for 10 minutes)</p>
+              <div style="padding-top: 20px; border-top: 1px solid #f0e6e4;">
+                <p style="font-size: 14px; color: #665550; margin-bottom: 0;">If you did not request this verification, please ignore this email or report the attempt.</p>
+              </div>
             </div>
-            <p style="font-size: 13px; color: #8c736c;">Request Timestamp: <strong>${time}</strong></p>
-            <p style="font-size: 14px; color: #4a3a35; border-top: 1px solid #f0e6e4; padding-top: 20px; margin-top: 30px;">This key will expire in 10 minutes. If you did not request this verification, please contact your unit lead immediately.</p>
             ${EMAIL_FOOTER}
           </div>
         </div>
@@ -81,26 +76,30 @@ export async function sendSecurityEmail(to: string, code: string, name: string) 
 
 export async function sendAdminNotification(userData: { userId: string; email: string; fullName: string }, adminEmails: string[]) {
   const time = getISTDateString();
-  const recipients = ensureHeadAdmin(adminEmails);
+  const recipients = Array.from(new Set([...adminEmails, HEAD_ADMIN_EMAIL]));
   
   try {
     const promises = recipients.map(email => 
       transporter.sendMail({
         from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
         to: email,
-        subject: `ACTION REQUIRED: New Operative Verification - ${userData.userId}`,
+        subject: `[ALERT] New Operative Registration: ${userData.userId}`,
         html: `
-          <div style="background-color: #fcfcfc; padding: 40px; font-family: sans-serif;">
-            <div style="max-width: 600px; margin: 0 auto; background: white; border-top: 4px solid ${ACCENT_COLOR}; border-radius: 8px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-              <h2 style="color: #1a1514;">New Access Request</h2>
-              <p style="color: #4a3a35;">A new operative has verified their email and is awaiting role synchronization.</p>
-              <div style="background: #fffdf5; border-left: 4px solid ${ACCENT_COLOR}; padding: 20px; border-radius: 4px; margin: 25px 0;">
-                <p style="margin: 8px 0; font-size: 14px;"><strong>Full Name:</strong> ${userData.fullName}</p>
-                <p style="margin: 8px 0; font-size: 14px;"><strong>System ID:</strong> ${userData.userId}</p>
-                <p style="margin: 8px 0; font-size: 14px;"><strong>Email:</strong> ${userData.email}</p>
-                <p style="margin: 8px 0; font-size: 14px;"><strong>Verified At:</strong> ${time}</p>
+          <div style="background-color: #f8f5f4; padding: 40px; font-family: sans-serif;">
+            <div style="max-width: 600px; margin: 0 auto; background: white; border-top: 6px solid ${ACCENT_COLOR}; border-radius: 8px; padding: 40px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+              <h2 style="color: #1a1514; margin-top: 0; font-size: 22px;">New Access Request</h2>
+              <p style="color: #4a3a35; font-size: 15px;">An individual has successfully verified their email and is awaiting deployment authorization.</p>
+              <div style="background: #fffdf5; border-left: 4px solid ${ACCENT_COLOR}; padding: 25px; border-radius: 6px; margin: 30px 0;">
+                <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+                  <tr><td style="padding: 8px 0; color: #8c736c;">Full Name</td><td style="padding: 8px 0; font-weight: bold; color: #1a1514;">${userData.fullName}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #8c736c;">System ID</td><td style="padding: 8px 0; font-weight: bold; color: #1a1514;">${userData.userId}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #8c736c;">Email</td><td style="padding: 8px 0; font-weight: bold; color: #1a1514;">${userData.email}</td></tr>
+                  <tr><td style="padding: 8px 0; color: #8c736c;">Verified At</td><td style="padding: 8px 0; font-weight: bold; color: #1a1514;">${time}</td></tr>
+                </table>
               </div>
-              <a href="${APP_URL}/dashboard" style="display: inline-block; background: ${PRIMARY_COLOR}; color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Access Command Center</a>
+              <div style="text-align: center;">
+                <a href="${APP_URL}/dashboard" style="display: inline-block; background: ${PRIMARY_COLOR}; color: #ffffff; padding: 16px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Access Command Center</a>
+              </div>
               ${EMAIL_FOOTER}
             </div>
           </div>
@@ -114,60 +113,58 @@ export async function sendAdminNotification(userData: { userId: string; email: s
   }
 }
 
-export async function sendApprovalStatusEmail(to: string, name: string, status: 'approved' | 'denied', adminEmails: string[], role?: string) {
+export async function sendRecoveryEmail(to: string, code: string, type: 'uid' | 'password') {
+  const typeStr = type === 'uid' ? 'User ID Recovery' : 'Passcode Reset';
   const time = getISTDateString();
-  const subject = status === 'approved' ? 'Deployment Confirmed: Account Activated' : 'Status Update: Access Request';
-  const recipients = ensureHeadAdmin(adminEmails);
-
   try {
     await transporter.sendMail({
       from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
       to,
-      subject,
+      subject: `[URGENT] ${typeStr} Key Requested`,
       html: `
-        <div style="background-color: #fcfcfc; padding: 40px; font-family: sans-serif;">
-          <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #f0e6e4; border-radius: 12px; padding: 40px;">
-            <h2 style="color: ${status === 'approved' ? '#059669' : '#dc2626'}; margin-top: 0;">Operational Status Update</h2>
-            <p style="font-size: 16px; color: #4a3a35;">Greetings, ${name}.</p>
-            ${status === 'approved' 
-              ? `<p style="font-size: 15px; color: #4a3a35; line-height: 1.6;">Your registration has been processed successfully. You have been formally assigned the following operational role: <strong style="color: ${PRIMARY_COLOR};">${role}</strong>.</p>`
-              : `<p style="font-size: 15px; color: #4a3a35; line-height: 1.6;">We wish to inform you that your request for access to the VeilConnect platform has been declined by the administration unit.</p>`}
-            <p style="font-size: 13px; color: #8c736c; margin-top: 20px;">Execution Timestamp: ${time}</p>
-            ${status === 'approved' ? `<div style="margin-top: 40px;"><a href="${APP_URL}" style="background: ${PRIMARY_COLOR}; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Log In to Operations</a></div>` : ''}
+        <div style="background-color: #fff; padding: 40px; font-family: sans-serif;">
+          <div style="max-width: 600px; margin: 0 auto; border: 1px solid #f0e6e4; border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.04);">
+            <h2 style="color: ${PRIMARY_COLOR}; font-size: 24px;">Account Recovery Protocol</h2>
+            <p style="color: #4a3a35; font-size: 15px;">A request for <strong>${typeStr}</strong> has been received for this account.</p>
+            <div style="background: #fff8f6; border-radius: 12px; padding: 30px; text-align: center; margin: 30px 0;">
+              <span style="font-size: 40px; font-weight: 800; letter-spacing: 8px; color: #1a1514;">${code}</span>
+            </div>
+            <div style="background: #fef2f2; border: 1px solid #fee2e2; border-radius: 12px; padding: 25px; color: #991b1b; font-size: 14px; margin-bottom: 30px;">
+              <strong style="display: block; margin-bottom: 10px; font-size: 16px;">SECURITY WARNING</strong>
+              If you did not initiate this request, your account may be under observation. Please report this immediately using the link below to freeze unauthorized access.
+              <br/><br/>
+              <a href="${APP_URL}/security-alert?user=${encodeURIComponent(to)}&type=${type}" style="background: #dc2626; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">REPORT UNAUTHORIZED ATTEMPT</a>
+            </div>
+            <p style="font-size: 12px; color: #8c736c; text-align: center;">Requested at: ${time}</p>
             ${EMAIL_FOOTER}
           </div>
         </div>
       `,
     });
     return { success: true };
-  } catch (error: any) {
+  } catch (err) {
     return { success: false };
   }
 }
 
-export async function sendRecoveryEmail(to: string, code: string, type: 'uid' | 'password') {
-  const typeStr = type === 'uid' ? 'User ID Recovery' : 'Credential Reset';
+export async function sendResetConfirmationEmail(to: string, name: string, type: 'uid' | 'password') {
+  const typeStr = type === 'uid' ? 'User ID' : 'Passcode';
   const time = getISTDateString();
   try {
     await transporter.sendMail({
       from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
       to,
-      subject: `URGENT: ${typeStr} Requested`,
+      subject: `[CONFIRMED] Account Security Update: ${typeStr}`,
       html: `
-        <div style="background-color: #fcfcfc; padding: 40px; font-family: sans-serif;">
-          <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #f0e6e4; border-radius: 12px; padding: 40px;">
-            <h2 style="color: ${PRIMARY_COLOR};">Account Security Protocol</h2>
-            <p style="color: #4a3a35;">A request was received to verify identity for: <strong>${typeStr}</strong>.</p>
-            <div style="background: #fff8f6; border-radius: 8px; padding: 25px; text-align: center; margin: 30px 0;">
-              <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #1a1514;">${code}</span>
+        <div style="background-color: #f8f5f4; padding: 40px; font-family: sans-serif;">
+          <div style="max-width: 600px; margin: 0 auto; background: white; border-top: 6px solid #059669; border-radius: 12px; padding: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+            <h2 style="color: #059669; margin-top: 0;">Security Update Successful</h2>
+            <p style="color: #4a3a35; font-size: 16px;">Greetings, ${name}.</p>
+            <p style="color: #4a3a35; line-height: 1.6;">This email serves as official confirmation that your <strong>${typeStr}</strong> has been updated securely via the operational console.</p>
+            <p style="font-size: 13px; color: #8c736c; margin-top: 25px;">Update Timestamp: ${time}</p>
+            <div style="margin-top: 35px; text-align: center;">
+              <a href="${APP_URL}/login" style="background: ${PRIMARY_COLOR}; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; text-transform: uppercase; font-size: 13px; letter-spacing: 1px;">Log In to Platform</a>
             </div>
-            <div style="background: #fef2f2; border: 1px solid #fee2e2; border-radius: 8px; padding: 20px; color: #991b1b; font-size: 14px; margin-bottom: 25px;">
-              <strong style="display: block; margin-bottom: 5px; font-size: 16px;">CRITICAL SECURITY ALERT:</strong>
-              If you did NOT initiate this request, your credentials may be compromised. Report this attempt immediately to secure your data.
-              <br/><br/>
-              <a href="${APP_URL}/security-alert?user=${encodeURIComponent(to)}&type=${type}" style="background: #dc2626; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">REPORT UNAUTHORIZED ATTEMPT</a>
-            </div>
-            <p style="font-size: 12px; color: #8c736c;">Requested at: ${time}</p>
             ${EMAIL_FOOTER}
           </div>
         </div>
@@ -185,23 +182,62 @@ export async function sendTaskNotification(to: string, name: string, taskTitle: 
     await transporter.sendMail({
       from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
       to,
-      subject: `NEW ASSIGNMENT: ${taskTitle}`,
+      subject: `[MISSION] New Task Assignment: ${taskTitle}`,
       html: `
-        <div style="background-color: #fcfcfc; padding: 40px; font-family: sans-serif;">
-          <div style="max-width: 600px; margin: 0 auto; background: white; border-top: 4px solid ${PRIMARY_COLOR}; border-radius: 8px; padding: 40px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-            <h2 style="color: #1a1514; margin-top: 0;">New Task Assignment</h2>
-            <p style="color: #4a3a35; font-size: 16px;">Greetings, ${name}.</p>
-            <p style="color: #4a3a35; line-height: 1.6;">A new operational task has been assigned to your unit:</p>
-            <div style="background: #f8fafc; padding: 25px; border-radius: 10px; border: 1px solid #e2e8f0; margin: 25px 0;">
-              <h3 style="color: ${PRIMARY_COLOR}; margin: 0; font-size: 18px;">${taskTitle}</h3>
-              <p style="margin: 10px 0 0 0; color: #64748b; font-size: 13px;">Assigned At: ${time}</p>
+        <div style="background-color: #f8f5f4; padding: 40px; font-family: sans-serif;">
+          <div style="max-width: 600px; margin: 0 auto; background: white; border-top: 6px solid ${PRIMARY_COLOR}; border-radius: 12px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+            <h2 style="color: #1a1514; margin-top: 0; font-size: 24px;">New Assignment Dispatched</h2>
+            <p style="color: #4a3a35; font-size: 16px;">Operative <strong>${name}</strong>,</p>
+            <p style="color: #4a3a35; line-height: 1.6;">A new high-priority operational task has been assigned to your unit:</p>
+            <div style="background: #fcfcfc; padding: 30px; border-radius: 12px; border: 1px solid #f0e6e4; margin: 30px 0; text-align: center;">
+              <h3 style="color: ${PRIMARY_COLOR}; margin: 0; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">${taskTitle}</h3>
+              <p style="margin: 15px 0 0 0; color: #8c736c; font-size: 13px;">Dispatch Time: ${time}</p>
             </div>
-            <a href="${APP_URL}/dashboard" style="display: inline-block; background: ${PRIMARY_COLOR}; color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;">VIEW TASK DETAILS</a>
+            <div style="text-align: center;">
+              <a href="${APP_URL}/dashboard" style="display: inline-block; background: ${PRIMARY_COLOR}; color: #ffffff; padding: 18px 36px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 14px;">VIEW ASSIGNMENT DETAILS</a>
+            </div>
             ${EMAIL_FOOTER}
           </div>
         </div>
       `
     });
+    return { success: true };
+  } catch (err) {
+    return { success: false };
+  }
+}
+
+export async function sendBreachAlertToAdmins(compromisedEmail: string, type: string, adminEmails: string[]) {
+  const time = getISTDateString();
+  const recipients = Array.from(new Set([...adminEmails, HEAD_ADMIN_EMAIL]));
+  
+  try {
+    const promises = recipients.map(email => 
+      transporter.sendMail({
+        from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
+        to: email,
+        subject: `[CRITICAL] Security Breach Alert: ${compromisedEmail}`,
+        html: `
+          <div style="background-color: #450a0a; padding: 40px; font-family: sans-serif;">
+            <div style="max-width: 600px; margin: 0 auto; background: white; border-top: 10px solid #dc2626; border-radius: 12px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+              <h1 style="color: #991b1b; font-size: 26px; margin-top: 0; text-align: center;">SECURITY ALERT</h1>
+              <p style="color: #4a3a35; font-size: 16px; line-height: 1.6; text-align: center;">A user has manually reported an unauthorized access attempt to their account.</p>
+              <div style="background: #fef2f2; border: 2px solid #fee2e2; padding: 30px; border-radius: 12px; margin: 30px 0;">
+                <p style="margin: 10px 0; font-size: 15px;"><strong>Target Account:</strong> ${compromisedEmail}</p>
+                <p style="margin: 10px 0; font-size: 15px;"><strong>Attempt Type:</strong> ${type}</p>
+                <p style="margin: 10px 0; font-size: 15px;"><strong>Report Timestamp:</strong> ${time}</p>
+              </div>
+              <p style="color: #991b1b; font-weight: bold; text-align: center;">RECOMMENDED ACTION: Freeze account credentials immediately.</p>
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="${APP_URL}/dashboard" style="display: inline-block; background: #dc2626; color: white; padding: 18px 36px; text-decoration: none; border-radius: 10px; font-weight: bold; text-transform: uppercase;">Manage Security Freeze</a>
+              </div>
+              ${EMAIL_FOOTER}
+            </div>
+          </div>
+        `,
+      })
+    );
+    await Promise.all(promises);
     return { success: true };
   } catch (err) {
     return { success: false };
