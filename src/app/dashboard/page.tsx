@@ -20,8 +20,7 @@ import {
   Loader2,
   Plus,
   Video,
-  Mail,
-  VideoIcon
+  Mail
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { AISuggestions } from '@/components/dashboard/ai-suggestions';
@@ -132,7 +131,6 @@ export default function DashboardPage() {
         createdAt: new Date().toISOString()
       });
 
-      // Notify team members
       const teamQuery = query(collection(db, 'userProfiles'), where('status', '==', 'active'));
       const teamSnap = await getDocs(teamQuery);
       const teamEmails = teamSnap.docs.map(doc => doc.data().email);
@@ -218,7 +216,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard title="Total Tasks" value={isNewUser ? "0" : "24"} trend={isNewUser ? "No tasks yet" : "+12% from last week"} icon={<CheckCircle2 className="h-4 w-4 text-emerald-500" />} />
           <StatCard title="Meetings" value={teamMeetings?.length.toString() || "0"} trend={isNewUser ? "None scheduled" : "Operational briefings"} icon={<Calendar className="h-4 w-4 text-accent" />} />
-          <StatCard title="Project Progress" value={isNewUser ? "0%" : "76%"} trend={isNewUser ? "Awaiting start" : "On track"} icon={<TrendingUp className="h-4 w-4 text-primary" />} />
+          <StatCard title="Project Progress" value={isNewUser ? "0%" : "76%"} trend={isNewUser ? "On track" : "On track"} icon={<TrendingUp className="h-4 w-4 text-primary" />} />
           <StatCard title="Team Activity" value="Active" trend="Connected" icon={<Activity className="h-4 w-4 text-orange-500" />} />
         </div>
 
@@ -289,7 +287,6 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      {/* Role Assignment Dialog */}
       <Dialog open={!!approvingUser} onOpenChange={() => setApprovingUser(null)}>
         <DialogContent>
           <DialogHeader>
@@ -325,7 +322,6 @@ export default function DashboardPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Create Meeting Dialog */}
       <Dialog open={isMeetingDialogOpen} onOpenChange={setIsMeetingDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -393,7 +389,7 @@ function MeetingItem({ title, time, date, participants, link }: { title: string;
       <div className="flex gap-4">
         <div className="flex flex-col items-center justify-center bg-secondary/50 rounded-lg p-2 min-w-[60px]">
           <span className="text-[10px] uppercase font-bold text-muted-foreground">{date}</span>
-          <VideoIcon className="h-4 w-4 text-primary" />
+          <Video className="h-4 w-4 text-primary" />
         </div>
         <div>
           <h4 className="text-sm font-semibold">{title}</h4>
