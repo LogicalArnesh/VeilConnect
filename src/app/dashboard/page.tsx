@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -8,26 +7,22 @@ import {
   Users, 
   ShieldCheck, 
   Activity, 
-  UserPlus, 
   Trash2, 
   User, 
   Clock,
   CheckCircle,
-  XCircle,
   Eye,
   EyeOff,
-  RefreshCw,
-  Edit
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
-import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { sendActivationEmail } from '@/app/actions/email-actions';
+import { sendActivationEmail, sendRoleChangeEmail } from '@/app/actions/email-actions';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -47,24 +42,20 @@ export default function DashboardPage() {
     const user = JSON.parse(storedUser);
     setCurrentUser(user);
 
-    // Sync current user profile from DB
     const unsubUser = onSnapshot(doc(db, 'userProfiles', user.userId), (snap) => {
       if (snap.exists()) {
         setCurrentUser({ ...user, ...snap.data(), userId: snap.id });
       }
     });
 
-    // Sub to all users
     const unsubAll = onSnapshot(collection(db, 'userProfiles'), (snap) => {
       setAllUsers(snap.docs.map(d => ({ ...d.data(), id: d.id })));
     });
 
-    // Sub to presence
     const unsubPresence = onSnapshot(collection(db, 'presence'), (snap) => {
       setPresence(snap.docs.map(d => ({ ...d.data(), id: d.id })));
     });
 
-    // Update presence to online
     setDoc(doc(db, 'presence', user.userId), {
       userId: user.userId,
       status: 'online',
@@ -84,24 +75,26 @@ export default function DashboardPage() {
   const handleAction = async (userId: string, action: 'approve' | 'deny' | 'delete' | 'promote') => {
     try {
       const userRef = doc(db, 'userProfiles', userId);
+      const targetUser = allUsers.find(u => u.id === userId);
+      const adminEmails = allUsers.filter(u => u.role === 'admin' || u.role === 'head_admin').map(u => u.email);
+
       if (action === 'delete') {
         await deleteDoc(userRef);
-        toast({ title: "Profile Purged", description: `Operative ${userId} removed from database.` });
+        toast({ title: "Profile Purged", description: `Operative ${userId} removed.` });
       } else if (action === 'approve') {
         await updateDoc(userRef, { status: 'active', role: 'user' });
-        const user = allUsers.find(u => u.id === userId);
-        const adminEmails = allUsers.filter(u => u.role === 'admin' || u.role === 'head_admin').map(u => u.email);
-        await sendActivationEmail(user, adminEmails);
+        await sendActivationEmail(targetUser, adminEmails);
         toast({ title: "Operative Activated", description: `${userId} is now active.` });
       } else if (action === 'promote') {
         await updateDoc(userRef, { role: 'admin' });
+        await sendRoleChangeEmail(targetUser.email, targetUser.fullName, 'admin');
         toast({ title: "Role Escalated", description: `${userId} promoted to Admin.` });
       } else if (action === 'deny') {
         await updateDoc(userRef, { status: 'denied' });
-        toast({ variant: "destructive", title: "Access Revoked", description: `${userId} restricted.` });
+        toast({ variant: "destructive", title: "Access Revoked" });
       }
     } catch (err) {
-      toast({ variant: "destructive", title: "Action Failed", description: "Database rejected command." });
+      toast({ variant: "destructive", title: "Action Failed" });
     }
   };
 
@@ -115,7 +108,7 @@ export default function DashboardPage() {
     };
     try {
       await updateDoc(doc(db, 'userProfiles', currentUser.userId), updates);
-      toast({ title: "Profile Updated", description: "Synchronized with operational command." });
+      toast({ title: "Profile Updated" });
     } catch (err) {
       toast({ variant: "destructive", title: "Update Failed" });
     }
@@ -161,7 +154,7 @@ export default function DashboardPage() {
             <Card className="mt-8 border-primary/20 bg-primary/5">
               <CardHeader>
                 <CardTitle>Security Briefing</CardTitle>
-                <CardDescription>Sector status is currently optimal. No unauthorized breaches detected.</CardDescription>
+                <CardDescription>Sector status is currently optimal.</CardDescription>
               </CardHeader>
               <CardContent className="h-48 flex items-center justify-center text-muted-foreground italic">
                 Strategic data stream active...

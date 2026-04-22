@@ -1,4 +1,3 @@
-
 'use server';
 
 import nodemailer from 'nodemailer';
@@ -39,7 +38,7 @@ export async function sendSecurityEmail(to: string, code: string, name: string) 
       to,
       subject: 'Security Protocol: Identity Verification Key',
       html: `
-        <div style="background: #fdfdfd; padding: 30px; font-family: sans-serif; color: #333;">
+        <div style="background: #fdfdfd; padding: 30 (IST); font-family: sans-serif; color: #333;">
           <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #f0f0f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
             <div style="background: linear-gradient(135deg, ${PRIMARY_COLOR}, ${ACCENT_COLOR}); padding: 30px; text-align: center;">
               <h1 style="color: white; margin: 0; font-size: 24px;">Verification Key</h1>
@@ -61,6 +60,39 @@ export async function sendSecurityEmail(to: string, code: string, name: string) 
   } catch (err: any) {
     return { success: false, error: err.message };
   }
+}
+
+export async function sendRoleChangeEmail(to: string, name: string, newRole: string) {
+  const time = getISTDateString();
+  const securityLink = `https://veilconnect.netlify.app/security-alert?user=${encodeURIComponent(to)}&type=role_change`;
+
+  await transporter.sendMail({
+    from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
+    to,
+    subject: `Operational Update: Role Escalation to ${newRole.toUpperCase()}`,
+    html: `
+      <div style="background: #fdfdfd; padding: 30px; font-family: sans-serif; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #f0f0f0; border-radius: 12px; overflow: hidden;">
+          <div style="background: ${PRIMARY_COLOR}; padding: 30px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 20px;">Role Assignment Confirmed</h1>
+          </div>
+          <div style="padding: 35px;">
+            <p>Greetings, <strong>${name}</strong>.</p>
+            <p>Your operational status has been updated by Command. Your new clearance level is:</p>
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+              <h2 style="color: ${PRIMARY_COLOR}; margin: 0; text-transform: uppercase;">${newRole}</h2>
+            </div>
+            <p style="font-size: 13px; line-height: 1.6;">You may now access advanced dashboard features and command protocols associated with this identity level.</p>
+            <p style="font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 20px;">Timestamp: ${time}</p>
+            <div style="margin-top: 25px; background: #fff5f5; border: 1px solid #feb2b2; padding: 15px; border-radius: 6px;">
+              <p style="margin: 0; font-size: 12px; color: #c53030;"><strong>Not done by you?</strong> If you did not expect this change, please <a href="${securityLink}" style="color: ${PRIMARY_COLOR}; font-weight: bold;">report unauthorized access immediately</a>.</p>
+            </div>
+          </div>
+          ${EMAIL_FOOTER}
+        </div>
+      </div>
+    `
+  });
 }
 
 export async function notifyAdminsOfRequest(userData: any, adminEmails: string[]) {
@@ -94,7 +126,6 @@ export async function sendActivationEmail(userData: any, adminEmails: string[]) 
   const recipients = Array.from(new Set([...adminEmails, HEAD_ADMIN_EMAIL]));
   const time = getISTDateString();
 
-  // Notify the user
   await transporter.sendMail({
     from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
     to: userData.email,
@@ -103,16 +134,12 @@ export async function sendActivationEmail(userData: any, adminEmails: string[]) 
       <div style="background: #fdfdfd; padding: 30px; font-family: sans-serif;">
         <h2 style="color: #059669;">Access Granted</h2>
         <p>Greetings, ${userData.fullName}. Your account has been approved and activated with the role of <strong>${userData.role}</strong>.</p>
-        <p>You may now access the full operational suite.</p>
-        <div style="margin-top: 30px; text-align: center;">
-          <a href="https://veilconnect.netlify.app/login" style="background: ${PRIMARY_COLOR}; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">LOGIN TO PORTAL</a>
-        </div>
+        <p>Issued at: ${time}</p>
         ${EMAIL_FOOTER}
       </div>
     `
   });
 
-  // Notify admins
   const adminMailPromises = recipients.map(email => 
     transporter.sendMail({
       from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
@@ -121,7 +148,7 @@ export async function sendActivationEmail(userData: any, adminEmails: string[]) 
       html: `
         <div style="background: #fff; padding: 30px; font-family: sans-serif;">
           <h2 style="color: #059669;">Activation Confirmed</h2>
-          <p>Operative <strong>${userData.fullName}</strong> has been successfully activated and assigned to <strong>${userData.role}</strong> by an administrator.</p>
+          <p>Operative <strong>${userData.fullName}</strong> has been successfully activated by an administrator.</p>
           <p>Update Timestamp: ${time}</p>
           ${EMAIL_FOOTER}
         </div>
@@ -131,7 +158,7 @@ export async function sendActivationEmail(userData: any, adminEmails: string[]) 
   await Promise.all(adminMailPromises);
 }
 
-export async function sendBreachAlert(compromisedEmail: string, type: string, adminEmails: string[]) {
+export async function sendBreachAlertToAdmins(compromisedEmail: string, type: string, adminEmails: string[]) {
   const recipients = Array.from(new Set([...adminEmails, HEAD_ADMIN_EMAIL]));
   const time = getISTDateString();
 
@@ -157,4 +184,52 @@ export async function sendBreachAlert(compromisedEmail: string, type: string, ad
     })
   );
   await Promise.all(mailPromises);
+}
+
+export async function sendRecoveryEmail(email: string, code: string, type: 'password' | 'uid') {
+  const time = getISTDateString();
+  const securityLink = `https://veilconnect.netlify.app/security-alert?user=${encodeURIComponent(email)}&type=${type}_recovery`;
+  
+  await transporter.sendMail({
+    from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
+    to: email,
+    subject: `Security Protocol: ${type === 'password' ? 'Passcode' : 'User ID'} Recovery Key`,
+    html: `
+      <div style="background: #fdfdfd; padding: 30px; font-family: sans-serif;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #f0f0f0; border-radius: 12px; overflow: hidden;">
+          <div style="background: #444; padding: 30px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 20px;">Identity Recovery</h1>
+          </div>
+          <div style="padding: 35px;">
+            <p>A recovery request was initiated for your ${type === 'password' ? 'passcode' : 'User ID'}.</p>
+            <div style="background: #f5f5f5; border: 1px solid #ddd; padding: 20px; text-align: center; margin: 20px 0; font-size: 30px; font-weight: bold; letter-spacing: 5px; color: ${PRIMARY_COLOR};">
+              ${code}
+            </div>
+            <p style="font-size: 11px; color: #999;">Issued at: ${time}</p>
+            <div style="margin-top: 30px; padding: 15px; background: #fff5f5; border: 1px solid #fed7d7; border-radius: 6px;">
+              <p style="margin: 0; font-size: 12px; color: #c53030;"><strong>Not done by you?</strong> <a href="${securityLink}" style="color: ${PRIMARY_COLOR}; font-weight: bold;">Click here to alert Command</a> of unauthorized activity.</p>
+            </div>
+          </div>
+          ${EMAIL_FOOTER}
+        </div>
+      </div>
+    `
+  });
+}
+
+export async function sendResetConfirmationEmail(email: string, name: string, type: 'password' | 'uid') {
+  const time = getISTDateString();
+  await transporter.sendMail({
+    from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
+    to: email,
+    subject: `Security Alert: ${type === 'password' ? 'Passcode' : 'User ID'} Successfully Updated`,
+    html: `
+      <div style="background: #fdfdfd; padding: 30px; font-family: sans-serif;">
+        <h2 style="color: #059669;">Security Update Confirmed</h2>
+        <p>Greetings, ${name}. Your operational credentials (${type}) have been updated at ${time}.</p>
+        <p>If you did not authorize this change, please contact Command immediately.</p>
+        ${EMAIL_FOOTER}
+      </div>
+    `
+  });
 }
