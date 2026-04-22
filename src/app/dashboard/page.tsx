@@ -13,6 +13,9 @@ import {
   CheckCircle,
   Eye,
   EyeOff,
+  Moon,
+  Zap,
+  Coffee
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
@@ -21,8 +24,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { sendActivationEmail, sendRoleChangeEmail } from '@/app/actions/email-actions';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -32,6 +37,7 @@ export default function DashboardPage() {
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [presence, setPresence] = useState<any[]>([]);
   const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
+  const [currentStatus, setCurrentStatus] = useState<string>('online');
 
   useEffect(() => {
     const storedUser = localStorage.getItem('veil_user');
@@ -44,7 +50,8 @@ export default function DashboardPage() {
 
     const unsubUser = onSnapshot(doc(db, 'userProfiles', user.userId), (snap) => {
       if (snap.exists()) {
-        setCurrentUser({ ...user, ...snap.data(), userId: snap.id });
+        const data = snap.data();
+        setCurrentUser({ ...user, ...data, userId: snap.id });
       }
     });
 
@@ -56,6 +63,7 @@ export default function DashboardPage() {
       setPresence(snap.docs.map(d => ({ ...d.data(), id: d.id })));
     });
 
+    // Initial presence check-in
     setDoc(doc(db, 'presence', user.userId), {
       userId: user.userId,
       status: 'online',
@@ -71,6 +79,20 @@ export default function DashboardPage() {
       }
     };
   }, [router, db]);
+
+  const updateStatus = async (status: string) => {
+    if (!currentUser) return;
+    setCurrentStatus(status);
+    try {
+      await setDoc(doc(db, 'presence', currentUser.userId), {
+        status: status,
+        lastSeen: new Date().toISOString()
+      }, { merge: true });
+      toast({ title: "Status Updated", description: `You are now ${status.replace('_', ' ')}.` });
+    } catch (err) {
+      toast({ variant: "destructive", title: "Status Sync Failed" });
+    }
+  };
 
   const handleAction = async (userId: string, action: 'approve' | 'deny' | 'delete' | 'promote') => {
     try {
@@ -127,13 +149,7 @@ export default function DashboardPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Command Dashboard</h1>
-            <p className="text-muted-foreground">Operational Sector Control</p>
-          </div>
-          <div className="flex items-center gap-3 bg-card p-3 rounded-lg border">
-            <Clock className="h-4 w-4 text-accent" />
-            <span className="text-sm font-mono font-bold tracking-tighter">
-              {new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', timeStyle: 'short' })} IST
-            </span>
+            <p className="text-muted-foreground">Sector 01 | Operational Control</p>
           </div>
         </div>
 
@@ -154,10 +170,10 @@ export default function DashboardPage() {
             <Card className="mt-8 border-primary/20 bg-primary/5">
               <CardHeader>
                 <CardTitle>Security Briefing</CardTitle>
-                <CardDescription>Sector status is currently optimal.</CardDescription>
+                <CardDescription>Operational status remains optimal. All encryption layers are active.</CardDescription>
               </CardHeader>
-              <CardContent className="h-48 flex items-center justify-center text-muted-foreground italic">
-                Strategic data stream active...
+              <CardContent className="h-32 flex items-center justify-center text-muted-foreground italic border-t border-dashed">
+                Strategic data stream active... No anomalies detected.
               </CardContent>
             </Card>
           </TabsContent>
@@ -166,42 +182,80 @@ export default function DashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Operative Identity</CardTitle>
-                <CardDescription>Manage your professional profile and credentials.</CardDescription>
+                <CardDescription>Manage your operational status and profile details.</CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={updateProfile} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label>Operational Name</Label>
-                      <Input name="fullName" defaultValue={currentUser.fullName} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Photo URL</Label>
-                      <Input name="photoUrl" defaultValue={currentUser.photoUrl} placeholder="https://..." />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Operational Bio</Label>
-                      <textarea 
-                        name="about" 
-                        defaultValue={currentUser.about}
-                        className="w-full min-h-[100px] bg-background border rounded-md p-3 text-sm"
-                        placeholder="Tell the team about your role..."
-                      />
-                    </div>
-                    <Button type="submit" className="w-full">Save Changes</Button>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                  <div className="lg:col-span-2 space-y-8">
+                    <section className="space-y-4">
+                      <h3 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                        <Zap className="h-4 w-4" /> Presence Protocol
+                      </h3>
+                      <RadioGroup 
+                        defaultValue={currentStatus} 
+                        onValueChange={updateStatus}
+                        className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+                      >
+                        <div className="flex items-center space-x-3 space-y-0 p-4 border rounded-lg bg-card/50 cursor-pointer hover:border-primary/50 transition-colors">
+                          <RadioGroupItem value="online" id="status-online" />
+                          <Label htmlFor="status-online" className="flex items-center gap-2 cursor-pointer font-bold">
+                            <span className="h-2 w-2 rounded-full bg-emerald-500" /> Online
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-3 space-y-0 p-4 border rounded-lg bg-card/50 cursor-pointer hover:border-primary/50 transition-colors">
+                          <RadioGroupItem value="idle" id="status-idle" />
+                          <Label htmlFor="status-idle" className="flex items-center gap-2 cursor-pointer font-bold">
+                            <span className="h-2 w-2 rounded-full bg-amber-500" /> Idle
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-3 space-y-0 p-4 border rounded-lg bg-card/50 cursor-pointer hover:border-primary/50 transition-colors">
+                          <RadioGroupItem value="dnd" id="status-dnd" />
+                          <Label htmlFor="status-dnd" className="flex items-center gap-2 cursor-pointer font-bold text-destructive">
+                            <Moon className="h-3 w-3" /> Do Not Disturb
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </section>
+
+                    <form onSubmit={updateProfile} className="space-y-4 border-t pt-8">
+                      <h3 className="text-sm font-bold uppercase tracking-widest text-primary">Identity Details</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Operational Name</Label>
+                          <Input name="fullName" defaultValue={currentUser.fullName} />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Photo URL</Label>
+                          <Input name="photoUrl" defaultValue={currentUser.photoUrl} placeholder="https://..." />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Operational Bio</Label>
+                        <textarea 
+                          name="about" 
+                          defaultValue={currentUser.about}
+                          className="w-full min-h-[100px] bg-background border rounded-md p-3 text-sm focus:ring-2 focus:ring-primary outline-none"
+                          placeholder="Tell the team about your role..."
+                        />
+                      </div>
+                      <Button type="submit" className="w-full sm:w-auto px-12">Update Credentials</Button>
+                    </form>
                   </div>
-                  <div className="flex flex-col items-center justify-center border-l pl-8">
-                    <div className="relative h-40 w-40 rounded-full overflow-hidden border-4 border-primary/30 mb-4 bg-secondary">
+
+                  <div className="flex flex-col items-center justify-start pt-4">
+                    <div className="relative h-48 w-48 rounded-full overflow-hidden border-4 border-primary/30 mb-6 bg-secondary shadow-2xl">
                       {currentUser.photoUrl ? (
                         <img src={currentUser.photoUrl} className="object-cover h-full w-full" alt="Profile" />
                       ) : (
-                        <User className="h-20 w-20 text-muted-foreground absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                        <User className="h-24 w-24 text-muted-foreground absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                       )}
                     </div>
-                    <Badge variant="outline" className="text-lg px-4 py-1">{currentUser.role.toUpperCase()}</Badge>
-                    <p className="text-xs text-muted-foreground mt-2 font-mono italic">UID: {currentUser.userId}</p>
+                    <div className="text-center">
+                      <Badge variant="outline" className="text-lg px-6 py-1 border-primary/40 text-primary">{currentUser.role.toUpperCase()}</Badge>
+                      <p className="text-xs text-muted-foreground mt-4 font-mono font-bold tracking-widest">UID: {currentUser.userId}</p>
+                    </div>
                   </div>
-                </form>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -217,7 +271,7 @@ export default function DashboardPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="border-b text-left text-muted-foreground">
+                        <tr className="border-b text-left text-muted-foreground uppercase text-[10px] tracking-widest">
                           <th className="pb-4 pl-2">Operative</th>
                           <th className="pb-4">Status</th>
                           <th className="pb-4">Role</th>
@@ -225,27 +279,27 @@ export default function DashboardPage() {
                           <th className="pb-4 text-right pr-2">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y">
+                      <tbody className="divide-y divide-border/40">
                         {allUsers.map(user => (
-                          <tr key={user.id} className="group">
+                          <tr key={user.id} className="group hover:bg-secondary/10 transition-colors">
                             <td className="py-4 pl-2">
                               <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center overflow-hidden">
-                                  {user.photoUrl ? <img src={user.photoUrl} className="object-cover" /> : <User className="h-4 w-4" />}
+                                <div className="h-9 w-9 rounded-full bg-secondary flex items-center justify-center overflow-hidden border border-border">
+                                  {user.photoUrl ? <img src={user.photoUrl} className="object-cover h-full w-full" /> : <User className="h-4 w-4" />}
                                 </div>
                                 <div>
                                   <p className="font-bold">@{user.id}</p>
-                                  <p className="text-xs text-muted-foreground">{user.fullName}</p>
+                                  <p className="text-[10px] text-muted-foreground font-mono">{user.fullName}</p>
                                 </div>
                               </div>
                             </td>
                             <td className="py-4">
-                              <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
+                              <Badge variant={user.status === 'active' ? 'default' : 'secondary'} className="text-[9px] uppercase">
                                 {user.status}
                               </Badge>
                             </td>
                             <td className="py-4">
-                              <span className="capitalize text-xs font-mono">{user.role}</span>
+                              <span className="capitalize text-xs font-mono font-bold text-accent">{user.role}</span>
                             </td>
                             <td className="py-4 font-mono text-xs">
                               <div className="flex items-center gap-2">
@@ -253,7 +307,7 @@ export default function DashboardPage() {
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
-                                  className="h-6 w-6" 
+                                  className="h-7 w-7" 
                                   onClick={() => setShowPasswords(prev => ({...prev, [user.id]: !prev[user.id]}))}
                                 >
                                   {showPasswords[user.id] ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
@@ -262,17 +316,17 @@ export default function DashboardPage() {
                             </td>
                             <td className="py-4 text-right pr-2 space-x-2">
                               {user.status === 'pending' && (
-                                <Button size="sm" variant="default" onClick={() => handleAction(user.id, 'approve')}>
+                                <Button size="sm" variant="default" className="h-8" onClick={() => handleAction(user.id, 'approve')}>
                                   <CheckCircle className="h-3 w-3 mr-1" /> Approve
                                 </Button>
                               )}
                               {user.status === 'active' && user.role === 'user' && (
-                                <Button size="sm" variant="outline" onClick={() => handleAction(user.id, 'promote')}>
+                                <Button size="sm" variant="outline" className="h-8" onClick={() => handleAction(user.id, 'promote')}>
                                   Promote
                                 </Button>
                               )}
                               {isHeadAdmin && user.id !== currentUser.userId && (
-                                <Button size="sm" variant="destructive" onClick={() => handleAction(user.id, 'delete')}>
+                                <Button size="sm" variant="destructive" className="h-8" onClick={() => handleAction(user.id, 'delete')}>
                                   <Trash2 className="h-3 w-3" />
                                 </Button>
                               )}
@@ -292,28 +346,38 @@ export default function DashboardPage() {
               {presence.map(p => {
                 const user = allUsers.find(u => u.id === p.id);
                 return (
-                  <Card key={p.id} className="border-border/40 hover:border-primary/50 transition-colors">
+                  <Card key={p.id} className="border-border/40 hover:border-primary/50 transition-all group overflow-hidden">
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                           <div className="relative">
-                            <div className="h-10 w-10 rounded-full bg-secondary flex items-center justify-center">
-                              {user?.photoUrl ? <img src={user.photoUrl} className="rounded-full" /> : <User className="h-5 w-5" />}
+                            <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center border-2 border-border group-hover:border-primary/40 transition-colors overflow-hidden">
+                              {user?.photoUrl ? <img src={user.photoUrl} className="object-cover h-full w-full" /> : <User className="h-6 w-6" />}
                             </div>
-                            <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background ${
+                            <span className={`absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full border-2 border-background shadow-sm ${
                               p.status === 'online' ? 'bg-emerald-500' : 
-                              p.status === 'idle' ? 'bg-amber-500' : 'bg-zinc-500'
+                              p.status === 'idle' ? 'bg-amber-500' : 
+                              p.status === 'dnd' ? 'bg-destructive' : 'bg-zinc-500'
                             }`} />
                           </div>
                           <div>
                             <p className="font-bold text-sm">@{p.id}</p>
-                            <p className="text-[10px] uppercase text-muted-foreground">{p.status}</p>
+                            <div className="flex items-center gap-1.5">
+                              {p.status === 'dnd' && <Moon className="h-2 w-2 text-destructive" />}
+                              {p.status === 'idle' && <Coffee className="h-2 w-2 text-amber-500" />}
+                              <p className="text-[9px] uppercase font-bold text-muted-foreground tracking-tighter">
+                                {p.status === 'dnd' ? 'DO NOT DISTURB' : p.status}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <p className="text-[10px] text-muted-foreground font-mono">
-                        Last Active: {new Date(p.lastSeen).toLocaleTimeString()}
-                      </p>
+                      <div className="pt-4 border-t border-dashed flex items-center justify-between">
+                         <span className="text-[9px] text-muted-foreground uppercase font-mono tracking-widest">Active Link</span>
+                         <span className="text-[10px] font-mono text-primary font-bold">
+                           {new Date(p.lastSeen).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })} IST
+                         </span>
+                      </div>
                     </CardContent>
                   </Card>
                 );
@@ -328,18 +392,14 @@ export default function DashboardPage() {
 
 function StatCard({ title, value, icon }: { title: string; value: string; icon: React.ReactNode }) {
   return (
-    <Card className="border-border/40 bg-card/50">
+    <Card className="border-border/40 bg-card/50 shadow-inner">
       <CardContent className="p-6">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{title}</p>
-          <div className="text-primary">{icon}</div>
+          <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">{title}</p>
+          <div className="text-primary/70">{icon}</div>
         </div>
-        <p className="text-3xl font-black">{value}</p>
+        <p className="text-3xl font-black text-foreground tabular-nums">{value}</p>
       </CardContent>
     </Card>
   );
-}
-
-function Label({ children }: { children: React.ReactNode }) {
-  return <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1 block">{children}</label>;
 }
