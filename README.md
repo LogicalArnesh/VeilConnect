@@ -39,7 +39,9 @@ If you need to completely clear your GitHub history and start fresh:
    - Click **Add a variable** and add these:
      - `SMTP_PASSWORD`: `xvke gjjp hzwy owsi`
      - `GEMINI_API_KEY`: `AIzaSyB8QtTeEsfMMBoFcVAhzPZgvu4m9svUwMQ`
-     - `NEXT_PUBLIC_FIREBASE_CONFIG`: (Copy the JSON from your `src/firebase/config.ts`)
+6. **Trigger Deployment**:
+   - Go to the **Deploys** tab.
+   - Click **Trigger deploy** > **Clear cache and deploy site**.
 
 ### Option B: Firebase App Hosting
 1. Go to the [Firebase Console](https://console.firebase.google.com/).
