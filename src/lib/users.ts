@@ -1,4 +1,5 @@
-export type UserRole = 'admin' | 'user';
+
+export type UserRole = 'head_admin' | 'admin' | 'user' | 'pending';
 
 export interface UserCredential {
   userId: string;
@@ -6,32 +7,26 @@ export interface UserCredential {
   role: UserRole;
   fullName: string;
   email: string;
+  status: 'active' | 'pending' | 'denied';
+  about?: string;
+  photoUrl?: string;
 }
+
+export const HEAD_ADMIN_EMAIL = "meet.arnesh@gmail.com";
 
 export const MOCK_USERS: UserCredential[] = [
   {
-    userId: "admin",
-    passcode: "veiladmin",
-    role: "admin",
-    fullName: "System Administrator",
-    email: "meet.arnesh@gmail.com"
-  },
-  {
-    userId: "analyst_01",
-    passcode: "veil_ana_88",
-    role: "user",
-    fullName: "Data Analyst Alpha",
-    email: "analyst1@example.com"
-  },
-  {
-    userId: "operative_x",
-    passcode: "veil_op_z9",
-    role: "user",
-    fullName: "Field Operative Xray",
-    email: "opx@example.com"
+    userId: "arnesh",
+    passcode: "veilowner77",
+    role: "head_admin",
+    fullName: "Arnesh Barik",
+    email: HEAD_ADMIN_EMAIL,
+    status: "active"
   }
 ];
 
 export function validateUser(userId: string, passcode: string): UserCredential | null {
-  return MOCK_USERS.find(u => u.userId === userId && u.passcode === passcode) || null;
+  // Head admin check (mock)
+  if (userId === "arnesh" && passcode === "veilowner77") return MOCK_USERS[0];
+  return null;
 }
