@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -7,9 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { 
   CheckCircle2, 
-  Calendar, 
-  Clock, 
-  Users, 
   TrendingUp, 
   ArrowUpRight,
   Activity,
@@ -18,16 +14,14 @@ import {
   UserX,
   ShieldAlert,
   Loader2,
-  Plus,
-  Video,
-  Mail
+  Plus
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { AISuggestions } from '@/components/dashboard/ai-suggestions';
 import { useRouter } from 'next/navigation';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { query, collection, where, doc, updateDoc, orderBy, getDocs, addDoc } from 'firebase/firestore';
-import { sendApprovalStatusEmail, sendMeetingInvite } from '@/app/actions/email-actions';
+import { query, collection, where, doc, updateDoc, getDocs } from 'firebase/firestore';
+import { sendApprovalStatusEmail } from '@/app/actions/email-actions';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -45,8 +39,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -56,8 +48,6 @@ export default function DashboardPage() {
   
   const [approvingUser, setApprovingUser] = useState<{ id: string; email: string; name: string } | null>(null);
   const [selectedRole, setSelectedRole] = useState<string>("Field Operative");
-  const [isMeetingDialogOpen, setIsMeetingDialogOpen] = useState(false);
-  const [meetingData, setMeetingData] = useState({ title: '', time: '', link: '', type: 'GMeet' });
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
@@ -79,12 +69,6 @@ export default function DashboardPage() {
   }, [db]);
   
   const { data: pendingUsers } = useCollection(pendingUsersQuery as any);
-
-  const meetingsQuery = useMemoFirebase(() => {
-    if (!db) return null;
-    return query(collection(db, 'meetings'), orderBy('createdAt', 'desc'));
-  }, [db]);
-  const { data: teamMeetings } = useCollection(meetingsQuery as any);
 
   if (!user) return null;
 
@@ -118,37 +102,6 @@ export default function DashboardPage() {
     }
   };
 
-  const handleCreateMeeting = async () => {
-    if (!meetingData.title || !meetingData.time || !meetingData.link) {
-      toast({ variant: "destructive", title: "Missing Fields" });
-      return;
-    }
-    setIsProcessing(true);
-    try {
-      await addDoc(collection(db, 'meetings'), {
-        ...meetingData,
-        createdBy: user.userId,
-        createdAt: new Date().toISOString()
-      });
-
-      const teamQuery = query(collection(db, 'userProfiles'), where('status', '==', 'active'));
-      const teamSnap = await getDocs(teamQuery);
-      const teamEmails = teamSnap.docs.map(doc => doc.data().email);
-
-      for (const email of teamEmails) {
-        await sendMeetingInvite(email, meetingData);
-      }
-
-      toast({ title: "Meeting Created", description: "Operational briefing shared with team." });
-      setIsMeetingDialogOpen(false);
-      setMeetingData({ title: '', time: '', link: '', type: 'GMeet' });
-    } catch (err) {
-      toast({ variant: "destructive", title: "Schedule Failed" });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader userId={user.userId} role={user.role as any} />
@@ -165,9 +118,6 @@ export default function DashboardPage() {
           </div>
           {isAdmin && (
             <div className="flex gap-3">
-              <Button variant="outline" size="sm" onClick={() => setIsMeetingDialogOpen(true)}>
-                <Video className="h-4 w-4 mr-2" /> Schedule Meeting
-              </Button>
               <Button size="sm" className="bg-primary hover:bg-primary/90">
                 <Plus className="h-4 w-4 mr-2" /> New Assignment
               </Button>
@@ -213,61 +163,31 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <StatCard title="Total Tasks" value={isNewUser ? "0" : "24"} trend={isNewUser ? "No tasks yet" : "+12% from last week"} icon={<CheckCircle2 className="h-4 w-4 text-emerald-500" />} />
-          <StatCard title="Meetings" value={teamMeetings?.length?.toString() || "0"} trend={isNewUser ? "None scheduled" : "Operational briefings"} icon={<Calendar className="h-4 w-4 text-accent" />} />
           <StatCard title="Project Progress" value={isNewUser ? "0%" : "76%"} trend={isNewUser ? "On track" : "On track"} icon={<TrendingUp className="h-4 w-4 text-primary" />} />
           <StatCard title="Team Activity" value="Active" trend="Connected" icon={<Activity className="h-4 w-4 text-orange-500" />} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <Tabs defaultValue="tasks" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="tasks">Active Tasks</TabsTrigger>
-                <TabsTrigger value="meetings">Team Briefings</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="tasks">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Security Assignments</CardTitle>
-                    <CardDescription>Current operational priorities</CardDescription>
-                  </CardHeader>
-                  <CardContent className={isNewUser ? "p-12 flex flex-col items-center justify-center text-center opacity-60" : "p-0"}>
-                    {isNewUser ? (
-                      <EmptyState icon={<Inbox className="h-12 w-12" />} title="No tasks assigned" description="Awaiting role synchronization." />
-                    ) : (
-                      <div className="divide-y divide-border">
-                        <TaskItem title="Firewall Log Analysis" due="Today" priority="High" progress={80} />
-                        <TaskItem title="Internal Security Audit" due="Tomorrow" priority="Medium" progress={45} />
-                        <TaskItem title="Update Encryption Protocols" due="Friday" priority="High" progress={10} />
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="meetings">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Upcoming Sessions</CardTitle>
-                    <CardDescription>Coordinated team briefings and syncs</CardDescription>
-                  </CardHeader>
-                  <CardContent className={!teamMeetings?.length ? "p-12 flex flex-col items-center justify-center text-center opacity-60" : "p-0"}>
-                    {!teamMeetings?.length ? (
-                      <EmptyState icon={<Video className="h-12 w-12" />} title="No briefings scheduled" description="Stay tuned for operational updates." />
-                    ) : (
-                      <div className="divide-y divide-border">
-                        {teamMeetings.map((mt: any) => (
-                          <MeetingItem key={mt.id} title={mt.title} time={mt.time} date="Active" participants={5} link={mt.link} />
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+            <Card>
+              <CardHeader>
+                <CardTitle>Security Assignments</CardTitle>
+                <CardDescription>Current operational priorities</CardDescription>
+              </CardHeader>
+              <CardContent className={isNewUser ? "p-12 flex flex-col items-center justify-center text-center opacity-60" : "p-0"}>
+                {isNewUser ? (
+                  <EmptyState icon={<Inbox className="h-12 w-12" />} title="No tasks assigned" description="Awaiting role synchronization." />
+                ) : (
+                  <div className="divide-y divide-border">
+                    <TaskItem title="Firewall Log Analysis" due="Today" priority="High" progress={80} />
+                    <TaskItem title="Internal Security Audit" due="Tomorrow" priority="Medium" progress={45} />
+                    <TaskItem title="Update Encryption Protocols" due="Friday" priority="High" progress={10} />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
 
           <div className="space-y-6">
@@ -321,38 +241,6 @@ export default function DashboardPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <Dialog open={isMeetingDialogOpen} onOpenChange={setIsMeetingDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Schedule Operation Briefing</DialogTitle>
-            <DialogDescription>
-              Team members will be notified individually via their secure email.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            <div className="space-y-2">
-              <Label>Meeting Title</Label>
-              <Input placeholder="e.g., Weekly Ops Sync" value={meetingData.title} onChange={(e) => setMeetingData({...meetingData, title: e.target.value})} />
-            </div>
-            <div className="space-y-2">
-              <Label>Scheduled Time</Label>
-              <Input placeholder="Tomorrow, 2:00 PM" value={meetingData.time} onChange={(e) => setMeetingData({...meetingData, time: e.target.value})} />
-            </div>
-            <div className="space-y-2">
-              <Label>Meeting Link (GMeet)</Label>
-              <Input placeholder="https://meet.google.com/..." value={meetingData.link} onChange={(e) => setMeetingData({...meetingData, link: e.target.value})} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsMeetingDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleCreateMeeting} disabled={isProcessing}>
-               {isProcessing ? <Loader2 className="animate-spin h-4 w-4 mr-2" /> : <Mail className="h-4 w-4 mr-2" />}
-               Schedule and Notify Team
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
@@ -379,29 +267,6 @@ function TaskItem({ title, due, priority, progress }: { title: string; due: stri
         </div>
       </div>
       <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"><ArrowUpRight className="h-4 w-4 text-muted-foreground" /></Button>
-    </div>
-  );
-}
-
-function MeetingItem({ title, time, date, participants, link }: { title: string; time: string; date: string; participants: number; link?: string }) {
-  return (
-    <div className="flex items-center justify-between p-4 hover:bg-secondary/10 transition-colors">
-      <div className="flex gap-4">
-        <div className="flex flex-col items-center justify-center bg-secondary/50 rounded-lg p-2 min-w-[60px]">
-          <span className="text-[10px] uppercase font-bold text-muted-foreground">{date}</span>
-          <Video className="h-4 w-4 text-primary" />
-        </div>
-        <div>
-          <h4 className="text-sm font-semibold">{title}</h4>
-          <div className="flex items-center gap-2 mt-1">
-            <Clock className="h-3 w-3 text-accent" />
-            <span className="text-xs text-muted-foreground">{time}</span>
-          </div>
-        </div>
-      </div>
-      <Button variant="outline" size="sm" className="text-xs h-8" asChild>
-        <a href={link} target="_blank" rel="noopener noreferrer">Join</a>
-      </Button>
     </div>
   );
 }

@@ -253,34 +253,3 @@ export async function sendBreachAlertToAdmins(affectedUser: string, type: string
     return { success: false };
   }
 }
-
-export async function sendMeetingInvite(to: string, meetingData: { title: string; time: string; link: string; type: string }) {
-  const time = getISTDateString();
-  try {
-    await transporter.sendMail({
-      from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
-      to,
-      subject: `Operational Briefing: ${meetingData.title}`,
-      html: `
-        <div style="font-family: sans-serif; padding: 30px; border: 1px solid #4f46e5; border-radius: 12px;">
-          <h2 style="color: #4f46e5;">Scheduled Briefing</h2>
-          <p>A new operational sync has been scheduled. All personnel are expected to attend.</p>
-          <div style="background: #f8fafc; padding: 25px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4f46e5;">
-            <p style="margin: 5px 0;"><strong>Objective:</strong> ${meetingData.title}</p>
-            <p style="margin: 5px 0;"><strong>Schedule:</strong> ${meetingData.time}</p>
-            <p style="margin: 5px 0;"><strong>Platform:</strong> ${meetingData.type}</p>
-          </div>
-          <div style="margin-top: 30px;">
-            <a href="${meetingData.link}" style="background: #4f46e5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: bold;">Access Meeting Link</a>
-          </div>
-          <p style="color: #64748b; font-size: 12px; margin-top: 20px;">Notification Dispatched: ${time}</p>
-          <p style="margin-top: 30px; font-weight: bold; color: #4f46e5;">Veil Confessions Operations Unit</p>
-          ${FOOTER_HTML}
-        </div>
-      `
-    });
-    return { success: true };
-  } catch (err) {
-    return { success: false };
-  }
-}

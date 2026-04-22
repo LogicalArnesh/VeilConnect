@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -6,15 +5,13 @@ import { generateAdminContentSuggestions } from '@/ai/flows/generate-admin-conte
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sparkles, Loader2, Plus, Copy, Check } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Sparkles, Loader2, Copy, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function AISuggestions() {
   const { toast } = useToast();
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
-  const [type, setType] = useState<'task' | 'meeting'>('task');
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
@@ -25,7 +22,7 @@ export function AISuggestions() {
     try {
       const result = await generateAdminContentSuggestions({
         userPrompt: prompt,
-        contentType: type
+        contentType: 'task'
       });
       setSuggestions(result.suggestions);
     } catch (error) {
@@ -53,16 +50,9 @@ export function AISuggestions() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Tabs value={type} onValueChange={(v) => setType(v as 'task' | 'meeting')}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="task">Tasks</TabsTrigger>
-            <TabsTrigger value="meeting">Meetings</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        
         <div className="space-y-2">
           <Textarea 
-            placeholder={type === 'task' ? "e.g., Audit firewall logs for anomalous patterns" : "e.g., Weekly security sync for the field team"} 
+            placeholder="e.g., Audit firewall logs for anomalous patterns" 
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             className="bg-background border-border min-h-[100px]"
