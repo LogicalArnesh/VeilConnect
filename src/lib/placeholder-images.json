@@ -2,9 +2,9 @@
   "placeholderImages": [
     {
       "id": "team-logo",
-      "description": "Professional abstract logo for VEIL CONFESSIONS team",
-      "imageUrl": "https://picsum.photos/seed/veil-logo/400/400",
-      "imageHint": "abstract security logo"
+      "description": "Professional VEIL CONFESSIONS Corporate Logo",
+      "imageUrl": "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop",
+      "imageHint": "security logo"
     }
   ]
 }

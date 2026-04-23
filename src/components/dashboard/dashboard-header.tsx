@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -5,6 +6,8 @@ import { User, Search, LogOut, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 interface DashboardHeaderProps {
   userId: string;
@@ -14,6 +17,7 @@ interface DashboardHeaderProps {
 export function DashboardHeader({ userId, role }: DashboardHeaderProps) {
   const [currentTime, setCurrentTime] = useState<string>('');
   const router = useRouter();
+  const logo = PlaceHolderImages.find(img => img.id === 'team-logo');
 
   useEffect(() => {
     const updateTime = () => {
@@ -41,6 +45,9 @@ export function DashboardHeader({ userId, role }: DashboardHeaderProps) {
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-lg">
       <div className="flex items-center gap-4">
+        <div className="relative h-8 w-8 rounded-full overflow-hidden border border-primary/20 mr-2">
+           {logo && <Image src={logo.imageUrl} alt="Logo" fill className="object-cover" />}
+        </div>
         <div className="hidden md:flex items-center gap-2 bg-secondary/30 rounded-full px-4 py-1.5 border border-border/50">
           <Search className="h-4 w-4 text-muted-foreground" />
           <input 

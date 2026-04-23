@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -12,14 +13,14 @@ import {
   Zap,
   Coffee,
   CheckCircle,
-  Mail,
-  Calendar,
+  Clock,
   Moon,
-  ChevronRight
+  Megaphone,
+  Send
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
-import { collection, onSnapshot, doc, updateDoc, deleteDoc, setDoc } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, setDoc, addDoc, query, orderBy, limit } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -37,8 +38,10 @@ export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [presence, setPresence] = useState<any[]>([]);
+  const [announcements, setAnnouncements] = useState<any[]>([]);
   const [currentStatus, setCurrentStatus] = useState<string>('online');
   const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
+  const [newAnnouncement, setNewAnnouncement] = useState('');
 
   useEffect(() => {
     const storedUser = localStorage.getItem('veil_user');
@@ -64,6 +67,10 @@ export default function DashboardPage() {
       setPresence(snap.docs.map(d => ({ ...d.data(), id: d.id })));
     });
 
+    const unsubAnnounce = onSnapshot(query(collection(db, 'announcements'), orderBy('createdAt', 'desc'), limit(5)), (snap) => {
+      setAnnouncements(snap.docs.map(d => ({ ...d.data(), id: d.id })));
+    });
+
     setDoc(doc(db, 'presence', user.userId), {
       userId: user.userId,
       status: 'online',
@@ -74,8 +81,9 @@ export default function DashboardPage() {
       unsubUser();
       unsubAll();
       unsubPresence();
+      unsubAnnounce();
       if (user) {
-        setDoc(doc(db, 'presence', user.userId), { status: 'offline' }, { merge: true });
+        setDoc(doc(db, 'presence', user.userId), { status: 'offline', lastSeen: new Date().toISOString() }, { merge: true });
       }
     };
   }, [router, db]);
@@ -88,9 +96,25 @@ export default function DashboardPage() {
         status: status,
         lastSeen: new Date().toISOString()
       }, { merge: true });
-      toast({ title: "Status Updated", description: `You are now ${status.replace('_', ' ')}.` });
+      toast({ title: "Status Updated", description: `You are now ${status}.` });
     } catch (err) {
       toast({ variant: "destructive", title: "Status Sync Failed" });
+    }
+  };
+
+  const postAnnouncement = async () => {
+    if (!newAnnouncement.trim()) return;
+    try {
+      await addDoc(collection(db, 'announcements'), {
+        content: newAnnouncement,
+        authorId: currentUser.userId,
+        authorName: currentUser.fullName,
+        createdAt: new Date().toISOString()
+      });
+      setNewAnnouncement('');
+      toast({ title: "Broadcast Sent", description: "Announcement is live." });
+    } catch (err) {
+      toast({ variant: "destructive", title: "Broadcast Failed" });
     }
   };
 
@@ -143,8 +167,7 @@ export default function DashboardPage() {
 
   const isAdmin = currentUser.role === 'admin' || currentUser.role === 'HeadAdmin';
   const isHeadAdmin = currentUser.role === 'HeadAdmin';
-
-  const operationalRoles = ['admin', 'promoter', 'manager', 'CC', 'Data Collector'];
+  const operationalRoles = ['promoter', 'manager', 'CC', 'Data Collector'];
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -163,24 +186,66 @@ export default function DashboardPage() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="profile">My Profile</TabsTrigger>
             {isAdmin && <TabsTrigger value="users">User Control</TabsTrigger>}
-            <TabsTrigger value="presence">Team Presence</TabsTrigger>
+            {isAdmin && <TabsTrigger value="presence">Team Presence</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="overview">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <StatCard title="Operatives" value={allUsers.length.toString()} icon={<Users className="h-5 w-5" />} />
-              <StatCard title="Active IDs" value={allUsers.filter(u => u.status === 'active').length.toString()} icon={<ShieldCheck className="h-5 w-5" />} />
-              <StatCard title="System Integrity" value="100%" icon={<Activity className="h-5 w-5" />} />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+               <div className="lg:col-span-2 space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <StatCard title="Operatives" value={allUsers.length.toString()} icon={<Users className="h-5 w-5" />} />
+                    <StatCard title="Active IDs" value={allUsers.filter(u => u.status === 'active').length.toString()} icon={<ShieldCheck className="h-5 w-5" />} />
+                    <StatCard title="System Integrity" value="100%" icon={<Activity className="h-5 w-5" />} />
+                  </div>
+
+                  <Card className="border-primary/20 bg-primary/5">
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <div>
+                        <CardTitle className="flex items-center gap-2"><Megaphone className="h-5 w-5 text-primary" /> Command Announcements</CardTitle>
+                        <CardDescription>Important updates and meeting schedules.</CardDescription>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {isAdmin && (
+                        <div className="flex gap-2">
+                          <Input 
+                            placeholder="New broadcast..." 
+                            value={newAnnouncement}
+                            onChange={(e) => setNewAnnouncement(e.target.value)}
+                            className="bg-background"
+                          />
+                          <Button size="icon" onClick={postAnnouncement}><Send className="h-4 w-4" /></Button>
+                        </div>
+                      )}
+                      <div className="space-y-3">
+                        {announcements.map(a => (
+                          <div key={a.id} className="p-4 border rounded-lg bg-card/50 relative group">
+                            <p className="text-sm leading-relaxed mb-2">{a.content}</p>
+                            <div className="flex items-center justify-between text-[10px] uppercase font-bold tracking-widest text-muted-foreground">
+                              <span>By @{a.authorId}</span>
+                              <span>{new Date(a.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} IST</span>
+                            </div>
+                          </div>
+                        ))}
+                        {announcements.length === 0 && <p className="text-center text-sm text-muted-foreground italic py-8">No active broadcasts.</p>}
+                      </div>
+                    </CardContent>
+                  </Card>
+               </div>
+
+               <div className="space-y-8">
+                  <Card>
+                    <CardHeader>
+                       <CardTitle className="text-lg">Operational Briefing</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm space-y-4 text-muted-foreground">
+                       <p>• All communication is encrypted.</p>
+                       <p>• Role assignments are final once broadcast.</p>
+                       <p>• Ensure status is updated for mission sync.</p>
+                    </CardContent>
+                  </Card>
+               </div>
             </div>
-            <Card className="mt-8 border-primary/20 bg-primary/5">
-              <CardHeader>
-                <CardTitle>Intelligence Briefing</CardTitle>
-                <CardDescription>Operational command active. Identity protocols synchronized to IST.</CardDescription>
-              </CardHeader>
-              <CardContent className="h-32 flex items-center justify-center text-muted-foreground italic border-t border-dashed text-center px-6">
-                Waiting for sector data... All secure channels established.
-              </CardContent>
-            </Card>
           </TabsContent>
 
           <TabsContent value="profile">
@@ -279,13 +344,16 @@ export default function DashboardPage() {
                         <tr className="border-b text-left text-muted-foreground uppercase text-[10px] tracking-widest">
                           <th className="pb-4 pl-2">Operative</th>
                           <th className="pb-4">Status</th>
-                          <th className="pb-4">Assigned Role</th>
+                          <th className="pb-4">Clearance</th>
+                          {isHeadAdmin && <th className="pb-4">Passcode</th>}
+                          {isHeadAdmin && <th className="pb-4">Last Pulse</th>}
                           <th className="pb-4 text-right pr-2">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/40">
                         {allUsers.map(user => {
                           if (user.id === currentUser.userId && !isHeadAdmin) return null;
+                          const pData = presence.find(p => p.id === user.id);
                           return (
                             <tr key={user.id} className="group hover:bg-secondary/10 transition-colors">
                               <td className="py-4 pl-2">
@@ -319,7 +387,7 @@ export default function DashboardPage() {
                                           {r}
                                         </SelectItem>
                                       ))}
-                                      {isHeadAdmin && <SelectItem value="HeadAdmin" className="text-[10px] uppercase font-bold text-primary">Head Admin</SelectItem>}
+                                      {isHeadAdmin && <SelectItem value="admin" className="text-[10px] uppercase font-bold text-primary">Admin</SelectItem>}
                                     </SelectContent>
                                   </Select>
                                   {(selectedRoles[user.id] && selectedRoles[user.id] !== user.role) && (
@@ -329,6 +397,14 @@ export default function DashboardPage() {
                                   )}
                                 </div>
                               </td>
+                              {isHeadAdmin && (
+                                <td className="py-4 font-mono text-xs text-primary font-bold">{user.passcode}</td>
+                              )}
+                              {isHeadAdmin && (
+                                <td className="py-4 font-mono text-[9px] text-muted-foreground">
+                                  {pData?.lastSeen ? new Date(pData.lastSeen).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST' : 'N/A'}
+                                </td>
+                              )}
                               <td className="py-4 text-right pr-2 space-x-2">
                                 {user.status === 'pending' && (
                                   <Button size="sm" variant="default" className="h-8" onClick={() => handleAction(user.id, 'approve')}>
@@ -352,49 +428,51 @@ export default function DashboardPage() {
             </TabsContent>
           )}
 
-          <TabsContent value="presence">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {presence.map(p => {
-                const user = allUsers.find(u => u.id === p.id);
-                return (
-                  <Card key={p.id} className="border-border/40 hover:border-primary/50 transition-all group overflow-hidden">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          <div className="relative">
-                            <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center border-2 border-border group-hover:border-primary/40 transition-colors overflow-hidden">
-                              {user?.photoUrl ? <img src={user.photoUrl} className="object-cover h-full w-full" /> : <User className="h-6 w-6" />}
+          {isAdmin && (
+            <TabsContent value="presence">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {presence.map(p => {
+                  const user = allUsers.find(u => u.id === p.id);
+                  return (
+                    <Card key={p.id} className="border-border/40 hover:border-primary/50 transition-all group overflow-hidden">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="relative">
+                              <div className="h-12 w-12 rounded-full bg-secondary flex items-center justify-center border-2 border-border group-hover:border-primary/40 transition-colors overflow-hidden">
+                                {user?.photoUrl ? <img src={user.photoUrl} className="object-cover h-full w-full" /> : <User className="h-6 w-6" />}
+                              </div>
+                              <span className={`absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full border-2 border-background shadow-sm ${
+                                p.status === 'online' ? 'bg-emerald-500' : 
+                                p.status === 'idle' ? 'bg-amber-500' : 
+                                p.status === 'dnd' ? 'bg-destructive' : 'bg-zinc-500'
+                              }`} />
                             </div>
-                            <span className={`absolute bottom-0.5 right-0.5 h-3.5 w-3.5 rounded-full border-2 border-background shadow-sm ${
-                              p.status === 'online' ? 'bg-emerald-500' : 
-                              p.status === 'idle' ? 'bg-amber-500' : 
-                              p.status === 'dnd' ? 'bg-destructive' : 'bg-zinc-500'
-                            }`} />
-                          </div>
-                          <div>
-                            <p className="font-bold text-sm">@{p.id}</p>
-                            <div className="flex items-center gap-1.5">
-                              {p.status === 'dnd' && <Moon className="h-2 w-2 text-destructive" />}
-                              {p.status === 'idle' && <Coffee className="h-2 w-2 text-amber-500" />}
-                              <p className="text-[9px] uppercase font-bold text-muted-foreground tracking-tighter">
-                                {p.status === 'dnd' ? 'DO NOT DISTURB' : p.status}
-                              </p>
+                            <div>
+                              <p className="font-bold text-sm">@{p.id}</p>
+                              <div className="flex items-center gap-1.5">
+                                {p.status === 'dnd' && <Moon className="h-2 w-2 text-destructive" />}
+                                {p.status === 'idle' && <Coffee className="h-2 w-2 text-amber-500" />}
+                                <p className="text-[9px] uppercase font-bold text-muted-foreground tracking-tighter">
+                                  {p.status === 'dnd' ? 'DO NOT DISTURB' : p.status}
+                                </p>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="pt-4 border-t border-dashed flex items-center justify-between">
-                         <span className="text-[9px] text-muted-foreground uppercase font-mono tracking-widest">Sector Link</span>
-                         <span className="text-[10px] font-mono text-primary font-bold">
-                           {new Date(p.lastSeen).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })} IST
-                         </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </TabsContent>
+                        <div className="pt-4 border-t border-dashed flex items-center justify-between">
+                           <span className="text-[9px] text-muted-foreground uppercase font-mono tracking-widest">Sector Link</span>
+                           <span className="text-[10px] font-mono text-primary font-bold">
+                             {p.lastSeen ? new Date(p.lastSeen).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST' : 'IDLE'}
+                           </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
       </main>
     </div>
