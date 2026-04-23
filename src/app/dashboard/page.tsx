@@ -9,14 +9,13 @@ import {
   Activity, 
   Trash2, 
   User, 
-  Eye,
-  EyeOff,
-  Moon,
   Zap,
   Coffee,
   CheckCircle,
   Mail,
-  Calendar
+  Calendar,
+  Moon,
+  ChevronRight
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
@@ -29,6 +28,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { sendActivationEmail, sendRoleChangeEmail } from '@/app/actions/email-actions';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -37,8 +37,8 @@ export default function DashboardPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [presence, setPresence] = useState<any[]>([]);
-  const [showPasswords, setShowPasswords] = useState<Record<string, boolean>>({});
   const [currentStatus, setCurrentStatus] = useState<string>('online');
+  const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const storedUser = localStorage.getItem('veil_user');
@@ -94,7 +94,7 @@ export default function DashboardPage() {
     }
   };
 
-  const handleAction = async (userId: string, action: 'approve' | 'deny' | 'delete' | 'promote') => {
+  const handleAction = async (userId: string, action: 'approve' | 'deny' | 'delete' | 'assign_role') => {
     try {
       const userRef = doc(db, 'userProfiles', userId);
       const targetUser = allUsers.find(u => u.id === userId);
@@ -104,13 +104,16 @@ export default function DashboardPage() {
         await deleteDoc(userRef);
         toast({ title: "Profile Purged", description: `Operative ${userId} removed.` });
       } else if (action === 'approve') {
-        await updateDoc(userRef, { status: 'active', role: 'user' });
-        await sendActivationEmail(targetUser, adminEmails);
-        toast({ title: "Operative Activated", description: `${userId} is now active.` });
-      } else if (action === 'promote') {
-        await updateDoc(userRef, { role: 'admin' });
-        await sendRoleChangeEmail(targetUser.email, targetUser.fullName, 'admin');
-        toast({ title: "Role Escalated", description: `${userId} promoted to Admin.` });
+        const roleToAssign = selectedRoles[userId] || 'manager';
+        await updateDoc(userRef, { status: 'active', role: roleToAssign });
+        await sendActivationEmail({ ...targetUser, role: roleToAssign }, adminEmails);
+        toast({ title: "Operative Activated", description: `${userId} is now ${roleToAssign}.` });
+      } else if (action === 'assign_role') {
+        const roleToAssign = selectedRoles[userId];
+        if (!roleToAssign) return;
+        await updateDoc(userRef, { role: roleToAssign });
+        await sendRoleChangeEmail(targetUser.email, targetUser.fullName, roleToAssign);
+        toast({ title: "Role Updated", description: `${userId} updated to ${roleToAssign}.` });
       } else if (action === 'deny') {
         await updateDoc(userRef, { status: 'denied' });
         toast({ variant: "destructive", title: "Access Revoked" });
@@ -141,6 +144,8 @@ export default function DashboardPage() {
   const isAdmin = currentUser.role === 'admin' || currentUser.role === 'HeadAdmin';
   const isHeadAdmin = currentUser.role === 'HeadAdmin';
 
+  const operationalRoles = ['admin', 'promoter', 'manager', 'CC', 'Data Collector'];
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <DashboardHeader userId={currentUser.userId} role={currentUser.role} />
@@ -148,8 +153,8 @@ export default function DashboardPage() {
       <main className="container mx-auto p-6 max-w-7xl space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Command Dashboard</h1>
-            <p className="text-muted-foreground">Sector 01 | Operational Control</p>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground font-headline">Command Dashboard</h1>
+            <p className="text-muted-foreground">Sector 01 | Identity Oversight</p>
           </div>
         </div>
 
@@ -157,23 +162,23 @@ export default function DashboardPage() {
           <TabsList className="bg-secondary/20 border">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="profile">My Profile</TabsTrigger>
-            {isAdmin && <TabsTrigger value="users">User Command</TabsTrigger>}
+            {isAdmin && <TabsTrigger value="users">User Control</TabsTrigger>}
             <TabsTrigger value="presence">Team Presence</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <StatCard title="Total Operatives" value={allUsers.length.toString()} icon={<Users className="h-5 w-5" />} />
-              <StatCard title="Active Protocols" value={allUsers.filter(u => u.status === 'active').length.toString()} icon={<ShieldCheck className="h-5 w-5" />} />
-              <StatCard title="Sector Stability" value="100%" icon={<Activity className="h-5 w-5" />} />
+              <StatCard title="Operatives" value={allUsers.length.toString()} icon={<Users className="h-5 w-5" />} />
+              <StatCard title="Active IDs" value={allUsers.filter(u => u.status === 'active').length.toString()} icon={<ShieldCheck className="h-5 w-5" />} />
+              <StatCard title="System Integrity" value="100%" icon={<Activity className="h-5 w-5" />} />
             </div>
             <Card className="mt-8 border-primary/20 bg-primary/5">
               <CardHeader>
-                <CardTitle>Security Briefing</CardTitle>
-                <CardDescription>Operational status remains optimal. All encryption layers are active.</CardDescription>
+                <CardTitle>Intelligence Briefing</CardTitle>
+                <CardDescription>Operational command active. Identity protocols synchronized to IST.</CardDescription>
               </CardHeader>
               <CardContent className="h-32 flex items-center justify-center text-muted-foreground italic border-t border-dashed text-center px-6">
-                Strategic data stream active... No anomalies detected in Sector 01.
+                Waiting for sector data... All secure channels established.
               </CardContent>
             </Card>
           </TabsContent>
@@ -182,14 +187,14 @@ export default function DashboardPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Operative Identity</CardTitle>
-                <CardDescription>Manage your operational status and profile details.</CardDescription>
+                <CardDescription>Manage your presence and identification details.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                   <div className="lg:col-span-2 space-y-8">
                     <section className="space-y-4">
                       <h3 className="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2">
-                        <Zap className="h-4 w-4" /> Presence Protocol
+                        <Zap className="h-4 w-4" /> Presence Status
                       </h3>
                       <RadioGroup 
                         defaultValue={currentStatus} 
@@ -221,11 +226,11 @@ export default function DashboardPage() {
                       <h3 className="text-sm font-bold uppercase tracking-widest text-primary">Identity Details</h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label>Operational Name</Label>
+                          <Label>Display Name</Label>
                           <Input name="fullName" defaultValue={currentUser.fullName} />
                         </div>
                         <div className="space-y-2">
-                          <Label>Photo URL</Label>
+                          <Label>Avatar URL</Label>
                           <Input name="photoUrl" defaultValue={currentUser.photoUrl} placeholder="https://..." />
                         </div>
                       </div>
@@ -235,10 +240,10 @@ export default function DashboardPage() {
                           name="about" 
                           defaultValue={currentUser.about}
                           className="w-full min-h-[100px] bg-background border rounded-md p-3 text-sm focus:ring-2 focus:ring-primary outline-none"
-                          placeholder="Tell the team about your role..."
+                          placeholder="Operational specializations..."
                         />
                       </div>
-                      <Button type="submit" className="w-full sm:w-auto px-12">Update Credentials</Button>
+                      <Button type="submit" className="w-full sm:w-auto px-12">Update Identity</Button>
                     </form>
                   </div>
 
@@ -251,8 +256,8 @@ export default function DashboardPage() {
                       )}
                     </div>
                     <div className="text-center">
-                      <Badge variant="outline" className="text-lg px-6 py-1 border-primary/40 text-primary">{currentUser.role.replace('_', ' ').toUpperCase()}</Badge>
-                      <p className="text-xs text-muted-foreground mt-4 font-mono font-bold tracking-widest uppercase">UID: {currentUser.userId}</p>
+                      <Badge variant="outline" className="text-lg px-6 py-1 border-primary/40 text-primary uppercase font-bold tracking-widest">{currentUser.role.replace('_', ' ').toUpperCase()}</Badge>
+                      <p className="text-xs text-muted-foreground mt-4 font-mono font-bold tracking-widest uppercase opacity-60">UID: {currentUser.userId}</p>
                     </div>
                   </div>
                 </div>
@@ -264,8 +269,8 @@ export default function DashboardPage() {
             <TabsContent value="users">
               <Card>
                 <CardHeader>
-                  <CardTitle>User Control Panel</CardTitle>
-                  <CardDescription>Authorization and role assignment for operatives.</CardDescription>
+                  <CardTitle>Operational Control Panel</CardTitle>
+                  <CardDescription>Assign roles and manage authorization for incoming operatives.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
@@ -274,83 +279,71 @@ export default function DashboardPage() {
                         <tr className="border-b text-left text-muted-foreground uppercase text-[10px] tracking-widest">
                           <th className="pb-4 pl-2">Operative</th>
                           <th className="pb-4">Status</th>
-                          <th className="pb-4">Role</th>
-                          {isHeadAdmin && <th className="pb-4">Email</th>}
-                          <th className="pb-4">Passcode</th>
-                          {isHeadAdmin && <th className="pb-4">Joined</th>}
+                          <th className="pb-4">Assigned Role</th>
                           <th className="pb-4 text-right pr-2">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/40">
-                        {allUsers.map(user => (
-                          <tr key={user.id} className="group hover:bg-secondary/10 transition-colors">
-                            <td className="py-4 pl-2">
-                              <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 rounded-full bg-secondary flex items-center justify-center overflow-hidden border border-border">
-                                  {user.photoUrl ? <img src={user.photoUrl} className="object-cover h-full w-full" /> : <User className="h-4 w-4" />}
-                                </div>
-                                <div>
-                                  <p className="font-bold text-xs">@{user.id}</p>
-                                  <p className="text-[9px] text-muted-foreground font-mono">{user.fullName}</p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="py-4">
-                              <Badge variant={user.status === 'active' ? 'default' : 'secondary'} className="text-[9px] uppercase">
-                                {user.status}
-                              </Badge>
-                            </td>
-                            <td className="py-4">
-                              <span className="capitalize text-[10px] font-mono font-bold text-accent">{user.role}</span>
-                            </td>
-                            {isHeadAdmin && (
-                              <td className="py-4">
-                                <div className="flex items-center gap-1 text-[10px] font-mono">
-                                  <Mail className="h-3 w-3 text-muted-foreground" />
-                                  {user.email}
+                        {allUsers.map(user => {
+                          if (user.id === currentUser.userId && !isHeadAdmin) return null;
+                          return (
+                            <tr key={user.id} className="group hover:bg-secondary/10 transition-colors">
+                              <td className="py-4 pl-2">
+                                <div className="flex items-center gap-3">
+                                  <div className="h-9 w-9 rounded-full bg-secondary flex items-center justify-center overflow-hidden border border-border">
+                                    {user.photoUrl ? <img src={user.photoUrl} className="object-cover h-full w-full" /> : <User className="h-4 w-4" />}
+                                  </div>
+                                  <div>
+                                    <p className="font-bold text-xs">@{user.id}</p>
+                                    <p className="text-[9px] text-muted-foreground font-mono">{user.fullName}</p>
+                                  </div>
                                 </div>
                               </td>
-                            )}
-                            <td className="py-4 font-mono text-xs">
-                              <div className="flex items-center gap-2">
-                                {showPasswords[user.id] ? (isHeadAdmin ? user.passcode : '••••••••') : '••••••••'}
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="h-7 w-7" 
-                                  onClick={() => setShowPasswords(prev => ({...prev, [user.id]: !prev[user.id]}))}
-                                >
-                                  {showPasswords[user.id] ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                                </Button>
-                              </div>
-                            </td>
-                            {isHeadAdmin && (
                               <td className="py-4">
-                                <div className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground">
-                                  <Calendar className="h-3 w-3" />
-                                  {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
+                                <Badge variant={user.status === 'active' ? 'default' : 'secondary'} className="text-[9px] uppercase font-bold">
+                                  {user.status}
+                                </Badge>
+                              </td>
+                              <td className="py-4">
+                                <div className="flex items-center gap-2">
+                                  <Select 
+                                    defaultValue={user.role} 
+                                    onValueChange={(val) => setSelectedRoles(prev => ({...prev, [user.id]: val}))}
+                                  >
+                                    <SelectTrigger className="w-32 h-8 text-[10px] uppercase font-bold border-primary/20">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {operationalRoles.map(r => (
+                                        <SelectItem key={r} value={r} className="text-[10px] uppercase font-bold">
+                                          {r}
+                                        </SelectItem>
+                                      ))}
+                                      {isHeadAdmin && <SelectItem value="HeadAdmin" className="text-[10px] uppercase font-bold text-primary">Head Admin</SelectItem>}
+                                    </SelectContent>
+                                  </Select>
+                                  {(selectedRoles[user.id] && selectedRoles[user.id] !== user.role) && (
+                                    <Button size="sm" variant="outline" className="h-7 px-2" onClick={() => handleAction(user.id, 'assign_role')}>
+                                      Update
+                                    </Button>
+                                  )}
                                 </div>
                               </td>
-                            )}
-                            <td className="py-4 text-right pr-2 space-x-2">
-                              {user.status === 'pending' && (
-                                <Button size="sm" variant="default" className="h-8" onClick={() => handleAction(user.id, 'approve')}>
-                                  <CheckCircle className="h-3 w-3 mr-1" /> Approve
-                                </Button>
-                              )}
-                              {user.status === 'active' && user.role === 'user' && (
-                                <Button size="sm" variant="outline" className="h-8" onClick={() => handleAction(user.id, 'promote')}>
-                                  Promote
-                                </Button>
-                              )}
-                              {isHeadAdmin && user.id !== currentUser.userId && (
-                                <Button size="sm" variant="destructive" className="h-8" onClick={() => handleAction(user.id, 'delete')}>
-                                  <Trash2 className="h-3 w-3" />
-                                </Button>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
+                              <td className="py-4 text-right pr-2 space-x-2">
+                                {user.status === 'pending' && (
+                                  <Button size="sm" variant="default" className="h-8" onClick={() => handleAction(user.id, 'approve')}>
+                                    <CheckCircle className="h-3 w-3 mr-1" /> Approve
+                                  </Button>
+                                )}
+                                {isHeadAdmin && user.id !== currentUser.userId && (
+                                  <Button size="sm" variant="destructive" className="h-8" onClick={() => handleAction(user.id, 'delete')}>
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>
@@ -391,7 +384,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <div className="pt-4 border-t border-dashed flex items-center justify-between">
-                         <span className="text-[9px] text-muted-foreground uppercase font-mono tracking-widest">Active Link</span>
+                         <span className="text-[9px] text-muted-foreground uppercase font-mono tracking-widest">Sector Link</span>
                          <span className="text-[10px] font-mono text-primary font-bold">
                            {new Date(p.lastSeen).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })} IST
                          </span>

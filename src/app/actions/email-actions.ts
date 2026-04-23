@@ -10,9 +10,9 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const PRIMARY_COLOR = '#e14a1d'; // Vibrant Red-Orange
-const ACCENT_COLOR = '#f59e0b'; // Amber-Yellow
-const HEAD_ADMIN_EMAIL = 'meet.arnesh@gmail.com';
+const PRIMARY_COLOR: string = '#e14a1d'; // Vibrant Red-Orange
+const ACCENT_COLOR: string = '#f59e0b'; // Amber-Yellow
+const HEAD_ADMIN_EMAIL: string = 'veilconfessions@gmail.com';
 
 function getISTDateString() {
   return new Date().toLocaleString('en-IN', {
@@ -83,7 +83,7 @@ export async function sendRoleChangeEmail(to: string, name: string, newRole: str
             <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
               <h2 style="color: ${PRIMARY_COLOR}; margin: 0; text-transform: uppercase;">${newRole}</h2>
             </div>
-            <p style="font-size: 13px; line-height: 1.6;">You may now access advanced dashboard features and command protocols associated with this identity level.</p>
+            <p style="font-size: 13px; line-height: 1.6;">You may now access dashboard features associated with this identity level.</p>
             <p style="font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 20px;">Timestamp: ${time}</p>
             <div style="margin-top: 25px; background: #fff5f5; border: 1px solid #feb2b2; padding: 15px; border-radius: 6px;">
               <p style="margin: 0; font-size: 12px; color: #c53030;"><strong>Not done by you?</strong> If you did not expect this change, please <a href="${securityLink}" style="color: ${PRIMARY_COLOR}; font-weight: bold;">report unauthorized access immediately</a>.</p>
@@ -114,7 +114,7 @@ export async function notifyAdminsOfRequest(userData: any, adminEmails: string[]
             <p><strong>Email:</strong> ${userData.email}</p>
             <p><strong>Requested At:</strong> ${time}</p>
           </div>
-          <p>Please log in to the command dashboard to assign a role and approve this operative.</p>
+          <p>Please log in to the command dashboard to assign a role (promoter, manager, CC, Data Collector, or admin) and approve this operative.</p>
           ${EMAIL_FOOTER}
         </div>
       `

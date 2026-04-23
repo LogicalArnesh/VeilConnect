@@ -1,4 +1,4 @@
-export type UserRole = 'HeadAdmin' | 'admin' | 'user' | 'pending';
+export type UserRole = 'HeadAdmin' | 'admin' | 'promoter' | 'manager' | 'CC' | 'Data Collector' | 'pending';
 
 export interface UserCredential {
   userId: string;
@@ -11,23 +11,15 @@ export interface UserCredential {
   photoUrl?: string;
 }
 
-export const HEAD_ADMIN_EMAIL = "meet.arnesh@gmail.com";
+export const HEAD_ADMIN_EMAIL = "veilconfessions@gmail.com";
 
 export const MOCK_USERS: UserCredential[] = [
   {
-    userId: "ArneshBarik",
-    passcode: "veilowner77",
+    userId: "VeilOfficial",
+    passcode: "6767",
     role: "HeadAdmin",
-    fullName: "Arnesh Barik",
+    fullName: "Veil Official Command",
     email: HEAD_ADMIN_EMAIL,
-    status: "active"
-  },
-  {
-    userId: "Makerov_61",
-    passcode: "admin123",
-    role: "admin",
-    fullName: "Operational Admin",
-    email: "admin.veil@example.com",
     status: "active"
   }
 ];
