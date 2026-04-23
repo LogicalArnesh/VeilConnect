@@ -74,30 +74,24 @@ export async function sendSecurityEmail(to: string, code: string, name: string) 
 
 export async function sendRoleChangeEmail(to: string, name: string, newRole: string) {
   const time = getISTDateString();
-  const securityLink = `https://veilconnect.netlify.app/security-alert?user=${encodeURIComponent(to)}&type=role_change`;
-
   await transporter.sendMail({
     from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
     to,
-    subject: `Operational Update: Role Escalation to ${newRole.toUpperCase()}`,
+    subject: `Operational Update: Role Assignment to ${newRole.toUpperCase()}`,
     html: `
-      <div style="background: #fdfdfd; padding: 30px; font-family: sans-serif; color: #333;">
+      <div style="background: #fdfdfd; padding: 30px; font-family: sans-serif;">
         <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #f0f0f0; border-radius: 12px; overflow: hidden;">
           <div style="background: ${PRIMARY_COLOR}; padding: 30px; text-align: center;">
             ${LOGO_HTML}
             <h1 style="color: white; margin: 0; font-size: 20px;">Role Assignment Confirmed</h1>
           </div>
           <div style="padding: 35px;">
-            <p>Greetings, <strong>${name}</strong>.</p>
-            <p>Your operational status has been updated by Command. Your new clearance level is:</p>
+            <p>Greetings, ${name}. Your operational status has been updated. Your new role is:</p>
             <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
               <h2 style="color: ${PRIMARY_COLOR}; margin: 0; text-transform: uppercase;">${newRole}</h2>
             </div>
-            <p style="font-size: 13px; line-height: 1.6;">You may now access dashboard features associated with this identity level.</p>
+            <p>You may now access dashboard features associated with this identity level.</p>
             <p style="font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 20px;">Timestamp: ${time}</p>
-            <div style="margin-top: 25px; background: #fff5f5; border: 1px solid #feb2b2; padding: 15px; border-radius: 6px;">
-              <p style="margin: 0; font-size: 12px; color: #c53030;"><strong>Not done by you?</strong> If you did not expect this change, please <a href="${securityLink}" style="color: ${PRIMARY_COLOR}; font-weight: bold;">report unauthorized access immediately</a>.</p>
-            </div>
           </div>
           ${EMAIL_FOOTER}
         </div>
@@ -125,7 +119,7 @@ export async function notifyAdminsOfRequest(userData: any, adminEmails: string[]
             <p><strong>Email:</strong> ${userData.email}</p>
             <p><strong>Requested At:</strong> ${time}</p>
           </div>
-          <p>Please log in to the command dashboard to assign a role (promoter, manager, CC, Data Collector, or admin) and approve this operative.</p>
+          <p>Please log in to the command dashboard to assign a role and approve this operative.</p>
           ${EMAIL_FOOTER}
         </div>
       `
