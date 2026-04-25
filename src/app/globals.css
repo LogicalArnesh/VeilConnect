@@ -78,3 +78,18 @@
 .shadow-glow-green {
   box-shadow: 0 0 30px -5px hsla(142, 76%, 36%, 0.4);
 }
+
+@media print {
+  .print\:hidden {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .glass-card {
+    background: white !important;
+    box-shadow: none !important;
+    border: 1px solid #eee !important;
+  }
+}

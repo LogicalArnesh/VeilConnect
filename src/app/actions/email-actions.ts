@@ -48,13 +48,13 @@ export async function sendConfessionAlertToAdmins(confessionData: any, adminEmai
     transporter.sendMail({
       from: '"Veil Intelligence" <noreply.veilconfessions@gmail.com>',
       to: email,
-      subject: `[LOG ALERT] New Submission #${confessionData.confessionNo}`,
+      subject: `[LOG ALERT] New Confession #${confessionData.confessionNo}`,
       html: `
         <div style="background: #f1f5f9; padding: 40px; font-family: 'Inter', sans-serif;">
           <div style="max-width: 600px; margin: 0 auto; background: ${COLOR_WHITE}; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;">
             <div style="background: linear-gradient(135deg, ${COLOR_RED}, ${COLOR_GREEN}); padding: 50px 40px; text-align: center;">
               ${LOGO_HTML}
-              <h1 style="color: ${COLOR_WHITE}; margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase;">Incoming Mission</h1>
+              <h1 style="color: ${COLOR_WHITE}; margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase;">Incoming Confession</h1>
             </div>
             <div style="padding: 40px;">
               <div style="background: #f8fafc; padding: 30px; border-left: 6px solid ${COLOR_RED}; border-radius: 16px; margin-bottom: 30px;">
@@ -62,8 +62,8 @@ export async function sendConfessionAlertToAdmins(confessionData: any, adminEmai
               </div>
               <div style="background: #f1f5f9; padding: 20px; border-radius: 12px; font-size: 13px; color: #64748b;">
                 <p style="margin: 5px 0;"><strong>Submission ID:</strong> <span style="font-family: monospace; color: #0f172a;">${confessionData.submissionId}</span></p>
-                <p style="margin: 5px 0;"><strong>Mission Rank:</strong> <span style="color: ${COLOR_RED}; font-weight: bold;">#${confessionData.confessionNo}</span></p>
-                <p style="margin: 5px 0;"><strong>Origin Pulse:</strong> ${confessionData.ipAddress}</p>
+                <p style="margin: 5px 0;"><strong>Confession Index:</strong> <span style="color: ${COLOR_RED}; font-weight: bold;">#${confessionData.confessionNo}</span></p>
+                <p style="margin: 5px 0;"><strong>Origin IP:</strong> ${confessionData.ipAddress}</p>
                 <p style="margin: 5px 0;"><strong>Logged At:</strong> ${time}</p>
               </div>
               <div style="margin-top: 35px; text-align: center;">

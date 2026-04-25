@@ -8,16 +8,18 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Send, ShieldCheck, CheckCircle2, Loader2, AlertCircle, Clock, Shield, Search, ArrowRight } from 'lucide-react';
+import { Send, ShieldCheck, CheckCircle2, Loader2, AlertCircle, Clock, Shield, Search } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, getCountFromServer, query } from 'firebase/firestore';
+import { collection, addDoc, getCountFromServer, query, where } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { sendConfessionAlertToAdmins } from '@/app/actions/email-actions';
 import { useCollection, useMemoFirebase } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ConfessionLandingPage() {
   const db = useFirestore();
   const router = useRouter();
+  const { toast } = useToast();
   const [confession, setConfession] = useState('');
   const [loading, setLoading] = useState(false);
   const [isHuman, setIsHuman] = useState(false);
@@ -47,7 +49,14 @@ export default function ConfessionLandingPage() {
     e.preventDefault();
     if (!confession.trim()) return;
     if (!isHuman) {
-      setError('Please verify your human identity.');
+      setError('Please verify your identity as a human operative.');
+      return;
+    }
+
+    // Spam Protection
+    const lastSub = localStorage.getItem('veil_last_sub');
+    if (lastSub && Date.now() - parseInt(lastSub) < 300000) {
+      setError('Anti-Spam Alert: Please wait 5 minutes before sending another confession.');
       return;
     }
 
@@ -61,26 +70,22 @@ export default function ConfessionLandingPage() {
         const ipData = await ipRes.json();
         ip = ipData.ip;
       } catch (err) {
-        console.warn('Could not fetch public IP');
+        console.warn('IP Trace Failure');
       }
 
       const browserFingerprint = {
         userAgent: navigator.userAgent,
-        language: navigator.language,
         platform: navigator.platform,
-        screenResolution: `${window.screen.width}x${window.screen.height}`,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        cookiesEnabled: navigator.cookieEnabled,
-        hardwareConcurrency: navigator.hardwareConcurrency,
-        touchPoints: navigator.maxTouchPoints,
-        colorDepth: window.screen.colorDepth,
+        screen: `${window.screen.width}x${window.screen.height}`,
+        language: navigator.language,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       };
 
       const coll = collection(db, 'confessions');
       const snapshot = await getCountFromServer(coll);
       const confessionNo = (snapshot.data().count || 0) + 1;
 
-      const submissionId = Math.random().toString(36).substring(2, 12).toUpperCase();
+      const submissionId = Math.random().toString(36).substring(2, 10).toUpperCase();
       const timestamp = new Date().toISOString();
 
       const confessionData = {
@@ -95,6 +100,8 @@ export default function ConfessionLandingPage() {
       };
 
       await addDoc(coll, confessionData);
+      
+      localStorage.setItem('veil_last_sub', Date.now().toString());
 
       const adminEmails = allUsers
         ? allUsers.filter(u => u.role === 'admin' || u.role === 'HeadAdmin').map(u => u.email)
@@ -116,7 +123,7 @@ export default function ConfessionLandingPage() {
       <div className="max-w-2xl w-full space-y-8 relative z-10">
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="relative w-28 h-28 rounded-3xl overflow-hidden border-4 border-primary shadow-glow-red ring-8 ring-primary/5 transition-all hover:scale-105 duration-500">
-             {logo && <Image src={logo.imageUrl} alt="Logo" fill className="object-cover" />}
+             {logo && <Image src={logo.imageUrl} alt="Veil Logo" fill className="object-cover" />}
           </div>
           <div className="space-y-1">
             <h1 className="text-5xl font-black tracking-tighter text-foreground font-headline uppercase leading-none">
@@ -136,8 +143,8 @@ export default function ConfessionLandingPage() {
                 <ShieldCheck className="h-7 w-7 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-2xl font-black tracking-tight uppercase">Secure Mission Portal</CardTitle>
-                <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Identity Integrity Protocol Active</CardDescription>
+                <CardTitle className="text-2xl font-black tracking-tight uppercase">Secure Submission Portal</CardTitle>
+                <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">End-to-End Encryption Protocol Active</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -145,7 +152,7 @@ export default function ConfessionLandingPage() {
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="space-y-4">
                 <Textarea 
-                  placeholder="Send you confessions secretly!" 
+                  placeholder="Send your confessions secretly!" 
                   className="min-h-[250px] text-lg resize-none focus-visible:ring-primary border-white/10 bg-background/40 rounded-3xl p-6 placeholder:text-muted-foreground/30 transition-all focus:bg-background/60 shadow-inner"
                   value={confession}
                   onChange={(e) => setConfession(e.target.value)}
@@ -154,11 +161,11 @@ export default function ConfessionLandingPage() {
                 <div className="flex justify-between items-center px-2">
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-secondary" />
-                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.1em]">AES-256 Sector Encryption</p>
+                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.1em]">AES-256 Sector Protection</p>
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="h-1.5 w-1.5 rounded-full bg-secondary animate-pulse" />
-                    <p className="text-[10px] text-secondary font-black uppercase tracking-[0.1em]">Signal: Verified</p>
+                    <p className="text-[10px] text-secondary font-black uppercase tracking-[0.1em]">Signal: Secure</p>
                   </div>
                 </div>
               </div>
@@ -190,7 +197,7 @@ export default function ConfessionLandingPage() {
                 disabled={loading}
               >
                 {loading ? <Loader2 className="animate-spin h-7 w-7" /> : <Send className="h-7 w-7" />}
-                {loading ? 'Dispatching...' : 'Submit Mission'}
+                {loading ? 'Transmitting...' : 'Submit Confession'}
               </Button>
             </form>
           </CardContent>
@@ -217,3 +224,4 @@ export default function ConfessionLandingPage() {
     </div>
   );
 }
+

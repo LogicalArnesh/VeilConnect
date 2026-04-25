@@ -5,9 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
-  Users, 
   ShieldCheck, 
-  Activity, 
   Trash2, 
   User, 
   Zap,
@@ -15,18 +13,13 @@ import {
   Megaphone,
   MessageSquareQuote,
   Globe,
-  Monitor,
   Search,
-  CheckCircle,
-  XCircle,
   Clock,
-  ExternalLink,
-  Info,
-  ShieldAlert
+  Activity
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
-import { collection, onSnapshot, doc, updateDoc, deleteDoc, setDoc, addDoc, query, orderBy, limit, where } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, setDoc, addDoc, query, orderBy, limit } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -116,13 +109,10 @@ export default function DashboardPage() {
   const updateConfessionStatus = async (id: string, updates: any) => {
     try {
       const confRef = doc(db, 'confessions', id);
-      if (updates.reviewStatus === 'rejected') {
-        updates.publicationStatus = 'denied';
-      }
       await updateDoc(confRef, updates);
       toast({ title: "Log Updated", description: "Submission status synchronized." });
     } catch (err) {
-      toast({ variant: "destructive", title: "Update Failed" });
+      toast({ variant: "destructive", title: "Update Failed", description: "Encryption error or connectivity loss." });
     }
   };
 
@@ -146,7 +136,7 @@ export default function DashboardPage() {
     let details = 'Technical data unavailable.';
     try {
       const data = JSON.parse(c.browserInfo);
-      details = `Platform: ${data.platform} | Res: ${data.screenResolution} | TZ: ${data.timeZone} | Cookies: ${data.cookiesEnabled ? 'YES' : 'NO'}`;
+      details = `OS: ${data.platform} | Screen: ${data.screen} | Locale: ${data.language} | TZ: ${data.timezone}`;
     } catch (e) {
       details = c.browserInfo || 'Legacy browser metadata format.';
     }
@@ -218,22 +208,22 @@ export default function DashboardPage() {
                <div className="lg:col-span-2 space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <StatCard title="Total Confessions" value={confessions?.length.toString() || '0'} icon={<MessageSquareQuote className="h-6 w-6" />} />
-                    <StatCard title="Active IDs" value={allUsers.filter(u => u.status === 'active').length.toString()} icon={<ShieldCheck className="h-6 w-6" />} />
+                    <StatCard title="Active Operatives" value={allUsers.filter(u => u.status === 'active').length.toString()} icon={<ShieldCheck className="h-6 w-6" />} />
                     <StatCard title="Network Status" value="Online" icon={<Zap className="h-6 w-6 text-secondary" />} />
                   </div>
 
-                  <Card className="border-primary/20 bg-primary/5 rounded-[2rem] overflow-hidden">
+                  <Card className="border-primary/20 bg-primary/5 rounded-[2rem] overflow-hidden shadow-xl">
                     <CardHeader className="bg-primary/10 border-b border-primary/10">
                       <CardTitle className="flex items-center gap-3 text-primary uppercase text-sm font-black tracking-[0.2em]">
                         <Megaphone className="h-6 w-6" /> Command Broadcasts
                       </CardTitle>
-                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Post mission updates and meeting schedules</CardDescription>
+                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest">Post updates and meeting schedules</CardDescription>
                     </CardHeader>
                     <CardContent className="p-8 space-y-6">
                       {isAdmin && (
                         <div className="flex gap-4">
                           <Input 
-                            placeholder="Type important mission update..." 
+                            placeholder="Type important update..." 
                             value={newAnnouncement}
                             onChange={(e) => setNewAnnouncement(e.target.value)}
                             className="bg-background/40 rounded-xl h-12"
@@ -265,12 +255,12 @@ export default function DashboardPage() {
                   <CardTitle className="text-2xl uppercase font-black tracking-tight flex items-center gap-3 text-primary">
                     <MessageSquareQuote className="h-8 w-8" /> Confession Logs
                   </CardTitle>
-                  <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Search and manage anonymous mission submissions.</CardDescription>
+                  <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Search and manage all incoming anonymous confessions.</CardDescription>
                 </div>
                 <div className="relative max-w-sm w-full">
                   <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                   <Input 
-                    placeholder="SEARCH BY MISSION ID..." 
+                    placeholder="SEARCH BY SUBMISSION ID..." 
                     className="pl-12 h-12 rounded-xl bg-background/50 font-mono tracking-widest text-xs"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -283,10 +273,10 @@ export default function DashboardPage() {
                     <thead>
                       <tr className="bg-muted/10 text-left text-muted-foreground uppercase text-[10px] font-black tracking-[0.3em]">
                         <th className="py-6 pl-10">Log Index</th>
-                        <th className="py-6">Submission Data</th>
-                        <th className="py-6">Review Protocol</th>
-                        <th className="py-6">Broadcast Mode</th>
-                        <th className="py-6">Log Time</th>
+                        <th className="py-6">Confession Data</th>
+                        <th className="py-6">Review Status</th>
+                        <th className="py-6">Broadcast Status</th>
+                        <th className="py-6">Timestamp</th>
                         <th className="py-6 text-right pr-10">Actions</th>
                       </tr>
                     </thead>
@@ -306,7 +296,14 @@ export default function DashboardPage() {
                             </div>
                           </td>
                           <td className="py-8">
-                             <Select defaultValue={c.reviewStatus || 'pending'} onValueChange={(val) => updateConfessionStatus(c.id, { reviewStatus: val })}>
+                             <Select 
+                               value={c.reviewStatus || 'pending'} 
+                               onValueChange={(val) => {
+                                 const updates: any = { reviewStatus: val };
+                                 if (val === 'rejected') updates.publicationStatus = 'denied';
+                                 updateConfessionStatus(c.id, updates);
+                               }}
+                             >
                                <SelectTrigger className="w-[140px] h-10 text-[10px] font-black uppercase tracking-[0.1em] rounded-xl">
                                  <SelectValue />
                                </SelectTrigger>
@@ -318,7 +315,11 @@ export default function DashboardPage() {
                              </Select>
                           </td>
                           <td className="py-8">
-                            <Select defaultValue={c.publicationStatus || 'waiting'} onValueChange={(val) => updateConfessionStatus(c.id, { publicationStatus: val })}>
+                            <Select 
+                              value={c.publicationStatus || 'waiting'} 
+                              onValueChange={(val) => updateConfessionStatus(c.id, { publicationStatus: val })}
+                              disabled={c.reviewStatus === 'rejected'}
+                            >
                                <SelectTrigger className="w-[140px] h-10 text-[10px] font-black uppercase tracking-[0.1em] rounded-xl">
                                  <SelectValue />
                                </SelectTrigger>
@@ -337,7 +338,7 @@ export default function DashboardPage() {
                           </td>
                           <td className="py-8 text-right pr-10">
                              <Button size="sm" variant="outline" className="h-10 px-6 text-[10px] uppercase font-black tracking-widest rounded-xl hover:bg-primary/10 hover:text-primary transition-all" onClick={() => inspectConfession(c)}>
-                               Trace Mission
+                               Trace IP/Device
                              </Button>
                           </td>
                         </tr>
@@ -350,16 +351,16 @@ export default function DashboardPage() {
           </TabsContent>
 
           <TabsContent value="profile">
-            <Card className="rounded-[2rem] border-white/10 overflow-hidden">
+            <Card className="rounded-[2rem] border-white/10 overflow-hidden shadow-xl">
               <CardHeader className="p-10 bg-muted/20 border-b border-white/5">
-                <CardTitle className="text-2xl font-black uppercase">Operative Identity</CardTitle>
-                <CardDescription className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Manage your presence and identification protocols.</CardDescription>
+                <CardTitle className="text-2xl font-black uppercase">Operative Profile</CardTitle>
+                <CardDescription className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Manage your presence and authorization state.</CardDescription>
               </CardHeader>
               <CardContent className="p-10">
                 <div className="max-w-3xl space-y-10">
                     <section className="space-y-6">
                       <h3 className="text-sm font-black uppercase tracking-[0.3em] text-primary flex items-center gap-3">
-                        <Zap className="h-5 w-5" /> Presence Authorization
+                        <Zap className="h-5 w-5" /> Presence Setting
                       </h3>
                       <RadioGroup 
                         defaultValue={currentStatus} 
@@ -375,13 +376,13 @@ export default function DashboardPage() {
                         <div className="flex items-center space-x-4 p-6 border border-white/10 rounded-2xl bg-white/5 cursor-pointer hover:border-amber-500/50 transition-all hover:bg-amber-500/5">
                           <RadioGroupItem value="idle" id="status-idle" />
                           <Label htmlFor="status-idle" className="flex items-center gap-3 cursor-pointer font-black uppercase text-[11px] tracking-widest text-amber-500">
-                             Idle Pulse
+                             Idle
                           </Label>
                         </div>
                         <div className="flex items-center space-x-4 p-6 border border-white/10 rounded-2xl bg-white/5 cursor-pointer hover:border-primary/50 transition-all hover:bg-primary/5">
                           <RadioGroupItem value="dnd" id="status-dnd" />
                           <Label htmlFor="status-dnd" className="flex items-center gap-3 cursor-pointer font-black uppercase text-[11px] tracking-widest text-primary">
-                            <Moon className="h-4 w-4" /> Restricted
+                            <Moon className="h-4 w-4" /> DND
                           </Label>
                         </div>
                       </RadioGroup>
@@ -393,10 +394,10 @@ export default function DashboardPage() {
 
           {isAdmin && (
             <TabsContent value="users">
-              <Card className="rounded-[2.5rem] overflow-hidden border-white/10">
+              <Card className="rounded-[2.5rem] overflow-hidden border-white/10 shadow-xl">
                 <CardHeader className="p-10 bg-muted/20">
-                  <CardTitle className="text-2xl font-black uppercase">Identity Control Panel</CardTitle>
-                  <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Manage authorization and mission clearance for team operatives.</CardDescription>
+                  <CardTitle className="text-2xl font-black uppercase">User Control Panel</CardTitle>
+                  <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Manage authorization and roles for team operatives.</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
@@ -406,8 +407,8 @@ export default function DashboardPage() {
                           <th className="py-6 pl-10">Operative Identity</th>
                           <th className="py-6">Authorization</th>
                           <th className="py-6">Sector Role</th>
-                          {isHeadAdmin && <th className="py-6">Clearance Key</th>}
-                          <th className="py-6">Last Login Pulse</th>
+                          {isHeadAdmin && <th className="py-6">Security Key</th>}
+                          <th className="py-6">Pulse Status</th>
                           <th className="py-6 text-right pr-10">Command</th>
                         </tr>
                       </thead>
@@ -473,12 +474,12 @@ export default function DashboardPage() {
                               </td>
                               <td className="py-8 text-right pr-10 space-x-2">
                                 {isHeadAdmin && user.id !== currentUser.userId && (
-                                  <Button size="icon" variant="destructive" className="h-10 w-10 rounded-xl" onClick={() => handleAction(user.id, 'delete')} title="Purge Identity">
+                                  <Button size="icon" variant="destructive" className="h-10 w-10 rounded-xl" onClick={() => handleAction(user.id, 'delete')} title="Purge Operative">
                                     <Trash2 className="h-5 w-5" />
                                   </Button>
                                 )}
                                 {user.status === 'pending' && (
-                                   <Button size="sm" className="h-10 px-6 text-[10px] uppercase font-black tracking-widest rounded-xl shadow-lg shadow-primary/20" onClick={() => handleAction(user.id, 'approve')}>Authorize Identity</Button>
+                                   <Button size="sm" className="h-10 px-6 text-[10px] uppercase font-black tracking-widest rounded-xl shadow-lg shadow-primary/20" onClick={() => handleAction(user.id, 'approve')}>Authorize Access</Button>
                                 )}
                               </td>
                             </tr>
@@ -494,10 +495,10 @@ export default function DashboardPage() {
 
           {isAdmin && (
             <TabsContent value="presence">
-               <Card className="rounded-[2.5rem] border-white/10 overflow-hidden">
+               <Card className="rounded-[2.5rem] border-white/10 overflow-hidden shadow-xl">
                  <CardHeader className="p-10 bg-muted/20">
                    <CardTitle className="text-2xl font-black uppercase">Sector Presence Board</CardTitle>
-                   <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Real-time network availability and mission pulse of active operatives.</CardDescription>
+                   <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Real-time network availability of active operatives.</CardDescription>
                  </CardHeader>
                  <CardContent className="p-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -547,3 +548,4 @@ function StatCard({ title, value, icon }: { title: string; value: string; icon: 
     </Card>
   );
 }
+
