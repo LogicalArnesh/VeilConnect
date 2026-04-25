@@ -11,7 +11,7 @@ import {
   Globe,
   Search,
   Zap,
-  Filter
+  Loader2
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
@@ -33,15 +33,15 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [presence, setPresence] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [currentStatus, setCurrentStatus] = useState<string>('online');
   const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
   const [newAnnouncement, setNewAnnouncement] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const confessionsQuery = useMemoFirebase(() => query(collection(db, 'confessions'), orderBy('createdAt', 'desc')), [db]);
-  const { data: confessions } = useCollection(confessionsQuery);
+  const { data: confessions, isLoading: isConfessionsLoading } = useCollection(confessionsQuery);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('veil_user');
@@ -98,12 +98,15 @@ export default function DashboardPage() {
   };
 
   const updateConfessionStatus = async (id: string, updates: any) => {
+    setUpdatingId(id);
     try {
       const confRef = doc(db, 'confessions', id);
       await updateDoc(confRef, updates);
       toast({ title: "Sync Successful", description: "Confession parameters updated." });
     } catch (err) {
       toast({ variant: "destructive", title: "Update Failed", description: "Authorization required for status change." });
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -243,10 +246,18 @@ export default function DashboardPage() {
                       <th className="py-6">Origin IP</th>
                       <th className="py-6">Review</th>
                       <th className="py-6">Broadcast</th>
-                      <th className="py-6 pr-10">Time</th>
+                      <th className="py-6 pr-10 text-right">Time</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
+                    {isConfessionsLoading && (
+                      <tr>
+                        <td colSpan={6} className="py-20 text-center">
+                          <Loader2 className="animate-spin h-8 w-8 text-primary mx-auto" />
+                          <p className="text-[10px] uppercase font-black mt-4 text-muted-foreground tracking-widest">Decrypting Logs...</p>
+                        </td>
+                      </tr>
+                    )}
                     {filteredConfessions?.map(c => (
                       <tr key={c.id} className="hover:bg-white/5 transition-colors">
                         <td className="py-8 pl-10">
@@ -265,6 +276,7 @@ export default function DashboardPage() {
                           <Select 
                             value={c.reviewStatus} 
                             onValueChange={(val) => updateConfessionStatus(c.id, { reviewStatus: val })}
+                            disabled={updatingId === c.id}
                           >
                             <SelectTrigger className={`w-[120px] h-9 text-[9px] font-black uppercase rounded-lg border-2 ${c.reviewStatus === 'accepted' ? 'border-secondary/50 text-secondary' : c.reviewStatus === 'rejected' ? 'border-destructive/50 text-destructive' : 'border-white/10'}`}>
                               <SelectValue />
@@ -280,6 +292,7 @@ export default function DashboardPage() {
                           <Select 
                             value={c.publicationStatus} 
                             onValueChange={(val) => updateConfessionStatus(c.id, { publicationStatus: val })}
+                            disabled={updatingId === c.id}
                           >
                             <SelectTrigger className={`w-[120px] h-9 text-[9px] font-black uppercase rounded-lg border-2 ${c.publicationStatus === 'published' ? 'border-secondary/50 text-secondary' : c.publicationStatus === 'denied' ? 'border-destructive/50 text-destructive' : 'border-white/10'}`}>
                               <SelectValue />
@@ -291,7 +304,7 @@ export default function DashboardPage() {
                             </SelectContent>
                           </Select>
                         </td>
-                        <td className="py-8 pr-10 text-[10px] font-bold">
+                        <td className="py-8 pr-10 text-[10px] font-bold text-right">
                           {new Date(c.createdAt).toLocaleDateString()}<br/>
                           <span className="opacity-60">{new Date(c.createdAt).toLocaleTimeString()}</span>
                         </td>
