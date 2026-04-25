@@ -128,29 +128,3 @@ export async function sendRoleChangeEmail(to: string, name: string, newRole: str
     `
   });
 }
-
-export async function notifyAdminsOfRequest(userData: any, adminEmails: string[]) {
-  const recipients = Array.from(new Set([...adminEmails, HEAD_ADMIN_EMAIL]));
-  transporter.sendMail({
-    from: '"Veil Identity Control" <noreply.veilconfessions@gmail.com>',
-    to: recipients,
-    subject: `[SECURITY] New Identity established: ${userData.fullName}`,
-    html: `
-      <div style="padding: 40px;">
-        <h2>Identity Verification Required</h2>
-        <p><strong>Operative:</strong> ${userData.fullName}</p>
-        <p><strong>Email:</strong> ${userData.email}</p>
-        <p>Please authorize access in the Command Dashboard.</p>
-      </div>
-    `
-  });
-}
-
-export async function sendResetConfirmationEmail(to: string, name: string, type: string) {
-  transporter.sendMail({
-    from: '"Veil System Control" <noreply.veilconfessions@gmail.com>',
-    to,
-    subject: `[SYSTEM] ${type.toUpperCase()} Synchronized`,
-    html: `<p>Operative ${name}, your security ${type} has been updated successfully.</p>`
-  });
-}

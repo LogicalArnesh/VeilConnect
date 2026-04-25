@@ -71,7 +71,6 @@ export default function ConfessionLandingPage() {
         screen: `${window.screen.width}x${window.screen.height}`,
         language: navigator.language,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        cookiesEnabled: navigator.cookieEnabled,
       };
 
       const coll = collection(db, 'confessions');
@@ -127,14 +126,14 @@ export default function ConfessionLandingPage() {
           </div>
         </div>
 
-        <Card className="glass-card rounded-[2.5rem] overflow-hidden border-t-primary/30">
+        <Card className="glass-card rounded-[2.5rem] overflow-hidden border-t-primary/30 shadow-2xl">
           <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/5 p-10">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/30">
                 <ShieldCheck className="h-7 w-7 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-2xl font-black tracking-tight uppercase">Secure Submission Portal</CardTitle>
+                <CardTitle className="text-2xl font-black tracking-tight uppercase">Secure Confession Portal</CardTitle>
                 <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">End-to-End Encryption Protocol Active</CardDescription>
               </div>
             </div>

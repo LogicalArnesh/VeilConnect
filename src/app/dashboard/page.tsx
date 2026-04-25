@@ -2,19 +2,15 @@
 
 import React, { useEffect, useState } from 'react';
 import { DashboardHeader } from '@/components/dashboard/dashboard-header';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   ShieldCheck, 
   Trash2, 
-  User, 
-  Zap,
-  Moon,
   Megaphone,
   MessageSquareQuote,
   Globe,
   Search,
-  Clock,
-  Activity
+  Zap
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
@@ -109,7 +105,7 @@ export default function DashboardPage() {
     try {
       const confRef = doc(db, 'confessions', id);
       await updateDoc(confRef, updates);
-      toast({ title: "Sync Successful", description: "Confession status updated in secure core." });
+      toast({ title: "Sync Successful", description: "Confession status updated." });
     } catch (err) {
       toast({ variant: "destructive", title: "Update Failed", description: "Database link interrupted." });
     }
@@ -323,13 +319,11 @@ export default function DashboardPage() {
                         <th className="py-6">Status</th>
                         <th className="py-6">Role</th>
                         {isHeadAdmin && <th className="py-6">Security Key</th>}
-                        <th className="py-6">Last Active</th>
                         <th className="py-6 pr-10 text-right">Command</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
                       {allUsers.map(user => {
-                        const p = presence.find(pr => pr.id === user.id);
                         if (user.id === currentUser.userId && !isHeadAdmin) return null;
                         return (
                           <tr key={user.id} className="hover:bg-secondary/5">
@@ -360,9 +354,6 @@ export default function DashboardPage() {
                             {isHeadAdmin && (
                               <td className="py-8 font-mono text-sm text-primary font-black">{user.passcode}</td>
                             )}
-                            <td className="py-8 text-[10px] font-bold">
-                              {p?.lastSeen ? new Date(p.lastSeen).toLocaleTimeString() : 'OFFLINE'}
-                            </td>
                             <td className="py-8 pr-10 text-right space-x-2">
                               {isHeadAdmin && user.id !== currentUser.userId && (
                                 <Button size="icon" variant="destructive" className="h-9 w-9" onClick={() => handleAction(user.id, 'delete')}><Trash2 className="h-4 w-4" /></Button>

@@ -1,37 +1,31 @@
 #!/bin/bash
 
 # VeilConnect Deployment Script
-# This script stages all changes and pushes them to your GitHub repository.
+# This script handles authentication and pushes changes to GitHub.
 
-echo "🚀 Starting deployment process..."
-
-# Initialize git if not already done
-if [ ! -d ".git" ]; then
-    echo "📁 Initializing Git repository..."
-    git init
-fi
+echo "🚀 Starting professional deployment..."
 
 # Set git identity
 git config user.email "deploy@veilconnect.local"
 git config user.name "VeilConnect Deployer"
 
 # Stage all changes
-echo "➕ Adding updated files..."
 git add .
 
 # Create deployment commit
-echo "💾 Finalizing operational build..."
-git commit -m "System Overhaul: Professional Confession Identity Active - $(date)" || echo "No changes to commit"
+# Using -m avoids opening the interactive editor
+echo "💾 Finalizing build..."
+git commit -m "System Sync: Professional Confession Identity Active - $(date)" || echo "No changes to commit"
 
-# Set remote if needed (Replace with your actual repo URL if different)
-# git remote add origin https://github.com/LogicalArnesh/VeilConnect.git 2>/dev/null
+# Set remote URL (Replace with your actual repo if needed)
+# To avoid password prompts, you can set the remote with the token manually:
+# git remote set-url origin https://<TOKEN>@github.com/LogicalArnesh/VeilConnect.git
 
-# Push to Main branch
 echo "📤 Pushing to GitHub (Main)..."
 git branch -M main
 
-# Use the standard push. When prompted for a password, PASTE YOUR TOKEN (ghp_...)
+# Force push to ensure synchronization
 git push -u origin main --force
 
-echo "✅ Deployment script finished."
-echo "NOTE: If prompted for a password, paste your GitHub Personal Access Token (PAT)."
+echo "✅ Deployment sequence finished."
+echo "NOTE: If prompted for a password, PASTE your GitHub Token (ghp_...) and hit Enter."

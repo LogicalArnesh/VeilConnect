@@ -4,7 +4,7 @@ import React, { Suspense, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Copy, Download, Info, Mail, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
+import { Copy, Download, Info, ArrowRight, ShieldCheck, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
@@ -23,7 +23,7 @@ function SuccessContent() {
 
   useEffect(() => {
     if (sid) {
-      // Setting document title to ensure Save as PDF uses this filename
+      // Setting document title ensures "Save as PDF" uses this filename
       document.title = `veilconfessions_${sid}`;
     }
     return () => {
