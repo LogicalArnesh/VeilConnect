@@ -79,6 +79,7 @@ export default function ConfessionLandingPage() {
         screen: `${window.screen.width}x${window.screen.height}`,
         language: navigator.language,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        cookiesEnabled: navigator.cookieEnabled,
       };
 
       const coll = collection(db, 'confessions');
