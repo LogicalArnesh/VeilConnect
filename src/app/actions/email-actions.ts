@@ -1,3 +1,4 @@
+
 'use server';
 
 import nodemailer from 'nodemailer';
@@ -10,8 +11,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const PRIMARY_COLOR: string = '#e11d48'; // Red
-const SECONDARY_COLOR: string = '#16a34a'; // Emerald Green
+const PRIMARY_RED: string = '#e11d48'; // Red
+const SECONDARY_GREEN: string = '#16a34a'; // Emerald Green
 const HEAD_ADMIN_EMAIL: string = 'veilconfessions@gmail.com';
 const LOGO_URL: string = 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop';
 
@@ -24,17 +25,17 @@ function getISTDateString() {
 }
 
 const EMAIL_FOOTER = `
-  <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 25px; color: #888; font-size: 11px; text-align: center; font-family: sans-serif;">
-    <p style="margin: 0; font-weight: 700; color: ${PRIMARY_COLOR}; text-transform: uppercase; letter-spacing: 1px;">VeilConnect Operations Command</p>
+  <div style="margin-top: 40px; border-top: 1px solid #eee; padding-top: 25px; color: #888; font-size: 11px; text-align: center; font-family: 'Inter', sans-serif;">
+    <p style="margin: 0; font-weight: 700; color: ${PRIMARY_RED}; text-transform: uppercase; letter-spacing: 2px;">VeilConnect Operations Command</p>
     <p style="margin: 6px 0;">This is a secure, automated system message. Please do not reply.</p>
     <p style="margin: 6px 0;">&copy; ${new Date().getFullYear()} Veil Confessions Intelligence Unit. Unauthorized access is prohibited.</p>
-    <p style="margin: 6px 0;">Contact: <a href="mailto:veilconfessions@gmail.com" style="color: ${SECONDARY_COLOR};">veilconfessions@gmail.com</a></p>
+    <p style="margin: 6px 0;">Contact: <a href="mailto:veilconfessions@gmail.com" style="color: ${SECONDARY_GREEN}; font-weight: bold; text-decoration: none;">veilconfessions@gmail.com</a></p>
   </div>
 `;
 
 const LOGO_HTML = `
-  <div style="text-align: center; margin-bottom: 20px;">
-    <img src="${LOGO_URL}" alt="VEIL" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid ${PRIMARY_COLOR};" />
+  <div style="text-align: center; margin-bottom: 25px;">
+    <img src="${LOGO_URL}" alt="VEIL" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid ${PRIMARY_RED}; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" />
   </div>
 `;
 
@@ -48,21 +49,25 @@ export async function sendConfessionAlertToAdmins(confessionData: any, adminEmai
       to: email,
       subject: `[ALERT] New Confession Received: #${confessionData.confessionNo}`,
       html: `
-        <div style="background: #fdfdfd; padding: 30px; font-family: sans-serif; color: #333;">
-          <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #f0f0f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-            <div style="background: linear-gradient(135deg, ${PRIMARY_COLOR}, ${SECONDARY_COLOR}); padding: 30px; text-align: center;">
+        <div style="background: #f8fafc; padding: 40px; font-family: 'Inter', sans-serif; color: #1e293b;">
+          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+            <div style="background: linear-gradient(135deg, ${PRIMARY_RED}, ${SECONDARY_GREEN}); padding: 40px; text-align: center;">
               ${LOGO_HTML}
-              <h1 style="color: white; margin: 0; font-size: 24px;">New Confession</h1>
+              <h1 style="color: white; margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase;">Incoming Submission</h1>
             </div>
-            <div style="padding: 35px;">
-              <p>Greetings. A new anonymous submission has been logged into the secure database.</p>
-              <div style="background: #f9f9f9; padding: 20px; border-left: 4px solid ${PRIMARY_COLOR}; border-radius: 4px; margin: 20px 0;">
-                <p style="font-style: italic; color: #555;">"${confessionData.content}"</p>
+            <div style="padding: 40px;">
+              <p style="font-size: 16px; line-height: 1.6;">Greetings. A new anonymous operative submission has been logged into the secure database.</p>
+              <div style="background: #f1f5f9; padding: 30px; border-left: 6px solid ${PRIMARY_RED}; border-radius: 12px; margin: 25px 0;">
+                <p style="font-style: italic; color: #334155; font-size: 18px; margin: 0; line-height: 1.6;">"${confessionData.content}"</p>
               </div>
-              <div style="font-size: 12px; color: #777; border-top: 1px solid #eee; padding-top: 15px;">
-                <p><strong>Submission ID:</strong> ${confessionData.submissionId}</p>
-                <p><strong>IP Address:</strong> ${confessionData.ipAddress}</p>
-                <p><strong>Timestamp:</strong> ${time}</p>
+              <div style="font-size: 13px; color: #64748b; border-top: 1px solid #f1f5f9; padding-top: 20px; margin-top: 20px;">
+                <p style="margin: 5px 0;"><strong>Submission ID:</strong> <span style="font-family: monospace; color: #0f172a;">${confessionData.submissionId}</span></p>
+                <p style="margin: 5px 0;"><strong>Log Index:</strong> <span style="color: ${PRIMARY_RED}; font-weight: bold;">#${confessionData.confessionNo}</span></p>
+                <p style="margin: 5px 0;"><strong>Origin IP:</strong> <span style="font-family: monospace;">${confessionData.ipAddress}</span></p>
+                <p style="margin: 5px 0;"><strong>Timestamp:</strong> ${time}</p>
+              </div>
+              <div style="margin-top: 30px; text-align: center;">
+                <a href="https://veilconnect.netlify.app/dashboard" style="display: inline-block; padding: 14px 28px; background: ${SECONDARY_GREEN}; color: white; text-decoration: none; border-radius: 10px; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Access Command Dashboard</a>
               </div>
             </div>
             ${EMAIL_FOOTER}
@@ -82,19 +87,19 @@ export async function sendSecurityEmail(to: string, code: string, name: string) 
       to,
       subject: 'Security Protocol: Identity Verification Key',
       html: `
-        <div style="background: #fdfdfd; padding: 30px; font-family: sans-serif; color: #333;">
-          <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #f0f0f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-            <div style="background: linear-gradient(135deg, ${PRIMARY_COLOR}, ${SECONDARY_COLOR}); padding: 30px; text-align: center;">
+        <div style="background: #f8fafc; padding: 40px; font-family: 'Inter', sans-serif; color: #1e293b;">
+          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+            <div style="background: linear-gradient(135deg, ${PRIMARY_RED}, ${SECONDARY_GREEN}); padding: 40px; text-align: center;">
               ${LOGO_HTML}
-              <h1 style="color: white; margin: 0; font-size: 24px;">Verification Key</h1>
+              <h1 style="color: white; margin: 0; font-size: 26px; font-weight: 900; text-transform: uppercase;">Verification Key</h1>
             </div>
-            <div style="padding: 35px;">
-              <p>Greetings, <strong>${name}</strong>.</p>
-              <p>Please utilize the unique authorization key below to verify your operational identity:</p>
-              <div style="background: #fff8f6; border: 2px dashed ${PRIMARY_COLOR}; border-radius: 10px; padding: 25px; margin: 25px 0; text-align: center;">
-                <span style="font-family: monospace; font-size: 40px; font-weight: 800; letter-spacing: 10px; color: ${PRIMARY_COLOR};">${code}</span>
+            <div style="padding: 40px;">
+              <p style="font-size: 16px;">Greetings, <strong>${name}</strong>.</p>
+              <p style="font-size: 16px;">Please utilize the unique authorization key below to verify your operational identity:</p>
+              <div style="background: #fff5f5; border: 2px dashed ${PRIMARY_RED}; border-radius: 15px; padding: 35px; margin: 30px 0; text-align: center;">
+                <span style="font-family: 'Roboto Mono', monospace; font-size: 48px; font-weight: 900; letter-spacing: 12px; color: ${PRIMARY_RED}; text-shadow: 0 2px 4px rgba(0,0,0,0.05);">${code}</span>
               </div>
-              <p style="font-size: 12px; color: #999; text-align: center;">Issued at: ${time}</p>
+              <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 20px;">Issued at: ${time}</p>
             </div>
             ${EMAIL_FOOTER}
           </div>
@@ -115,19 +120,19 @@ export async function sendRoleChangeEmail(to: string, name: string, newRole: str
     to,
     subject: `Operational Update: Role Assignment to ${newRole.toUpperCase()}`,
     html: `
-      <div style="background: #fdfdfd; padding: 30px; font-family: sans-serif;">
-        <div style="max-width: 600px; margin: 0 auto; background: white; border: 1px solid #f0f0f0; border-radius: 12px; overflow: hidden;">
-          <div style="background: ${SECONDARY_COLOR}; padding: 30px; text-align: center;">
+      <div style="background: #f8fafc; padding: 40px; font-family: 'Inter', sans-serif;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+          <div style="background: ${SECONDARY_GREEN}; padding: 40px; text-align: center;">
             ${LOGO_HTML}
-            <h1 style="color: white; margin: 0; font-size: 20px;">Role Assignment Confirmed</h1>
+            <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 900; text-transform: uppercase;">Role Assigned</h1>
           </div>
-          <div style="padding: 35px;">
-            <p>Greetings, ${name}. Your operational status has been updated. Your new role is:</p>
-            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
-              <h2 style="color: ${PRIMARY_COLOR}; margin: 0; text-transform: uppercase;">${newRole}</h2>
+          <div style="padding: 40px;">
+            <p style="font-size: 16px;">Greetings, ${name}. Your operational status has been updated. Your new role is:</p>
+            <div style="background: #f1f5f9; padding: 30px; border-radius: 12px; text-align: center; margin: 25px 0;">
+              <h2 style="color: ${PRIMARY_RED}; margin: 0; text-transform: uppercase; font-size: 28px; font-weight: 900; letter-spacing: 1px;">${newRole}</h2>
             </div>
-            <p>You may now access dashboard features associated with this identity level.</p>
-            <p style="font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 20px;">Timestamp: ${time}</p>
+            <p style="font-size: 16px;">You may now access dashboard features associated with this identity level.</p>
+            <p style="font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 20px; margin-top: 30px;">Timestamp: ${time}</p>
           </div>
           ${EMAIL_FOOTER}
         </div>
@@ -146,16 +151,21 @@ export async function notifyAdminsOfRequest(userData: any, adminEmails: string[]
       to: email,
       subject: `[ALERT] New Registration Request: ${userData.fullName}`,
       html: `
-        <div style="background: #fff; padding: 30px; font-family: sans-serif;">
+        <div style="background: #f8fafc; padding: 40px; font-family: 'Inter', sans-serif;">
           ${LOGO_HTML}
-          <h2 style="color: ${PRIMARY_COLOR};">New Identity Access Request</h2>
-          <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; border-left: 4px solid ${SECONDARY_COLOR};">
-            <p><strong>Name:</strong> ${userData.fullName}</p>
-            <p><strong>User ID:</strong> ${userData.id}</p>
-            <p><strong>Email:</strong> ${userData.email}</p>
-            <p><strong>Requested At:</strong> ${time}</p>
+          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; overflow: hidden; padding: 40px; border: 1px solid #e2e8f0;">
+            <h2 style="color: ${PRIMARY_RED}; margin-top: 0; font-weight: 900; text-transform: uppercase;">New Identity Access Request</h2>
+            <div style="background: #f1f5f9; padding: 25px; border-radius: 12px; border-left: 6px solid ${SECONDARY_GREEN}; margin: 25px 0;">
+              <p style="margin: 8px 0; font-size: 14px;"><strong>Name:</strong> ${userData.fullName}</p>
+              <p style="margin: 8px 0; font-size: 14px;"><strong>User ID:</strong> ${userData.id}</p>
+              <p style="margin: 8px 0; font-size: 14px;"><strong>Email:</strong> ${userData.email}</p>
+              <p style="margin: 8px 0; font-size: 14px;"><strong>Requested At:</strong> ${time}</p>
+            </div>
+            <p style="font-size: 15px;">Please log in to the command dashboard to assign a role and approve this operative.</p>
+            <div style="margin-top: 30px; text-align: center;">
+              <a href="https://veilconnect.netlify.app/dashboard" style="display: inline-block; padding: 14px 28px; background: ${PRIMARY_RED}; color: white; text-decoration: none; border-radius: 10px; font-weight: bold;">Review Request</a>
+            </div>
           </div>
-          <p>Please log in to the command dashboard to assign a role and approve this operative.</p>
           ${EMAIL_FOOTER}
         </div>
       `
@@ -173,15 +183,17 @@ export async function sendRecoveryEmail(to: string, code: string, type: 'uid' | 
     to,
     subject: `Security Protocol: ${title}`,
     html: `
-      <div style="background: #fdfdfd; padding: 30px; font-family: sans-serif;">
+      <div style="background: #f8fafc; padding: 40px; font-family: 'Inter', sans-serif;">
         ${LOGO_HTML}
-        <h2 style="color: ${PRIMARY_COLOR};">${title} Request</h2>
-        <p>A request was made to recover your credentials. Use the key below:</p>
-        <div style="background: #f9f9f9; border: 2px dashed ${PRIMARY_COLOR}; padding: 20px; text-align: center; margin: 20px 0;">
-          <span style="font-size: 32px; font-weight: 800; color: ${PRIMARY_COLOR}; font-family: monospace;">${code}</span>
+        <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; overflow: hidden; padding: 40px; border: 1px solid #e2e8f0;">
+          <h2 style="color: ${PRIMARY_RED}; margin-top: 0; font-weight: 900; text-transform: uppercase;">${title}</h2>
+          <p style="font-size: 16px;">A request was made to recover your operational credentials. Use the security key below:</p>
+          <div style="background: #f1f5f9; border: 2px dashed ${PRIMARY_RED}; padding: 30px; text-align: center; margin: 30px 0; border-radius: 12px;">
+            <span style="font-size: 36px; font-weight: 900; color: ${PRIMARY_RED}; font-family: monospace; letter-spacing: 5px;">${code}</span>
+          </div>
+          <p style="font-size: 14px; color: #64748b;">If you did not request this, please report it immediately to command.</p>
+          <p style="font-size: 12px; color: #94a3b8; margin-top: 20px;">Issued at: ${time}</p>
         </div>
-        <p>If you did not request this, please report it immediately.</p>
-        <p style="font-size: 11px; color: #999;">Issued at: ${time}</p>
         ${EMAIL_FOOTER}
       </div>
     `
@@ -195,12 +207,14 @@ export async function sendResetConfirmationEmail(to: string, name: string, type:
     to,
     subject: 'Operational Alert: Security Credentials Updated',
     html: `
-      <div style="background: #fdfdfd; padding: 30px; font-family: sans-serif;">
+      <div style="background: #f8fafc; padding: 40px; font-family: 'Inter', sans-serif;">
         ${LOGO_HTML}
-        <h2 style="color: ${SECONDARY_COLOR};">Update Confirmed</h2>
-        <p>Greetings, ${name}. Your ${type === 'uid' ? 'User ID' : 'Passcode'} has been successfully updated.</p>
-        <p>If you did not authorize this change, please report a breach immediately.</p>
-        <p style="font-size: 11px; color: #999;">Timestamp: ${time}</p>
+        <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; overflow: hidden; padding: 40px; border: 1px solid #e2e8f0;">
+          <h2 style="color: ${SECONDARY_GREEN}; margin-top: 0; font-weight: 900; text-transform: uppercase;">Update Confirmed</h2>
+          <p style="font-size: 16px;">Greetings, ${name}. Your ${type === 'uid' ? 'User ID' : 'Passcode'} has been successfully updated in our secure directory.</p>
+          <p style="font-size: 15px; color: #64748b;">If you did not authorize this change, please report a breach to command immediately.</p>
+          <p style="font-size: 12px; color: #94a3b8; margin-top: 20px;">Timestamp: ${time}</p>
+        </div>
         ${EMAIL_FOOTER}
       </div>
     `
@@ -208,22 +222,28 @@ export async function sendResetConfirmationEmail(to: string, name: string, type:
 }
 
 export async function sendBreachAlertToAdmins(email: string, type: string, adminEmails: string[]) {
+  const recipients = Array.from(new Set([...adminEmails, HEAD_ADMIN_EMAIL]));
   const time = getISTDateString();
-  const mailPromises = adminEmails.map(to => 
+  const mailPromises = recipients.map(to => 
     transporter.sendMail({
       from: '"VeilConnect Security" <noreply.veilconfessions@gmail.com>',
       to,
       subject: `[SECURITY BREACH] Unauthorized Access Attempt`,
       html: `
-        <div style="background: #fff; padding: 30px; font-family: sans-serif;">
+        <div style="background: #fff5f5; padding: 40px; font-family: 'Inter', sans-serif;">
           ${LOGO_HTML}
-          <h2 style="color: #e11d48;">Security Protocol Breach Detected</h2>
-          <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; border-left: 4px solid #e11d48;">
-            <p><strong>Type:</strong> ${type}</p>
-            <p><strong>Involved Identity:</strong> ${email}</p>
-            <p><strong>Timestamp:</strong> ${time}</p>
+          <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; overflow: hidden; padding: 40px; border: 2px solid ${PRIMARY_RED};">
+            <h2 style="color: ${PRIMARY_RED}; margin-top: 0; font-weight: 900; text-transform: uppercase; font-size: 28px;">Security Breach Detected</h2>
+            <div style="background: #fff5f5; padding: 25px; border-radius: 12px; border-left: 6px solid ${PRIMARY_RED}; margin: 25px 0;">
+              <p style="margin: 10px 0;"><strong>Breach Type:</strong> ${type}</p>
+              <p style="margin: 10px 0;"><strong>Involved Identity:</strong> ${email}</p>
+              <p style="margin: 10px 0;"><strong>Incident Time:</strong> ${time}</p>
+            </div>
+            <p style="font-size: 16px; font-weight: bold;">Immediate action is required. Please investigate via the command dashboard.</p>
+            <div style="margin-top: 30px; text-align: center;">
+              <a href="https://veilconnect.netlify.app/dashboard" style="display: inline-block; padding: 14px 28px; background: ${PRIMARY_RED}; color: white; text-decoration: none; border-radius: 10px; font-weight: bold; text-transform: uppercase;">Initiate Response</a>
+            </div>
           </div>
-          <p>Please investigate this incident via the command dashboard immediately.</p>
           ${EMAIL_FOOTER}
         </div>
       `
