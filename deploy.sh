@@ -1,6 +1,7 @@
+
 #!/bin/bash
 
-# VeilConnect Deployment Script (Clean Version)
+# VeilConnect Deployment Script (Professional Version)
 # This script handles authentication securely and pushes changes to GitHub.
 
 echo "🚀 Initializing Professional Deployment..."

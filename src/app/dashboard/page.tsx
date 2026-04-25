@@ -92,9 +92,9 @@ export default function DashboardPage() {
         status: status,
         lastSeen: new Date().toISOString()
       }, { merge: true });
-      toast({ title: "Status Updated", description: `State is now ${status}.` });
+      toast({ title: "Presence Updated", description: `State is now ${status}.` });
     } catch (err) {
-      toast({ variant: "destructive", title: "Status Sync Failed" });
+      toast({ variant: "destructive", title: "Presence Sync Failed" });
     }
   };
 
@@ -105,7 +105,7 @@ export default function DashboardPage() {
       await updateDoc(confRef, updates);
       toast({ title: "Sync Successful", description: "Confession parameters updated." });
     } catch (err) {
-      toast({ variant: "destructive", title: "Update Failed", description: "Authorization required for status change." });
+      toast({ variant: "destructive", title: "Update Failed", description: "Command authorization denied for this change." });
     } finally {
       setUpdatingId(null);
     }
@@ -121,7 +121,7 @@ export default function DashboardPage() {
         createdAt: new Date().toISOString()
       });
       setNewAnnouncement('');
-      toast({ title: "Broadcast Sent", description: "Announcement is live." });
+      toast({ title: "Broadcast Sent", description: "System update is live." });
     } catch (err) {
       toast({ variant: "destructive", title: "Broadcast Failed" });
     }
@@ -134,11 +134,11 @@ export default function DashboardPage() {
 
       if (action === 'delete') {
         await deleteDoc(userRef);
-        toast({ title: "Profile Purged", description: `Operative ${userId} removed.` });
+        toast({ title: "Identity Purged", description: `Operative ${userId} removed.` });
       } else if (action === 'approve') {
         const roleToAssign = selectedRoles[userId] || 'manager';
         await updateDoc(userRef, { status: 'active', role: roleToAssign });
-        toast({ title: "Operative Activated", description: `${userId} is now ${roleToAssign}.` });
+        toast({ title: "Operative Activated", description: `${userId} sector assigned: ${roleToAssign}.` });
       } else if (action === 'assign_role') {
         const roleToAssign = selectedRoles[userId];
         if (!roleToAssign) return;
@@ -146,7 +146,7 @@ export default function DashboardPage() {
         if (targetUser?.email) {
           await sendRoleChangeEmail(targetUser.email, targetUser.fullName, roleToAssign);
         }
-        toast({ title: "Role Updated", description: `${userId} updated to ${roleToAssign}.` });
+        toast({ title: "Sector Updated", description: `${userId} moved to ${roleToAssign}.` });
       }
     } catch (err) {
       toast({ variant: "destructive", title: "Action Failed" });
@@ -188,7 +188,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <StatCard title="Total Confessions" value={confessions?.length.toString() || '0'} icon={<MessageSquareQuote className="h-6 w-6" />} />
               <StatCard title="Active Operatives" value={allUsers.filter(u => u.status === 'active').length.toString()} icon={<ShieldCheck className="h-6 w-6" />} />
-              <StatCard title="Network Status" value="Online" icon={<Zap className="h-6 w-6 text-secondary" />} />
+              <StatCard title="Command Status" value="Online" icon={<Zap className="h-6 w-6 text-secondary" />} />
             </div>
             
             <Card className="mt-8 border-primary/20 bg-primary/5 rounded-[2rem] overflow-hidden shadow-xl">
@@ -201,7 +201,7 @@ export default function DashboardPage() {
                 {isAdmin && (
                   <div className="flex gap-4">
                     <Input 
-                      placeholder="Type critical update..." 
+                      placeholder="Type operational update..." 
                       value={newAnnouncement}
                       onChange={(e) => setNewAnnouncement(e.target.value)}
                       className="bg-background/40 rounded-xl h-12"
@@ -242,12 +242,12 @@ export default function DashboardPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-muted/10 text-left text-muted-foreground uppercase text-[10px] font-black tracking-[0.3em]">
-                      <th className="py-6 pl-10">Index/ID</th>
-                      <th className="py-6">Content</th>
+                      <th className="py-6 pl-10">Log Index</th>
+                      <th className="py-6">Content Transcript</th>
                       <th className="py-6">Origin IP</th>
-                      <th className="py-6">Review</th>
-                      <th className="py-6">Broadcast</th>
-                      <th className="py-6 pr-10 text-right">Time</th>
+                      <th className="py-6">Review Status</th>
+                      <th className="py-6">Public Status</th>
+                      <th className="py-6 pr-10 text-right">Logged Time</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -279,7 +279,7 @@ export default function DashboardPage() {
                             onValueChange={(val) => updateConfessionStatus(c.id, { reviewStatus: val })}
                             disabled={updatingId === c.id}
                           >
-                            <SelectTrigger className={`w-[120px] h-9 text-[9px] font-black uppercase rounded-lg border-2 ${c.reviewStatus === 'accepted' ? 'border-secondary/50 text-secondary' : c.reviewStatus === 'rejected' ? 'border-destructive/50 text-destructive' : 'border-white/10'}`}>
+                            <SelectTrigger className={`w-[130px] h-9 text-[9px] font-black uppercase rounded-lg border-2 ${c.reviewStatus === 'accepted' ? 'border-secondary/50 text-secondary' : c.reviewStatus === 'rejected' ? 'border-destructive/50 text-destructive' : 'border-white/10'}`}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -295,7 +295,7 @@ export default function DashboardPage() {
                             onValueChange={(val) => updateConfessionStatus(c.id, { publicationStatus: val })}
                             disabled={updatingId === c.id}
                           >
-                            <SelectTrigger className={`w-[120px] h-9 text-[9px] font-black uppercase rounded-lg border-2 ${c.publicationStatus === 'published' ? 'border-secondary/50 text-secondary' : c.publicationStatus === 'denied' ? 'border-destructive/50 text-destructive' : 'border-white/10'}`}>
+                            <SelectTrigger className={`w-[130px] h-9 text-[9px] font-black uppercase rounded-lg border-2 ${c.publicationStatus === 'published' ? 'border-secondary/50 text-secondary' : c.publicationStatus === 'denied' ? 'border-destructive/50 text-destructive' : 'border-white/10'}`}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -329,8 +329,8 @@ export default function DashboardPage() {
                       <tr className="bg-muted/10 text-left text-muted-foreground uppercase text-[10px] font-black tracking-[0.3em]">
                         <th className="py-6 pl-10">Operative</th>
                         <th className="py-6">Status</th>
-                        <th className="py-6">Role</th>
-                        {isHeadAdmin && <th className="py-6">Security Key</th>}
+                        <th className="py-6">Sector Assignment</th>
+                        {isHeadAdmin && <th className="py-6">Passcode</th>}
                         <th className="py-6 pr-10 text-right">Command</th>
                       </tr>
                     </thead>

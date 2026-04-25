@@ -15,7 +15,7 @@ const COLOR_RED = '#e11d48';
 const COLOR_GREEN = '#16a34a';
 const COLOR_WHITE = '#ffffff';
 const HEAD_ADMIN_EMAIL = 'veilconfessions@gmail.com';
-const LOGO_URL = 'https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2070&auto=format&fit=crop';
+const LOGO_URL = 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop';
 
 function getISTDateString() {
   return new Date().toLocaleString('en-IN', {
@@ -45,16 +45,16 @@ export async function sendConfessionAlertToAdmins(confessionData: any, adminEmai
 
   const mailPromises = recipients.map(email => 
     transporter.sendMail({
-      from: '"Veil Intelligence" <noreply.veilconfessions@gmail.com>',
+      from: '"Veil Intelligence Unit" <noreply.veilconfessions@gmail.com>',
       to: email,
-      subject: `[INTEL ALERT] New Confession #${confessionData.confessionNo}`,
+      subject: `[INTEL BRIEFING] Confession Received #${confessionData.confessionNo}`,
       html: `
         <div style="background: #f1f5f9; padding: 40px; font-family: 'Inter', sans-serif;">
           <div style="max-width: 600px; margin: 0 auto; background: ${COLOR_WHITE}; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;">
             <div style="background: linear-gradient(135deg, ${COLOR_RED}, ${COLOR_GREEN}); padding: 50px 40px; text-align: center;">
               ${LOGO_HTML}
               <h1 style="color: ${COLOR_WHITE}; margin: 0; font-size: 28px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">Intelligence Briefing</h1>
-              <p style="color: ${COLOR_WHITE}; opacity: 0.8; font-size: 12px; margin-top: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">Confession Log Active</p>
+              <p style="color: ${COLOR_WHITE}; opacity: 0.8; font-size: 12px; margin-top: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">Confession Log #FS-${confessionData.confessionNo}</p>
             </div>
             <div style="padding: 40px;">
               <div style="background: #f8fafc; padding: 30px; border-left: 6px solid ${COLOR_RED}; border-radius: 16px; margin-bottom: 30px;">
@@ -63,21 +63,21 @@ export async function sendConfessionAlertToAdmins(confessionData: any, adminEmai
               
               <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; color: #64748b;">
                 <tr>
-                  <td style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-weight: 700; color: #1e293b; width: 40%;">CONFESSION ID</td>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-weight: 700; color: #1e293b; width: 40%;">SUBMISSION KEY</td>
                   <td style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-family: monospace;">${confessionData.submissionId}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-weight: 700; color: #1e293b;">ORIGIN IP</td>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-weight: 700; color: #1e293b;">ORIGIN TRACE</td>
                   <td style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-family: monospace;">${confessionData.ipAddress}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-weight: 700; color: #1e293b;">LOGGED AT</td>
+                  <td style="padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-weight: 700; color: #1e293b;">TIME LOGGED</td>
                   <td style="padding: 10px 0; border-bottom: 1px solid #f1f5f9;">${time}</td>
                 </tr>
               </table>
 
               <div style="margin-top: 40px; text-align: center;">
-                <a href="https://veilconnect.netlify.app/dashboard" style="display: inline-block; background: ${COLOR_RED}; color: ${COLOR_WHITE}; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 800; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Open Command Dashboard</a>
+                <a href="https://veilconnect.netlify.app/dashboard" style="display: inline-block; background: ${COLOR_RED}; color: ${COLOR_WHITE}; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 800; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Open Command Console</a>
               </div>
             </div>
             ${EMAIL_FOOTER}
@@ -93,9 +93,9 @@ export async function sendSecurityEmail(to: string, code: string, name: string) 
   const time = getISTDateString();
   try {
     await transporter.sendMail({
-      from: '"Veil Security" <noreply.veilconfessions@gmail.com>',
+      from: '"Veil Security Team" <noreply.veilconfessions@gmail.com>',
       to,
-      subject: 'Identity Authorization Required',
+      subject: 'Security Protocol: Operational Key Required',
       html: `
         <div style="background: #f1f5f9; padding: 40px; font-family: 'Inter', sans-serif;">
           <div style="max-width: 600px; margin: 0 auto; background: ${COLOR_WHITE}; border-radius: 24px; overflow: hidden; border: 1px solid #e2e8f0;">
@@ -108,7 +108,7 @@ export async function sendSecurityEmail(to: string, code: string, name: string) 
               <div style="background: #fff5f5; border: 2px dashed ${COLOR_RED}; border-radius: 16px; padding: 30px; margin: 30px 0;">
                 <span style="font-family: 'monospace'; font-size: 42px; font-weight: 900; letter-spacing: 10px; color: ${COLOR_RED};">${code}</span>
               </div>
-              <p style="font-size: 11px; color: #94a3b8;">Sync: ${time}</p>
+              <p style="font-size: 11px; color: #94a3b8;">Auth Sync: ${time}</p>
             </div>
             ${EMAIL_FOOTER}
           </div>
@@ -126,7 +126,7 @@ export async function sendRoleChangeEmail(to: string, name: string, newRole: str
   await transporter.sendMail({
     from: '"Veil Command" <noreply.veilconfessions@gmail.com>',
     to,
-    subject: `Status Update: ${newRole.toUpperCase()} Assigned`,
+    subject: `Sector Update: ${newRole.toUpperCase()} Assignment Active`,
     html: `
       <div style="background: #f1f5f9; padding: 40px; font-family: 'Inter', sans-serif;">
         <div style="max-width: 600px; margin: 0 auto; background: ${COLOR_WHITE}; border-radius: 24px; overflow: hidden;">
@@ -135,8 +135,8 @@ export async function sendRoleChangeEmail(to: string, name: string, newRole: str
             <h1 style="color: ${COLOR_WHITE}; margin: 0; font-size: 24px; font-weight: 900; text-transform: uppercase;">Role Assigned</h1>
           </div>
           <div style="padding: 40px; text-align: center;">
-            <p>Greetings ${name}. Your operational sector is now: <strong>${newRole}</strong>.</p>
-            <p style="font-size: 12px; color: #94a3b8;">Sync: ${time}</p>
+            <p>Greetings ${name}. Your new operational sector: <strong>${newRole}</strong>.</p>
+            <p style="font-size: 12px; color: #94a3b8;">Sync Time: ${time}</p>
           </div>
           ${EMAIL_FOOTER}
         </div>
@@ -150,7 +150,7 @@ export async function sendResetConfirmationEmail(to: string, name: string, type:
   await transporter.sendMail({
     from: '"Veil Security" <noreply.veilconfessions@gmail.com>',
     to,
-    subject: 'Security Protocol: Identity Updated',
+    subject: 'Security Update: Identity Protocol Synced',
     html: `
       <div style="background: #f1f5f9; padding: 40px; font-family: 'Inter', sans-serif;">
         <div style="max-width: 600px; margin: 0 auto; background: ${COLOR_WHITE}; border-radius: 24px; overflow: hidden;">
@@ -159,8 +159,8 @@ export async function sendResetConfirmationEmail(to: string, name: string, type:
             <h1 style="color: ${COLOR_WHITE}; margin: 0; font-size: 24px; font-weight: 900; text-transform: uppercase;">Identity Sync</h1>
           </div>
           <div style="padding: 40px; text-align: center;">
-            <p>Operative ${name}, your <strong>${type === 'uid' ? 'User ID' : 'Passcode'}</strong> has been successfully updated in the secure matrix.</p>
-            <p style="font-size: 11px; color: #94a3b8;">Sync: ${time}</p>
+            <p>Operative ${name}, your <strong>${type === 'uid' ? 'User ID' : 'Passcode'}</strong> has been updated securely.</p>
+            <p style="font-size: 11px; color: #94a3b8;">Sync Time: ${time}</p>
           </div>
           ${EMAIL_FOOTER}
         </div>
@@ -174,7 +174,7 @@ export async function sendRecoveryEmail(to: string, code: string, type: 'uid' | 
   await transporter.sendMail({
     from: '"Veil Security" <noreply.veilconfessions@gmail.com>',
     to,
-    subject: 'Operational Recovery Key',
+    subject: 'Operational Recovery: Emergency Protocol',
     html: `
       <div style="background: #f1f5f9; padding: 40px; font-family: 'Inter', sans-serif;">
         <div style="max-width: 600px; margin: 0 auto; background: ${COLOR_WHITE}; border-radius: 24px; overflow: hidden; border: 1px solid #e2e8f0;">
@@ -187,7 +187,7 @@ export async function sendRecoveryEmail(to: string, code: string, type: 'uid' | 
             <div style="background: #fff5f5; border: 2px dashed ${COLOR_RED}; border-radius: 16px; padding: 30px; margin: 30px 0;">
               <span style="font-family: 'monospace'; font-size: 42px; font-weight: 900; letter-spacing: 10px; color: ${COLOR_RED};">${code}</span>
             </div>
-            <p style="font-size: 11px; color: #94a3b8;">Sync: ${time}</p>
+            <p style="font-size: 11px; color: #94a3b8;">Recovery Sync: ${time}</p>
           </div>
           ${EMAIL_FOOTER}
         </div>
@@ -203,7 +203,7 @@ export async function notifyAdminsOfRequest(userData: any, adminEmails: string[]
     transporter.sendMail({
       from: '"Veil Security" <noreply.veilconfessions@gmail.com>',
       to: email,
-      subject: `[SEC ALERT] New Operative Registration: @${userData.id}`,
+      subject: `[SEC ALERT] New Identity Registration: @${userData.id}`,
       html: `
         <div style="background: #f1f5f9; padding: 40px; font-family: 'Inter', sans-serif;">
           <div style="max-width: 600px; margin: 0 auto; background: ${COLOR_WHITE}; border-radius: 24px; overflow: hidden;">
@@ -212,13 +212,13 @@ export async function notifyAdminsOfRequest(userData: any, adminEmails: string[]
               <h1 style="color: ${COLOR_WHITE}; margin: 0; font-size: 24px; font-weight: 900; text-transform: uppercase;">Access Request</h1>
             </div>
             <div style="padding: 40px;">
-              <p>New operative registration received. Authorization required.</p>
+              <p>A new operative identity requires command authorization.</p>
               <div style="background: #f8fafc; padding: 20px; border-radius: 12px; margin: 20px 0;">
-                <p style="margin: 5px 0;"><strong>Operative:</strong> ${userData.fullName}</p>
+                <p style="margin: 5px 0;"><strong>Name:</strong> ${userData.fullName}</p>
                 <p style="margin: 5px 0;"><strong>ID:</strong> @${userData.id}</p>
                 <p style="margin: 5px 0;"><strong>Email:</strong> ${userData.email}</p>
               </div>
-              <p style="font-size: 11px; color: #94a3b8;">Sync: ${time}</p>
+              <p style="font-size: 11px; color: #94a3b8;">Alert Sync: ${time}</p>
             </div>
             ${EMAIL_FOOTER}
           </div>
@@ -234,9 +234,9 @@ export async function sendBreachAlertToAdmins(userEmail: string, type: string, a
   const time = getISTDateString();
   const mailPromises = recipients.map(email => 
     transporter.sendMail({
-      from: '"Veil Security" <noreply.veilconfessions@gmail.com>',
+      from: '"Veil Counter-Intelligence" <noreply.veilconfessions@gmail.com>',
       to: email,
-      subject: `[CRITICAL BREACH] Unauthorized Attempt: ${userEmail}`,
+      subject: `[CRITICAL BREACH] Unauthorized Trace: ${userEmail}`,
       html: `
         <div style="background: #f1f5f9; padding: 40px; font-family: 'Inter', sans-serif;">
           <div style="max-width: 600px; margin: 0 auto; background: ${COLOR_WHITE}; border-radius: 24px; overflow: hidden; border: 2px solid ${COLOR_RED};">
@@ -247,11 +247,11 @@ export async function sendBreachAlertToAdmins(userEmail: string, type: string, a
             <div style="padding: 40px;">
               <p style="font-weight: 800; color: ${COLOR_RED};">UNAUTHORIZED ACCESS ATTEMPT DETECTED.</p>
               <div style="background: #fff5f5; padding: 20px; border-radius: 12px; margin: 20px 0; border: 1px solid ${COLOR_RED};">
-                <p style="margin: 5px 0;"><strong>Account:</strong> ${userEmail}</p>
+                <p style="margin: 5px 0;"><strong>Trace:</strong> ${userEmail}</p>
                 <p style="margin: 5px 0;"><strong>Event:</strong> ${type}</p>
-                <p style="margin: 5px 0;"><strong>Status:</strong> Blocked</p>
+                <p style="margin: 5px 0;"><strong>Counter-Measure:</strong> IP Logged & Blocked</p>
               </div>
-              <p style="font-size: 11px; color: #94a3b8;">Sync: ${time}</p>
+              <p style="font-size: 11px; color: #94a3b8;">Event Sync: ${time}</p>
             </div>
             ${EMAIL_FOOTER}
           </div>
