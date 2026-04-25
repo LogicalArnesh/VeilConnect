@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -7,7 +8,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Send, ShieldCheck, CheckCircle2, Loader2, AlertCircle, Clock, Shield } from 'lucide-react';
+import { Send, ShieldCheck, CheckCircle2, Loader2, AlertCircle, Clock, Shield, Search } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, getCountFromServer, query } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
@@ -89,6 +90,8 @@ export default function ConfessionLandingPage() {
         ipAddress: ip,
         browserInfo: JSON.stringify(browserFingerprint),
         createdAt: timestamp,
+        reviewStatus: 'pending',
+        publicationStatus: 'waiting'
       };
 
       await addDoc(coll, confessionData);
@@ -110,7 +113,6 @@ export default function ConfessionLandingPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 sm:p-12 relative overflow-hidden">
-      {/* Background Decor */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-secondary/5 -z-10" />
       
       <div className="max-w-2xl w-full space-y-8 relative z-10">
@@ -193,7 +195,11 @@ export default function ConfessionLandingPage() {
           </CardContent>
         </Card>
 
-        <div className="text-center pt-4">
+        <div className="flex flex-col gap-4 items-center pt-4">
+          <Link href="/confession-status" className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-secondary/10 text-[10px] font-black uppercase tracking-widest text-secondary hover:bg-secondary/20 transition-all group">
+            <Search className="h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all" />
+            See Confession Status
+          </Link>
           <Link href="/login" className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-muted/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all group">
             <ShieldCheck className="h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all" />
             TEAM LOGIN

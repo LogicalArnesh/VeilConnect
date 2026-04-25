@@ -39,9 +39,11 @@
         "confessionNo": { "type": "number" },
         "ipAddress": { "type": "string" },
         "browserInfo": { "type": "string" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "reviewStatus": { "type": "string", "enum": ["pending", "accepted", "rejected"] },
+        "publicationStatus": { "type": "string", "enum": ["waiting", "published", "denied"] }
       },
-      "required": ["content", "submissionId", "createdAt"]
+      "required": ["content", "submissionId", "createdAt", "reviewStatus", "publicationStatus"]
     }
   },
   "auth": {

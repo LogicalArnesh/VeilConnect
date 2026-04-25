@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -10,17 +11,16 @@ import {
   Trash2, 
   User, 
   Zap,
-  Coffee,
-  CheckCircle,
   Moon,
   Megaphone,
-  Send,
   MessageSquareQuote,
-  Clock,
   Globe,
   Monitor,
-  Database,
-  Search
+  Search,
+  CheckCircle,
+  XCircle,
+  Clock,
+  ExternalLink
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
@@ -108,6 +108,22 @@ export default function DashboardPage() {
       toast({ title: "Status Updated", description: `Operational state is now ${status}.` });
     } catch (err) {
       toast({ variant: "destructive", title: "Status Sync Failed" });
+    }
+  };
+
+  const updateConfessionStatus = async (id: string, updates: any) => {
+    try {
+      const confRef = doc(db, 'confessions', id);
+      
+      // If rejecting, also mark as denied for publication
+      if (updates.reviewStatus === 'rejected') {
+        updates.publicationStatus = 'denied';
+      }
+
+      await updateDoc(confRef, updates);
+      toast({ title: "Log Updated", description: "Submission status synchronized." });
+    } catch (err) {
+      toast({ variant: "destructive", title: "Update Failed" });
     }
   };
 
@@ -271,10 +287,10 @@ export default function DashboardPage() {
                       <tr className="border-b text-left text-muted-foreground uppercase text-[10px] tracking-widest">
                         <th className="pb-4 pl-2">Log #</th>
                         <th className="pb-4">Confession</th>
-                        <th className="pb-4">Origin (IP)</th>
-                        <th className="pb-4">Technical Metadata</th>
+                        <th className="pb-4">Status</th>
+                        <th className="pb-4">Publication</th>
                         <th className="pb-4">Timestamp</th>
-                        <th className="pb-4 text-right">Action</th>
+                        <th className="pb-4 text-right pr-2">Command</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/40">
@@ -288,20 +304,33 @@ export default function DashboardPage() {
                           </td>
                           <td className="py-4 max-w-md">
                             <p className="line-clamp-2 text-xs font-medium italic">"{c.content}"</p>
-                          </td>
-                          <td className="py-4">
-                            <div className="flex items-center gap-2 text-[10px] font-mono">
-                              <Globe className="h-3 w-3 text-secondary" />
-                              {c.ipAddress}
+                            <div className="flex items-center gap-2 mt-2 text-[9px] font-mono text-muted-foreground">
+                               <Globe className="h-2.5 w-2.5 text-secondary" /> {c.ipAddress}
                             </div>
                           </td>
                           <td className="py-4">
-                            <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
-                              <Monitor className="h-3 w-3" />
-                              <span className="truncate max-w-[150px]">
-                                {c.browserInfo.length > 50 ? 'Fingerprint Encrypted' : c.browserInfo}
-                              </span>
-                            </div>
+                             <Select defaultValue={c.reviewStatus || 'pending'} onValueChange={(val) => updateConfessionStatus(c.id, { reviewStatus: val })}>
+                               <SelectTrigger className="w-[110px] h-8 text-[10px] font-bold uppercase tracking-wider">
+                                 <SelectValue />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 <SelectItem value="pending" className="text-[10px] font-bold uppercase">Pending</SelectItem>
+                                 <SelectItem value="accepted" className="text-[10px] font-bold uppercase text-secondary">Accepted</SelectItem>
+                                 <SelectItem value="rejected" className="text-[10px] font-bold uppercase text-primary">Rejected</SelectItem>
+                               </SelectContent>
+                             </Select>
+                          </td>
+                          <td className="py-4">
+                            <Select defaultValue={c.publicationStatus || 'waiting'} onValueChange={(val) => updateConfessionStatus(c.id, { publicationStatus: val })}>
+                               <SelectTrigger className="w-[110px] h-8 text-[10px] font-bold uppercase tracking-wider">
+                                 <SelectValue />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 <SelectItem value="waiting" className="text-[10px] font-bold uppercase">Waiting</SelectItem>
+                                 <SelectItem value="published" className="text-[10px] font-bold uppercase text-secondary">Published</SelectItem>
+                                 <SelectItem value="denied" className="text-[10px] font-bold uppercase text-primary">Denied</SelectItem>
+                               </SelectContent>
+                             </Select>
                           </td>
                           <td className="py-4">
                              <div className="flex flex-col text-[10px]">
@@ -309,9 +338,9 @@ export default function DashboardPage() {
                                <span className="text-muted-foreground">{new Date(c.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} IST</span>
                              </div>
                           </td>
-                          <td className="py-4 text-right pr-2">
-                             <Button size="sm" variant="ghost" className="h-8 text-[10px] uppercase font-bold" onClick={() => inspectConfession(c)}>
-                               Inspect
+                          <td className="py-4 text-right pr-2 space-x-1">
+                             <Button size="sm" variant="outline" className="h-8 text-[9px] uppercase font-bold" onClick={() => inspectConfession(c)}>
+                               Trace
                              </Button>
                           </td>
                         </tr>
@@ -390,7 +419,7 @@ export default function DashboardPage() {
                       <tbody className="divide-y divide-border/40">
                         {allUsers.map(user => {
                           const userPresence = presence.find(p => p.id === user.id);
-                          const lastSeen = userPresence?.lastSeen ? new Date(userPresence.lastSeen).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Never';
+                          const lastSeenStr = userPresence?.lastSeen ? new Date(userPresence.lastSeen).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Never';
                           const status = userPresence?.status || 'offline';
                           
                           if (user.id === currentUser.userId && !isHeadAdmin) return null;
@@ -436,7 +465,14 @@ export default function DashboardPage() {
                               {isHeadAdmin && (
                                 <td className="py-4 font-mono text-xs text-primary font-bold tracking-widest">{user.passcode}</td>
                               )}
-                              <td className="py-4 text-[10px] font-bold text-muted-foreground uppercase">{lastSeen} IST</td>
+                              <td className="py-4 text-[10px] font-bold text-muted-foreground uppercase">
+                                <div className="flex flex-col">
+                                   <span>{lastSeenStr} IST</span>
+                                   {isHeadAdmin && userPresence?.lastSeen && (
+                                     <span className="text-[8px] opacity-70">{new Date(userPresence.lastSeen).toLocaleDateString('en-IN')}</span>
+                                   )}
+                                </div>
+                              </td>
                               <td className="py-4 text-right pr-2 space-x-2">
                                 {isHeadAdmin && user.id !== currentUser.userId && (
                                   <Button size="sm" variant="destructive" className="h-8" onClick={() => handleAction(user.id, 'delete')}>
@@ -455,6 +491,40 @@ export default function DashboardPage() {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+          )}
+
+          {isAdmin && (
+            <TabsContent value="presence">
+               <Card>
+                 <CardHeader>
+                   <CardTitle>Team Pulse Board</CardTitle>
+                   <CardDescription>Real-time network availability of all active operatives.</CardDescription>
+                 </CardHeader>
+                 <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                       {allUsers.filter(u => u.status === 'active').map(u => {
+                         const p = presence.find(pr => pr.id === u.id);
+                         const isOnline = p?.status === 'online';
+                         return (
+                           <div key={u.id} className="p-4 border rounded-2xl flex items-center gap-4 bg-muted/20">
+                             <div className="relative">
+                               <div className="h-12 w-12 rounded-full bg-background flex items-center justify-center border-2 border-primary/20">
+                                 {u.photoUrl ? <img src={u.photoUrl} className="rounded-full h-full w-full object-cover" /> : <User className="h-6 w-6 text-muted-foreground" />}
+                               </div>
+                               <span className={`absolute bottom-0 right-0 h-4 w-4 rounded-full border-4 border-background ${p?.status === 'online' ? 'bg-emerald-500' : p?.status === 'idle' ? 'bg-amber-500' : 'bg-red-500'}`} />
+                             </div>
+                             <div>
+                               <p className="font-bold text-sm">@{u.id}</p>
+                               <p className="text-[10px] font-black uppercase text-primary tracking-widest">{u.role}</p>
+                               <p className="text-[9px] text-muted-foreground uppercase font-medium">{p?.status || 'offline'}</p>
+                             </div>
+                           </div>
+                         );
+                       })}
+                    </div>
+                 </CardContent>
+               </Card>
             </TabsContent>
           )}
         </Tabs>
