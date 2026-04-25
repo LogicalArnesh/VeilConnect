@@ -36,6 +36,7 @@ echo "📤 Pushing to GitHub Intelligence HQ (Main)..."
 git branch -M main
 
 # Force push to ensure remote matches local workspace exactly
+# NOTE: If this fails due to Secret Scanning, follow the URL in the terminal to unblock the secret.
 git push -u origin main --force
 
 echo "✅ Mission Successful. Your code is now live at GitHub."
