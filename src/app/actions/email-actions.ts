@@ -1,3 +1,4 @@
+
 'use server';
 
 import nodemailer from 'nodemailer';
@@ -11,8 +12,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const PRIMARY_COLOR: string = '#e11d48'; // Red
-const SECONDARY_COLOR: string = '#16a34a'; // Green
-const ACCENT_COLOR: string = '#15803d'; // Darker Green
+const SECONDARY_COLOR: string = '#16a34a'; // Emerald Green
 const HEAD_ADMIN_EMAIL: string = 'veilconfessions@gmail.com';
 const LOGO_URL: string = 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop';
 
@@ -164,40 +164,45 @@ export async function notifyAdminsOfRequest(userData: any, adminEmails: string[]
   await Promise.all(mailPromises);
 }
 
-export async function sendActivationEmail(userData: any, adminEmails: string[]) {
-  const recipients = Array.from(new Set([...adminEmails, HEAD_ADMIN_EMAIL]));
+export async function sendRecoveryEmail(to: string, code: string, type: 'uid' | 'password') {
   const time = getISTDateString();
-
+  const title = type === 'uid' ? 'User ID Recovery' : 'Passcode Reset';
+  
   await transporter.sendMail({
-    from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
-    to: userData.email,
-    subject: 'Operational Access Granted: Account Active',
+    from: '"VeilConnect Security" <noreply.veilconfessions@gmail.com>',
+    to,
+    subject: `Security Protocol: ${title}`,
     html: `
       <div style="background: #fdfdfd; padding: 30px; font-family: sans-serif;">
         ${LOGO_HTML}
-        <h2 style="color: ${SECONDARY_COLOR};">Access Granted</h2>
-        <p>Greetings, ${userData.fullName}. Your account has been approved and activated with the role of <strong>${userData.role}</strong>.</p>
-        <p>Issued at: ${time}</p>
+        <h2 style="color: ${PRIMARY_COLOR};">${title} Request</h2>
+        <p>A request was made to recover your credentials. Use the key below:</p>
+        <div style="background: #f9f9f9; border: 2px dashed ${PRIMARY_COLOR}; padding: 20px; text-align: center; margin: 20px 0;">
+          <span style="font-size: 32px; font-weight: 800; color: ${PRIMARY_COLOR}; font-family: monospace;">${code}</span>
+        </div>
+        <p>If you did not request this, please report it immediately.</p>
+        <p style="font-size: 11px; color: #999;">Issued at: ${time}</p>
         ${EMAIL_FOOTER}
       </div>
     `
   });
+}
 
-  const adminMailPromises = recipients.map(email => 
-    transporter.sendMail({
-      from: '"VeilConnect Interactive" <noreply.veilconfessions@gmail.com>',
-      to: email,
-      subject: `[CONFIRMED] Operative Activated: ${userData.fullName}`,
-      html: `
-        <div style="background: #fff; padding: 30px; font-family: sans-serif;">
-          ${LOGO_HTML}
-          <h2 style="color: ${SECONDARY_COLOR};">Activation Confirmed</h2>
-          <p>Operative <strong>${userData.fullName}</strong> has been successfully activated by an administrator.</p>
-          <p>Update Timestamp: ${time}</p>
-          ${EMAIL_FOOTER}
-        </div>
-      `
-    })
-  );
-  await Promise.all(adminMailPromises);
+export async function sendResetConfirmationEmail(to: string, name: string, type: 'uid' | 'password') {
+  const time = getISTDateString();
+  await transporter.sendMail({
+    from: '"VeilConnect Security" <noreply.veilconfessions@gmail.com>',
+    to,
+    subject: 'Operational Alert: Security Credentials Updated',
+    html: `
+      <div style="background: #fdfdfd; padding: 30px; font-family: sans-serif;">
+        ${LOGO_HTML}
+        <h2 style="color: ${SECONDARY_COLOR};">Update Confirmed</h2>
+        <p>Greetings, ${name}. Your ${type === 'uid' ? 'User ID' : 'Passcode'} has been successfully updated.</p>
+        <p>If you did not authorize this change, please report a breach immediately.</p>
+        <p style="font-size: 11px; color: #999;">Timestamp: ${time}</p>
+        ${EMAIL_FOOTER}
+      </div>
+    `
+  });
 }

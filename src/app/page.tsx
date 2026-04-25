@@ -8,13 +8,12 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Send, ShieldCheck, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
+import { Send, ShieldCheck, CheckCircle2, Loader2, AlertCircle, Clock } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, getCountFromServer, query } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { sendConfessionAlertToAdmins } from '@/app/actions/email-actions';
-import { useCollection } from '@/firebase';
-import { useMemoFirebase } from '@/firebase';
+import { useCollection, useMemoFirebase } from '@/firebase';
 
 export default function ConfessionLandingPage() {
   const db = useFirestore();
@@ -23,8 +22,23 @@ export default function ConfessionLandingPage() {
   const [loading, setLoading] = useState(false);
   const [isHuman, setIsHuman] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState<string>('');
 
   const logo = PlaceHolderImages.find(img => img.id === 'team-logo');
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTime(now.toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        dateStyle: 'full',
+        timeStyle: 'medium',
+      }) + ' (IST)');
+    };
+    updateTime();
+    const timer = setInterval(updateTime, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // To fetch admin emails for notification
   const adminsQuery = useMemoFirebase(() => query(collection(db, 'userProfiles')), [db]);
@@ -55,7 +69,7 @@ export default function ConfessionLandingPage() {
       // Get Confession Count
       const coll = collection(db, 'confessions');
       const snapshot = await getCountFromServer(coll);
-      const confessionNo = snapshot.data().count + 1;
+      const confessionNo = (snapshot.data().count || 0) + 1;
 
       const submissionId = Math.random().toString(36).substring(2, 12).toUpperCase();
       const timestamp = new Date().toISOString();
@@ -79,8 +93,9 @@ export default function ConfessionLandingPage() {
       await sendConfessionAlertToAdmins(confessionData, adminEmails);
 
       router.push(`/confession-success?sid=${submissionId}&ts=${encodeURIComponent(timestamp)}`);
-    } catch (err) {
-      setError('Operational failure. Please try again later.');
+    } catch (err: any) {
+      console.error('Submission error:', err);
+      setError('Operational failure: ' + (err.message || 'Check database permissions.'));
     } finally {
       setLoading(false);
     }
@@ -97,7 +112,7 @@ export default function ConfessionLandingPage() {
             <h1 className="text-4xl font-black tracking-tighter text-foreground font-headline uppercase">
               VEIL <span className="text-primary">CONFESSIONS</span>
             </h1>
-            <p className="text-muted-foreground font-medium uppercase tracking-[0.3em] text-xs">Unfiltered. Anonymous. Secure.</p>
+            <p className="text-muted-foreground font-medium uppercase tracking-[0.3em] text-[10px]">{currentTime}</p>
           </div>
         </div>
 
@@ -115,13 +130,18 @@ export default function ConfessionLandingPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Textarea 
-                  placeholder="What is your confession?" 
+                  placeholder="Enter your anonymous confession..." 
                   className="min-h-[200px] text-lg resize-none focus-visible:ring-primary border-primary/20"
                   value={confession}
                   onChange={(e) => setConfession(e.target.value)}
                   required
                 />
-                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest text-right">Encrypted Line: 256-bit AES</p>
+                <div className="flex justify-between items-center">
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Encrypted Line: 256-bit AES</p>
+                  <p className="text-[10px] text-secondary font-bold uppercase tracking-widest flex items-center gap-1">
+                    <Clock className="h-3 w-3" /> Mission Pulse Active
+                  </p>
+                </div>
               </div>
 
               {error && (
@@ -131,17 +151,25 @@ export default function ConfessionLandingPage() {
                 </div>
               )}
 
-              <div className="flex items-center space-x-3 p-4 border rounded-lg bg-secondary/5 border-secondary/20 transition-all hover:bg-secondary/10 cursor-pointer" onClick={() => setIsHuman(!isHuman)}>
+              <div 
+                className="flex items-center space-x-3 p-4 border rounded-lg bg-secondary/5 border-secondary/20 transition-all hover:bg-secondary/10 cursor-pointer" 
+                onClick={() => setIsHuman(!isHuman)}
+              >
                 <div className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${isHuman ? 'bg-secondary border-secondary' : 'bg-background border-border'}`}>
                    {isHuman && <CheckCircle2 className="h-3 w-3 text-white" />}
                 </div>
                 <span className="text-sm font-bold text-muted-foreground flex items-center gap-2">
                   <Image src="https://picsum.photos/seed/captcha/20/20" width={20} height={20} alt="Captcha" className="grayscale opacity-50" />
-                  I am a human operative
+                  Verify human operative identity
                 </span>
               </div>
 
-              <Button type="submit" size="lg" className="w-full h-14 text-lg font-bold tracking-widest uppercase gap-2 bg-primary hover:bg-primary/90" disabled={loading}>
+              <Button 
+                type="submit" 
+                size="lg" 
+                className="w-full h-14 text-lg font-bold tracking-widest uppercase gap-2 bg-primary hover:bg-primary/90" 
+                disabled={loading}
+              >
                 {loading ? <Loader2 className="animate-spin h-5 w-5" /> : <Send className="h-5 w-5" />}
                 {loading ? 'Dispatching...' : 'Submit Confession'}
               </Button>

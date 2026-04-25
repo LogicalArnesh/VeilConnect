@@ -2,15 +2,35 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Team member profiles
     match /userProfiles/{userId} {
-      allow read, write: if true; 
+      allow read: if true; 
+      allow write: if true; 
     }
+    
+    // 2FA and Security codes
     match /verificationCodes/{userId} {
       allow read, write: if true; 
     }
+    
+    // Public confessions - anyone can create, only admins can read
+    match /confessions/{confessionId} {
+      allow create: if true;
+      allow read: if true; // In production, refine this to admin check
+      allow delete: if false;
+    }
+    
+    // User presence
     match /presence/{userId} {
       allow read, write: if true;
     }
+
+    // Announcements
+    match /announcements/{announcementId} {
+      allow read: if true;
+      allow create: if true; // In production, refine this to admin check
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
