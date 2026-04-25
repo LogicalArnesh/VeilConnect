@@ -53,13 +53,6 @@ export default function ConfessionLandingPage() {
       return;
     }
 
-    // Anti-Spam Check: 5 minute cooldown
-    const lastSub = localStorage.getItem('veil_last_sub');
-    if (lastSub && Date.now() - parseInt(lastSub) < 300000) {
-      setError('Anti-Spam Alert: Please wait 5 minutes before sending another confession.');
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
@@ -102,8 +95,6 @@ export default function ConfessionLandingPage() {
 
       await addDoc(coll, confessionData);
       
-      localStorage.setItem('veil_last_sub', Date.now().toString());
-
       const adminEmails = allUsers
         ? allUsers.filter(u => u.role === 'admin' || u.role === 'HeadAdmin').map(u => u.email)
         : [];
