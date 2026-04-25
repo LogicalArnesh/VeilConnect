@@ -157,7 +157,6 @@ export default function DashboardPage() {
 
   const isAdmin = currentUser.role === 'admin' || currentUser.role === 'HeadAdmin';
   const isHeadAdmin = currentUser.role === 'HeadAdmin';
-  const operationalRoles = ['promoter', 'manager', 'CC', 'Data Collector'];
 
   const filteredConfessions = confessions?.filter(c => 
     c.submissionId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -343,7 +342,10 @@ export default function DashboardPage() {
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {operationalRoles.map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                  <SelectItem value="manager">Manager</SelectItem>
+                                  <SelectItem value="promoter">Promoter</SelectItem>
+                                  <SelectItem value="CC">CC</SelectItem>
+                                  <SelectItem value="Data Collector">Data Collector</SelectItem>
                                   {isHeadAdmin && <SelectItem value="admin">Admin</SelectItem>}
                                 </SelectContent>
                               </Select>

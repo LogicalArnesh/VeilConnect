@@ -109,7 +109,6 @@ export default function ConfessionLandingPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 sm:p-12 relative overflow-hidden bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-secondary/10">
-      
       <div className="max-w-2xl w-full space-y-8 relative z-10">
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="relative w-28 h-28 rounded-3xl overflow-hidden border-4 border-primary shadow-glow-red ring-8 ring-primary/5 transition-all hover:scale-105 duration-500">

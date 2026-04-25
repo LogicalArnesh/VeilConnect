@@ -110,7 +110,7 @@ function SuccessContent() {
 
             <div className="space-y-4 print:hidden">
               <Button onClick={handlePrint} className="w-full h-16 uppercase font-black tracking-widest text-[13px] bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20 rounded-2xl">
-                <Download className="mr-3 h-6 w-6" /> Save Elite Receipt
+                <Download className="mr-3 h-6 w-6" /> Save Receipt
               </Button>
               <Button asChild variant="outline" className="w-full h-16 uppercase font-black tracking-widest text-[13px] border-white/10 hover:bg-white/5 rounded-2xl">
                 <Link href="/"><ArrowRight className="mr-3 h-6 w-6" /> New Submission</Link>
