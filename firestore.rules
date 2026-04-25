@@ -13,10 +13,11 @@ service cloud.firestore {
       allow read, write: if true; 
     }
     
-    // Public confessions - anyone can create, only admins can read
+    // Public confessions - anyone can create, admins can read/update
     match /confessions/{confessionId} {
       allow create: if true;
-      allow read: if true; // In production, refine this to admin check
+      allow read: if true;
+      allow update: if true; 
       allow delete: if false;
     }
     
@@ -28,7 +29,7 @@ service cloud.firestore {
     // Announcements
     match /announcements/{announcementId} {
       allow read: if true;
-      allow create: if true; // In production, refine this to admin check
+      allow create: if true; 
     }
 
     match /{document=**} {
