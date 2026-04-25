@@ -24,7 +24,7 @@ git config user.email "deploy@veilconnect.local"
 git config user.name "VeilConnect Deployer"
 
 # Stage all changes
-echo "➕ Adding updated mission files..."
+echo "➕ Adding updated confession files..."
 git add .
 
 # Create deployment commit

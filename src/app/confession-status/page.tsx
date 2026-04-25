@@ -181,4 +181,3 @@ function StatusStep({ title, description, status }: { title: string, description
     </div>
   );
 }
-

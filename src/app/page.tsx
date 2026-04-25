@@ -53,7 +53,7 @@ export default function ConfessionLandingPage() {
       return;
     }
 
-    // Spam Protection
+    // Spam Protection: 5 minute cooldown
     const lastSub = localStorage.getItem('veil_last_sub');
     if (lastSub && Date.now() - parseInt(lastSub) < 300000) {
       setError('Anti-Spam Alert: Please wait 5 minutes before sending another confession.');
@@ -152,7 +152,7 @@ export default function ConfessionLandingPage() {
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="space-y-4">
                 <Textarea 
-                  placeholder="Send your confessions secretly!" 
+                  placeholder="Send you confessions secretly!" 
                   className="min-h-[250px] text-lg resize-none focus-visible:ring-primary border-white/10 bg-background/40 rounded-3xl p-6 placeholder:text-muted-foreground/30 transition-all focus:bg-background/60 shadow-inner"
                   value={confession}
                   onChange={(e) => setConfession(e.target.value)}
@@ -224,4 +224,3 @@ export default function ConfessionLandingPage() {
     </div>
   );
 }
-
