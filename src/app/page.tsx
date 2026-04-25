@@ -113,7 +113,7 @@ export default function ConfessionLandingPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 sm:p-12 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-secondary/5 -z-10" />
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-secondary/10 -z-10" />
       
       <div className="max-w-2xl w-full space-y-8 relative z-10">
         <div className="flex flex-col items-center text-center space-y-4">
@@ -147,7 +147,7 @@ export default function ConfessionLandingPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-3">
                 <Textarea 
-                  placeholder="Send your confessions secretly!" 
+                  placeholder="Send you confessions secretly!" 
                   className="min-h-[220px] text-lg resize-none focus-visible:ring-primary border-border bg-background/50 rounded-2xl p-5 placeholder:text-muted-foreground/50 transition-all focus:bg-background"
                   value={confession}
                   onChange={(e) => setConfession(e.target.value)}
@@ -204,6 +204,12 @@ export default function ConfessionLandingPage() {
             <ShieldCheck className="h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all" />
             TEAM LOGIN
           </Link>
+        </div>
+        
+        <div className="text-center pt-8 border-t border-border/20 opacity-40">
+           <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground">
+             &copy; {new Date().getFullYear()} VEIL CONFESSIONS INTELLIGENCE UNIT. ALL RIGHTS RESERVED.
+           </p>
         </div>
       </div>
     </div>
