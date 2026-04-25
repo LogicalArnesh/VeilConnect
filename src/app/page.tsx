@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -10,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Send, ShieldCheck, CheckCircle2, Loader2, AlertCircle, Clock, Shield, Search } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, getCountFromServer, query, where } from 'firebase/firestore';
+import { collection, addDoc, getCountFromServer, query } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { sendConfessionAlertToAdmins } from '@/app/actions/email-actions';
 import { useCollection, useMemoFirebase } from '@/firebase';
@@ -103,7 +102,7 @@ export default function ConfessionLandingPage() {
 
       router.push(`/confession-success?sid=${submissionId}&ts=${encodeURIComponent(timestamp)}`);
     } catch (err: any) {
-      setError('Operational failure: ' + (err.message || 'Transmission interrupted.'));
+      setError('Transmission failure: ' + (err.message || 'Operational link broken.'));
     } finally {
       setLoading(false);
     }
@@ -144,7 +143,7 @@ export default function ConfessionLandingPage() {
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="space-y-4">
                 <Textarea 
-                  placeholder="Send your confessions secretly!" 
+                  placeholder="Type your confession anonymously..." 
                   className="min-h-[250px] text-lg resize-none focus-visible:ring-primary border-white/10 bg-background/40 rounded-3xl p-6 placeholder:text-muted-foreground/30 transition-all focus:bg-background/60 shadow-inner"
                   value={confession}
                   onChange={(e) => setConfession(e.target.value)}
@@ -198,11 +197,11 @@ export default function ConfessionLandingPage() {
         <div className="flex flex-col gap-5 items-center pt-6">
           <Link href="/confession-status" className="inline-flex items-center gap-3 px-8 py-3 rounded-full bg-secondary/10 text-[11px] font-black uppercase tracking-widest text-secondary border border-secondary/20 hover:bg-secondary/20 transition-all group shadow-sm">
             <Search className="h-4 w-4 opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all" />
-            See Confession Status
+            Check Confession Status
           </Link>
           <Link href="/login" className="inline-flex items-center gap-3 px-8 py-3 rounded-full bg-white/5 text-[11px] font-black uppercase tracking-widest text-muted-foreground border border-white/10 hover:text-primary hover:bg-primary/5 transition-all group">
             <ShieldCheck className="h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all" />
-            TEAM COMMAND LOGIN
+            ADMIN LOGIN
           </Link>
         </div>
         
@@ -210,7 +209,6 @@ export default function ConfessionLandingPage() {
            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
              &copy; {new Date().getFullYear()} VEIL CONFESSIONS INTELLIGENCE UNIT.
            </p>
-           <p className="text-[8px] mt-2 font-bold text-muted-foreground uppercase tracking-widest">Authorized Operations Sector 01</p>
         </div>
       </div>
     </div>

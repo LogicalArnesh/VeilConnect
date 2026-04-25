@@ -1,13 +1,9 @@
-
 #!/bin/bash
 
-# VeilConnect Auto-Deployment Script (Authenticated)
-# Execute this to push your workspace changes to your GitHub repository
+# VeilConnect Deployment Script
+# This script stages all changes and pushes them to your GitHub repository.
 
-TOKEN="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"
-REMOTE_URL="https://$TOKEN@github.com/LogicalArnesh/VeilConnect.git"
-
-echo "🚀 Starting authenticated deployment process..."
+echo "🚀 Starting deployment process..."
 
 # Initialize git if not already done
 if [ ! -d ".git" ]; then
@@ -15,29 +11,27 @@ if [ ! -d ".git" ]; then
     git init
 fi
 
-# Set remote with token
-git remote remove origin 2>/dev/null
-git remote add origin "$REMOTE_URL"
-
 # Set git identity
 git config user.email "deploy@veilconnect.local"
 git config user.name "VeilConnect Deployer"
 
 # Stage all changes
-echo "➕ Adding updated confession files..."
+echo "➕ Adding updated files..."
 git add .
 
-# Create deployment commit - Using -m to avoid editor prompt
+# Create deployment commit
 echo "💾 Finalizing operational build..."
-git commit -m "System Overhaul: Red-Green-White Identity and Confession Tracking Active - $(date)" || echo "No changes to commit"
+git commit -m "System Overhaul: Professional Confession Identity Active - $(date)" || echo "No changes to commit"
+
+# Set remote if needed (Replace with your actual repo URL if different)
+# git remote add origin https://github.com/LogicalArnesh/VeilConnect.git 2>/dev/null
 
 # Push to Main branch
-echo "📤 Pushing to GitHub Intelligence HQ (Main)..."
+echo "📤 Pushing to GitHub (Main)..."
 git branch -M main
 
-# Force push to ensure remote matches local workspace exactly
-# NOTE: If this fails due to Secret Scanning, follow the URL in the terminal to unblock the secret.
+# Use the standard push. When prompted for a password, PASTE YOUR TOKEN (ghp_...)
 git push -u origin main --force
 
-echo "✅ Mission Successful. Your code is now live at GitHub."
-echo "Netlify will automatically detect this push and re-deploy your site."
+echo "✅ Deployment script finished."
+echo "NOTE: If prompted for a password, paste your GitHub Personal Access Token (PAT)."

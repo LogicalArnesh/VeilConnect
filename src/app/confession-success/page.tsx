@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { Suspense, useRef, useEffect } from 'react';
@@ -24,6 +23,7 @@ function SuccessContent() {
 
   useEffect(() => {
     if (sid) {
+      // Setting document title to ensure Save as PDF uses this filename
       document.title = `veilconfessions_${sid}`;
     }
     return () => {
@@ -95,29 +95,25 @@ function SuccessContent() {
                   <p className="text-[11px] uppercase font-black text-muted-foreground tracking-widest">Timestamp (IST)</p>
                   <p className="text-lg font-bold text-foreground">{timeStr}</p>
                 </div>
-                <div className="space-y-1 col-span-2">
-                  <p className="text-[11px] uppercase font-black text-muted-foreground tracking-widest">Operational Cycle</p>
-                  <p className="text-lg font-bold text-foreground">{dateStr.split(',')[0]}, {now.getFullYear()}</p>
-                </div>
               </div>
             </div>
 
             <div className="bg-primary/10 p-6 rounded-[2rem] border border-primary/20 flex gap-5 print:hidden">
               <Info className="h-8 w-8 text-primary shrink-0 mt-0.5" />
               <div className="space-y-1">
-                <p className="text-[12px] font-black text-primary uppercase tracking-widest">Interrogation Protocol</p>
+                <p className="text-[12px] font-black text-primary uppercase tracking-widest">Tracking Protocol</p>
                 <p className="text-[11px] leading-relaxed font-medium text-muted-foreground">
-                  Preserve this key. You must use this Submission ID to interrogate the intelligence sector regarding the status of your confession.
+                  Save this key. Use it to interrogate the intelligence sector regarding your confession status.
                 </p>
               </div>
             </div>
 
             <div className="space-y-4 print:hidden">
               <Button onClick={handlePrint} className="w-full h-16 uppercase font-black tracking-widest text-[13px] bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20 rounded-2xl">
-                <Download className="mr-3 h-6 w-6" /> Save Professional Receipt
+                <Download className="mr-3 h-6 w-6" /> Save Elite Receipt
               </Button>
               <Button asChild variant="outline" className="w-full h-16 uppercase font-black tracking-widest text-[13px] border-white/10 hover:bg-white/5 rounded-2xl">
-                <Link href="/"><ArrowRight className="mr-3 h-6 w-6" /> Submit Another Confession</Link>
+                <Link href="/"><ArrowRight className="mr-3 h-6 w-6" /> New Submission</Link>
               </Button>
             </div>
 
@@ -125,10 +121,6 @@ function SuccessContent() {
               <p className="text-[11px] text-muted-foreground uppercase font-black tracking-[0.2em] opacity-60">
                 &copy; {now.getFullYear()} VEIL CONFESSIONS INTELLIGENCE UNIT
               </p>
-              <div className="flex items-center justify-center gap-3 text-[11px] font-black text-primary uppercase tracking-widest">
-                 <Mail className="h-4 w-4" />
-                 <span>veilconfessions@gmail.com</span>
-              </div>
             </div>
           </CardContent>
         </Card>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -34,7 +33,7 @@ export default function ConfessionStatusPage() {
       if (!snap.empty) {
         setConfession({ ...snap.docs[0].data(), id: snap.docs[0].id });
       } else {
-        toast({ variant: "destructive", title: "Record Not Found", description: "Submission ID does not exist in our secure database." });
+        toast({ variant: "destructive", title: "Record Not Found", description: "Submission ID does not exist in our database." });
       }
     } catch (err) {
       toast({ variant: "destructive", title: "Inquiry Failed", description: "System connection interrupted." });
@@ -48,7 +47,7 @@ export default function ConfessionStatusPage() {
       <div className="max-w-2xl w-full space-y-8">
         <div className="text-center space-y-4">
           <Link href="/" className="inline-flex items-center text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground hover:text-primary transition-all group">
-             <ArrowLeft className="h-4 w-4 mr-2 transition-transform group-hover:-translate-x-1" /> Return to Command Base
+             <ArrowLeft className="h-4 w-4 mr-2" /> Return to Base
           </Link>
           <h1 className="text-4xl font-black text-foreground uppercase tracking-tight">Confession Interrogation</h1>
           <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.4em] opacity-60">Track your anonymous confession status</p>
@@ -60,14 +59,14 @@ export default function ConfessionStatusPage() {
               <div className="relative flex-1">
                 <Search className="absolute left-4 top-4 h-5 w-5 text-muted-foreground" />
                 <Input 
-                  placeholder="ENTER SUBMISSION ID (e.g. X1Y2Z3A4)" 
-                  className="pl-12 h-14 uppercase font-mono tracking-widest bg-background/40 rounded-2xl border-white/10"
+                  placeholder="ENTER SUBMISSION ID" 
+                  className="pl-12 h-14 uppercase font-mono tracking-widest bg-background/40 rounded-2xl"
                   value={sid}
                   onChange={(e) => setSid(e.target.value)}
                   required
                 />
               </div>
-              <Button type="submit" className="h-14 px-8 bg-secondary hover:bg-secondary/90 text-white font-black uppercase tracking-widest rounded-2xl" disabled={loading}>
+              <Button type="submit" className="h-14 px-8 bg-secondary hover:bg-secondary/90 text-white font-black uppercase rounded-2xl" disabled={loading}>
                 {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "TRACK"}
               </Button>
             </form>
@@ -77,7 +76,7 @@ export default function ConfessionStatusPage() {
             {!confession && searched && !loading && (
               <div className="text-center py-16 space-y-6">
                 <XCircle className="h-16 w-16 text-destructive mx-auto opacity-30" />
-                <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">Submission ID Not Found.</p>
+                <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">ID Not Found.</p>
               </div>
             )}
 
@@ -89,28 +88,19 @@ export default function ConfessionStatusPage() {
             )}
 
             {confession && (
-              <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6">
+              <div className="space-y-10">
                 <div className="space-y-6">
                   <div className="flex items-center justify-between border-b border-white/5 pb-6">
                     <div>
-                      <h3 className="text-lg font-black text-primary uppercase tracking-tight">Confession Log</h3>
+                      <h3 className="text-lg font-black text-primary uppercase">Confession Log</h3>
                       <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-1">ID: {confession.submissionId}</p>
-                    </div>
-                    <div className="px-4 py-1.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20 font-black uppercase text-[10px] tracking-widest">
-                      Verified Data
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-6">
-                    <div className="bg-white/5 p-5 rounded-2xl space-y-2 border border-white/5 shadow-inner">
+                    <div className="bg-white/5 p-5 rounded-2xl space-y-2 border border-white/5">
                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Logged Date</p>
-                       <p className="text-sm font-bold text-foreground">{new Date(confession.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-                       <p className="text-[11px] text-muted-foreground font-medium">{new Date(confession.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} IST</p>
-                    </div>
-                    <div className="bg-white/5 p-5 rounded-2xl space-y-2 border border-white/5 shadow-inner">
-                       <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Sector Cycle</p>
-                       <p className="text-sm font-bold text-foreground">{new Date(confession.createdAt).toLocaleDateString('en-IN', { weekday: 'long' })}</p>
-                       <p className="text-[11px] text-muted-foreground font-medium">Q{Math.floor(new Date(confession.createdAt).getMonth() / 3) + 1} {new Date(confession.createdAt).getFullYear()}</p>
+                       <p className="text-sm font-bold text-foreground">{new Date(confession.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>
                 </div>
@@ -120,17 +110,17 @@ export default function ConfessionStatusPage() {
                   <div className="space-y-6">
                      <StatusStep 
                        title="Database Receipt" 
-                       description="Confession successfully encrypted and logged into the operational matrix." 
+                       description="Confession successfully encrypted and logged into the matrix." 
                        status="completed" 
                      />
                      <StatusStep 
                        title="Command Review" 
-                       description={confession.reviewStatus === 'accepted' ? 'Confession authorized by intelligence command.' : confession.reviewStatus === 'rejected' ? 'Confession denied by command oversight.' : 'Awaiting operational clearance from command.'} 
+                       description={confession.reviewStatus === 'accepted' ? 'Confession authorized by command.' : confession.reviewStatus === 'rejected' ? 'Confession denied by command.' : 'Awaiting operational clearance.'} 
                        status={confession.reviewStatus === 'accepted' ? 'completed' : confession.reviewStatus === 'rejected' ? 'failed' : 'pending'} 
                      />
                      <StatusStep 
                        title="Broadcast Status" 
-                       description={confession.publicationStatus === 'published' ? 'Broadcast to the public sector network.' : confession.publicationStatus === 'denied' ? 'Confession broadcast restricted by command policy.' : 'Awaiting broadcast schedule.'} 
+                       description={confession.publicationStatus === 'published' ? 'Broadcast to the public network.' : confession.publicationStatus === 'denied' ? 'Broadcast restricted by policy.' : 'Awaiting broadcast schedule.'} 
                        status={confession.publicationStatus === 'published' ? 'completed' : confession.publicationStatus === 'denied' ? 'failed' : 'pending'} 
                      />
                   </div>
@@ -138,26 +128,13 @@ export default function ConfessionStatusPage() {
 
                 <div className="bg-primary/5 p-6 rounded-[1.5rem] border border-primary/10 space-y-2">
                    <p className="text-[11px] font-black text-primary uppercase tracking-[0.2em] mb-2">Authenticated Transcript</p>
-                   <p className="text-sm leading-relaxed font-medium text-foreground/80 italic">
-                     "{confession.content}"
-                   </p>
+                   <p className="text-sm italic text-foreground/80">"{confession.content}"</p>
                 </div>
 
-                <div className="flex gap-4 print:hidden">
-                   <Button onClick={() => window.print()} className="flex-1 h-14 bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-[11px] rounded-2xl">
-                     <Download className="h-5 w-5 mr-3" /> Save Transcript
+                <div className="flex gap-4">
+                   <Button onClick={() => window.print()} className="flex-1 h-14 bg-primary hover:bg-primary/90 font-black uppercase rounded-2xl">
+                     <Download className="h-5 w-5 mr-3" /> Save Receipt
                    </Button>
-                   <Button asChild variant="outline" className="flex-1 h-14 border-white/10 hover:bg-white/5 font-black uppercase tracking-widest text-[11px] rounded-2xl">
-                     <a href="mailto:veilconfessions@gmail.com">
-                       <Mail className="h-5 w-5 mr-3" /> Contact Command
-                     </a>
-                   </Button>
-                </div>
-
-                <div className="text-center pt-8 border-t border-white/5 opacity-40">
-                  <p className="text-[9px] font-black uppercase tracking-[0.3em]">
-                    &copy; {new Date().getFullYear()} VEIL CONFESSIONS INTELLIGENCE UNIT
-                  </p>
                 </div>
               </div>
             )}
@@ -171,12 +148,12 @@ export default function ConfessionStatusPage() {
 function StatusStep({ title, description, status }: { title: string, description: string, status: 'completed' | 'pending' | 'failed' }) {
   return (
     <div className="flex gap-6 items-start">
-       <div className={`mt-1 h-8 w-8 rounded-xl border-2 flex items-center justify-center shrink-0 shadow-lg ${status === 'completed' ? 'bg-secondary border-secondary text-white shadow-glow-green' : status === 'failed' ? 'bg-destructive border-destructive text-white shadow-glow-red' : 'bg-background border-white/20 text-muted-foreground'}`}>
+       <div className={`mt-1 h-8 w-8 rounded-xl border-2 flex items-center justify-center shrink-0 ${status === 'completed' ? 'bg-secondary border-secondary text-white' : status === 'failed' ? 'bg-destructive border-destructive text-white' : 'bg-background border-white/20 text-muted-foreground'}`}>
           {status === 'completed' ? <CheckCircle2 className="h-5 w-5" /> : status === 'failed' ? <XCircle className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
        </div>
        <div className="space-y-1">
-         <p className={`text-xs font-black uppercase tracking-[0.2em] ${status === 'failed' ? 'text-destructive' : 'text-foreground'}`}>{title}</p>
-         <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">{description}</p>
+         <p className="text-xs font-black uppercase tracking-[0.2em]">{title}</p>
+         <p className="text-[11px] text-muted-foreground font-medium">{description}</p>
        </div>
     </div>
   );
