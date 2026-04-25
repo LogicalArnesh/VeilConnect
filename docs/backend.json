@@ -8,10 +8,13 @@
         "id": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "fullName": { "type": "string" },
-        "role": { "type": "string", "enum": ["admin", "user", "pending"] },
+        "role": { "type": "string", "enum": ["HeadAdmin", "admin", "promoter", "manager", "CC", "Data Collector", "pending"] },
         "status": { "type": "string", "enum": ["active", "pending", "denied"] },
         "createdAt": { "type": "string", "format": "date-time" },
-        "updatedAt": { "type": "string", "format": "date-time" }
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "passcode": { "type": "string" },
+        "about": { "type": "string" },
+        "photoUrl": { "type": "string" }
       },
       "required": ["id", "email", "fullName", "role", "status", "createdAt", "updatedAt"]
     },
@@ -25,6 +28,20 @@
         "expiresAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "code", "expiresAt"]
+    },
+    "Confession": {
+      "title": "Confession",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "content": { "type": "string" },
+        "submissionId": { "type": "string" },
+        "confessionNo": { "type": "number" },
+        "ipAddress": { "type": "string" },
+        "browserInfo": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["content", "submissionId", "createdAt"]
     }
   },
   "auth": {
@@ -32,12 +49,24 @@
   },
   "firestore": {
     "/userProfiles/{userId}": {
-      "schema": { "$ref": "#/entities/UserProfile" },
+      "schema": { "$ref": "#/backend/entities/UserProfile" },
       "description": "User profile data."
     },
     "/verificationCodes/{userId}": {
-      "schema": { "$ref": "#/entities/VerificationCode" },
+      "schema": { "$ref": "#/backend/entities/VerificationCode" },
       "description": "Stores 2FA verification codes."
+    },
+    "/confessions/{confessionId}": {
+      "schema": { "$ref": "#/backend/entities/Confession" },
+      "description": "Publicly submitted confessions."
+    },
+    "/presence/{userId}": {
+      "schema": { "type": "object" },
+      "description": "User presence data."
+    },
+    "/announcements/{announcementId}": {
+      "schema": { "type": "object" },
+      "description": "System announcements."
     }
   }
 }

@@ -23,14 +23,14 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
                 />
              )}
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground font-headline">
+          <h1 className="text-3xl font-black tracking-tighter text-foreground font-headline uppercase">
             VEIL <span className="text-primary">CONFESSIONS</span>
           </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-xs font-bold text-muted-foreground uppercase tracking-widest opacity-70">
             Secure Team Collaboration Platform
           </p>
         </div>
-        <div className="bg-card border border-border/50 shadow-2xl rounded-2xl p-8 backdrop-blur-sm">
+        <div className="bg-card border border-border shadow-2xl rounded-2xl p-8">
           {children}
         </div>
       </div>
