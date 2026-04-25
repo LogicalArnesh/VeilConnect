@@ -1,3 +1,4 @@
+
 'use server';
 
 import nodemailer from 'nodemailer';
@@ -14,7 +15,7 @@ const COLOR_RED = '#e11d48';
 const COLOR_GREEN = '#16a34a';
 const COLOR_WHITE = '#ffffff';
 const HEAD_ADMIN_EMAIL = 'veilconfessions@gmail.com';
-const LOGO_URL = 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop';
+const LOGO_URL = 'https://images.unsplash.com/photo-1639322537228-f710d846310a?q=80&w=2070&auto=format&fit=crop';
 
 function getISTDateString() {
   return new Date().toLocaleString('en-IN', {
