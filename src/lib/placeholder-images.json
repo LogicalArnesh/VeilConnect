@@ -2,9 +2,9 @@
   "placeholderImages": [
     {
       "id": "team-logo",
-      "description": "Official VEIL CONNECT Security & Intelligence Identity",
+      "description": "Official VEIL CONFESSIONS Security & Intelligence Identity",
       "imageUrl": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?q=80&w=2070&auto=format&fit=crop",
-      "imageHint": "security shield tech"
+      "imageHint": "security identity logo"
     }
   ]
 }

@@ -12,7 +12,10 @@ import {
   Globe,
   Search,
   Zap,
-  Loader2
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  Clock
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
@@ -274,36 +277,40 @@ export default function DashboardPage() {
                           </div>
                         </td>
                         <td className="py-8">
-                          <Select 
-                            value={c.reviewStatus} 
-                            onValueChange={(val) => updateConfessionStatus(c.id, { reviewStatus: val })}
-                            disabled={updatingId === c.id}
-                          >
-                            <SelectTrigger className={`w-[130px] h-9 text-[9px] font-black uppercase rounded-lg border-2 ${c.reviewStatus === 'accepted' ? 'border-secondary/50 text-secondary' : c.reviewStatus === 'rejected' ? 'border-destructive/50 text-destructive' : 'border-white/10'}`}>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pending">Pending</SelectItem>
-                              <SelectItem value="accepted">Accepted</SelectItem>
-                              <SelectItem value="rejected">Rejected</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="flex flex-col gap-2">
+                            <Select 
+                              value={c.reviewStatus} 
+                              onValueChange={(val) => updateConfessionStatus(c.id, { reviewStatus: val })}
+                              disabled={updatingId === c.id}
+                            >
+                              <SelectTrigger className={`w-[130px] h-9 text-[9px] font-black uppercase rounded-lg border-2 ${c.reviewStatus === 'accepted' ? 'border-secondary/50 text-secondary' : c.reviewStatus === 'rejected' ? 'border-destructive/50 text-destructive' : 'border-white/10'}`}>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">Pending</SelectItem>
+                                <SelectItem value="accepted">Accepted</SelectItem>
+                                <SelectItem value="rejected">Rejected</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </td>
                         <td className="py-8">
-                          <Select 
-                            value={c.publicationStatus} 
-                            onValueChange={(val) => updateConfessionStatus(c.id, { publicationStatus: val })}
-                            disabled={updatingId === c.id}
-                          >
-                            <SelectTrigger className={`w-[130px] h-9 text-[9px] font-black uppercase rounded-lg border-2 ${c.publicationStatus === 'published' ? 'border-secondary/50 text-secondary' : c.publicationStatus === 'denied' ? 'border-destructive/50 text-destructive' : 'border-white/10'}`}>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="waiting">Waiting</SelectItem>
-                              <SelectItem value="published">Published</SelectItem>
-                              <SelectItem value="denied">Denied</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="flex flex-col gap-2">
+                            <Select 
+                              value={c.publicationStatus} 
+                              onValueChange={(val) => updateConfessionStatus(c.id, { publicationStatus: val })}
+                              disabled={updatingId === c.id}
+                            >
+                              <SelectTrigger className={`w-[130px] h-9 text-[9px] font-black uppercase rounded-lg border-2 ${c.publicationStatus === 'published' ? 'border-secondary/50 text-secondary' : c.publicationStatus === 'denied' ? 'border-destructive/50 text-destructive' : 'border-white/10'}`}>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="waiting">Waiting</SelectItem>
+                                <SelectItem value="published">Published</SelectItem>
+                                <SelectItem value="denied">Denied</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </td>
                         <td className="py-8 pr-10 text-[10px] font-bold text-right">
                           {new Date(c.createdAt).toLocaleDateString()}<br/>
