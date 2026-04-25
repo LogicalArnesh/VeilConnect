@@ -1,9 +1,8 @@
-
 'use client';
 
 import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ShieldAlert, RotateCcw, Home } from 'lucide-react';
+import { ShieldAlert, RotateCcw, Home, Mail } from 'lucide-react';
 
 export default function GlobalError({
   error,
@@ -58,9 +57,14 @@ export default function GlobalError({
           </Button>
         </div>
 
-        <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
-          VeilConnect Security Protocol 4.0.5
-        </p>
+        <div className="pt-4 border-t space-y-2">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
+            VeilConnect Security Protocol 4.0.5
+          </p>
+          <a href="mailto:veilconfessions@gmail.com" className="text-[10px] font-bold text-primary flex items-center justify-center gap-1 hover:underline">
+            <Mail className="h-3 w-3" /> veilconfessions@gmail.com
+          </a>
+        </div>
       </div>
     </div>
   );

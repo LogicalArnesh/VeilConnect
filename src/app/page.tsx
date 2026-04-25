@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -8,7 +7,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Send, ShieldCheck, CheckCircle2, Loader2, AlertCircle, Clock } from 'lucide-react';
+import { Send, ShieldCheck, CheckCircle2, Loader2, AlertCircle, Clock, Shield } from 'lucide-react';
 import { useFirestore } from '@/firebase';
 import { collection, addDoc, getCountFromServer, query } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
@@ -47,7 +46,7 @@ export default function ConfessionLandingPage() {
     e.preventDefault();
     if (!confession.trim()) return;
     if (!isHuman) {
-      setError('Please verify that you are a human operative.');
+      setError('Please verify your human identity.');
       return;
     }
 
@@ -110,84 +109,93 @@ export default function ConfessionLandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 sm:p-12">
-      <div className="max-w-2xl w-full space-y-8">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 sm:p-12 relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-secondary/5 -z-10" />
+      
+      <div className="max-w-2xl w-full space-y-8 relative z-10">
         <div className="flex flex-col items-center text-center space-y-4">
-          <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-primary shadow-xl">
+          <div className="relative w-24 h-24 rounded-full overflow-hidden border-4 border-primary shadow-2xl ring-8 ring-primary/10">
              {logo && <Image src={logo.imageUrl} alt="Logo" fill className="object-cover" />}
           </div>
           <div className="space-y-1">
-            <h1 className="text-4xl font-black tracking-tighter text-foreground font-headline uppercase">
+            <h1 className="text-4xl font-black tracking-tighter text-foreground font-headline uppercase leading-none">
               VEIL <span className="text-primary">CONFESSIONS</span>
             </h1>
-            <p className="text-muted-foreground font-medium uppercase tracking-[0.3em] text-[10px]">{currentTime}</p>
+            <div className="flex items-center justify-center gap-2 mt-2">
+              <Clock className="h-3 w-3 text-secondary animate-pulse" />
+              <p className="text-muted-foreground font-bold uppercase tracking-[0.2em] text-[10px]">{currentTime}</p>
+            </div>
           </div>
         </div>
 
-        <Card className="border-border shadow-2xl bg-card overflow-hidden">
-          <CardHeader className="bg-primary/5 border-b border-primary/10">
-            <CardTitle className="text-xl flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-primary" /> 
-              Secure Submission Portal
-            </CardTitle>
-            <CardDescription>
-              Your identity is protected by the Veil Encryption Protocol. No login required.
-            </CardDescription>
+        <Card className="border-border/50 shadow-2xl bg-card/80 backdrop-blur-xl rounded-3xl overflow-hidden border-t-primary/20">
+          <CardHeader className="bg-gradient-to-r from-primary/5 to-secondary/5 border-b border-border/40 p-8">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <ShieldCheck className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <CardTitle className="text-xl font-bold tracking-tight">Secure Submission Portal</CardTitle>
+                <CardDescription className="text-xs font-medium">Your identity is protected by AES-256 Encryption.</CardDescription>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="p-8 space-y-6">
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Textarea 
-                  placeholder="Enter your anonymous confession..." 
-                  className="min-h-[200px] text-lg resize-none focus-visible:ring-primary border-primary/20"
+                  placeholder="Send your confessions secretly!" 
+                  className="min-h-[220px] text-lg resize-none focus-visible:ring-primary border-border bg-background/50 rounded-2xl p-5 placeholder:text-muted-foreground/50 transition-all focus:bg-background"
                   value={confession}
                   onChange={(e) => setConfession(e.target.value)}
                   required
                 />
-                <div className="flex justify-between items-center">
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Encrypted Line: 256-bit AES</p>
-                  <p className="text-[10px] text-secondary font-bold uppercase tracking-widest flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> Mission Pulse Active
-                  </p>
+                <div className="flex justify-between items-center px-1">
+                  <div className="flex items-center gap-1.5">
+                    <Shield className="h-3 w-3 text-secondary" />
+                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">End-to-End Encrypted</p>
+                  </div>
+                  <p className="text-[10px] text-primary font-black uppercase tracking-widest">Active Link: Secured</p>
                 </div>
               </div>
 
               {error && (
-                <div className="bg-destructive/10 text-destructive p-3 rounded-md text-xs flex items-center gap-2 border border-destructive/20 animate-in fade-in zoom-in-95">
+                <div className="bg-destructive/10 text-destructive p-4 rounded-xl text-xs flex items-center gap-3 border border-destructive/20 animate-in fade-in zoom-in-95 font-bold">
                   <AlertCircle className="h-4 w-4" />
                   {error}
                 </div>
               )}
 
               <div 
-                className="flex items-center space-x-3 p-4 border rounded-lg bg-secondary/5 border-secondary/20 transition-all hover:bg-secondary/10 cursor-pointer" 
+                className="group flex items-center space-x-4 p-5 border rounded-2xl bg-background/40 border-border hover:border-secondary/40 transition-all cursor-pointer hover:bg-secondary/5" 
                 onClick={() => setIsHuman(!isHuman)}
               >
-                <div className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${isHuman ? 'bg-secondary border-secondary' : 'bg-background border-border'}`}>
-                   {isHuman && <CheckCircle2 className="h-3 w-3 text-white" />}
+                <div className={`h-6 w-6 rounded-lg border-2 flex items-center justify-center transition-all ${isHuman ? 'bg-secondary border-secondary scale-110' : 'bg-background border-border group-hover:border-secondary/50'}`}>
+                   {isHuman && <CheckCircle2 className="h-4 w-4 text-white" />}
                 </div>
-                <span className="text-sm font-bold text-muted-foreground flex items-center gap-2">
-                  <Image src="https://picsum.photos/seed/captcha/20/20" width={20} height={20} alt="Captcha" className="grayscale opacity-50" />
-                  Verify human operative identity
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-foreground">Human Operative Verification</span>
+                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Mission integrity check required</span>
+                </div>
               </div>
 
               <Button 
                 type="submit" 
                 size="lg" 
-                className="w-full h-14 text-lg font-bold tracking-widest uppercase gap-2 bg-primary hover:bg-primary/90" 
+                className="w-full h-16 text-xl font-black tracking-widest uppercase gap-3 bg-primary hover:bg-primary/90 shadow-xl shadow-primary/20 rounded-2xl" 
                 disabled={loading}
               >
-                {loading ? <Loader2 className="animate-spin h-5 w-5" /> : <Send className="h-5 w-5" />}
+                {loading ? <Loader2 className="animate-spin h-6 w-6" /> : <Send className="h-6 w-6" />}
                 {loading ? 'Dispatching...' : 'Submit Confession'}
               </Button>
             </form>
           </CardContent>
         </Card>
 
-        <div className="text-center pt-8">
-          <Link href="/login" className="text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-2 group">
-            <ShieldCheck className="h-4 w-4 opacity-50 group-hover:opacity-100 transition-opacity" />
+        <div className="text-center pt-4">
+          <Link href="/login" className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-muted/50 text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all group">
+            <ShieldCheck className="h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all" />
             TEAM LOGIN
           </Link>
         </div>

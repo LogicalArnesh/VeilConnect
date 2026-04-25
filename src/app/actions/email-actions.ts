@@ -1,4 +1,3 @@
-
 'use server';
 
 import nodemailer from 'nodemailer';
@@ -29,6 +28,7 @@ const EMAIL_FOOTER = `
     <p style="margin: 0; font-weight: 700; color: ${PRIMARY_COLOR}; text-transform: uppercase; letter-spacing: 1px;">VeilConnect Operations Command</p>
     <p style="margin: 6px 0;">This is a secure, automated system message. Please do not reply.</p>
     <p style="margin: 6px 0;">&copy; ${new Date().getFullYear()} Veil Confessions Intelligence Unit. Unauthorized access is prohibited.</p>
+    <p style="margin: 6px 0;">Contact: <a href="mailto:veilconfessions@gmail.com" style="color: ${SECONDARY_COLOR};">veilconfessions@gmail.com</a></p>
   </div>
 `;
 
@@ -205,4 +205,29 @@ export async function sendResetConfirmationEmail(to: string, name: string, type:
       </div>
     `
   });
+}
+
+export async function sendBreachAlertToAdmins(email: string, type: string, adminEmails: string[]) {
+  const time = getISTDateString();
+  const mailPromises = adminEmails.map(to => 
+    transporter.sendMail({
+      from: '"VeilConnect Security" <noreply.veilconfessions@gmail.com>',
+      to,
+      subject: `[SECURITY BREACH] Unauthorized Access Attempt`,
+      html: `
+        <div style="background: #fff; padding: 30px; font-family: sans-serif;">
+          ${LOGO_HTML}
+          <h2 style="color: #e11d48;">Security Protocol Breach Detected</h2>
+          <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; border-left: 4px solid #e11d48;">
+            <p><strong>Type:</strong> ${type}</p>
+            <p><strong>Involved Identity:</strong> ${email}</p>
+            <p><strong>Timestamp:</strong> ${time}</p>
+          </div>
+          <p>Please investigate this incident via the command dashboard immediately.</p>
+          ${EMAIL_FOOTER}
+        </div>
+      `
+    })
+  );
+  await Promise.all(mailPromises);
 }

@@ -19,11 +19,12 @@ import {
   Clock,
   Globe,
   Monitor,
-  Database
+  Database,
+  Search
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
-import { collection, onSnapshot, doc, updateDoc, deleteDoc, setDoc, addDoc, query, orderBy, limit } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, setDoc, addDoc, query, orderBy, limit, where } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -46,6 +47,7 @@ export default function DashboardPage() {
   const [currentStatus, setCurrentStatus] = useState<string>('online');
   const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
   const [newAnnouncement, setNewAnnouncement] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const confessionsQuery = useMemoFirebase(() => query(collection(db, 'confessions'), orderBy('createdAt', 'desc')), [db]);
   const { data: confessions } = useCollection(confessionsQuery);
@@ -173,6 +175,11 @@ export default function DashboardPage() {
   const isHeadAdmin = currentUser.role === 'HeadAdmin';
   const operationalRoles = ['promoter', 'manager', 'CC', 'Data Collector'];
 
+  const filteredConfessions = confessions?.filter(c => 
+    c.submissionId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.content.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <DashboardHeader userId={currentUser.userId} role={currentUser.role} />
@@ -240,11 +247,22 @@ export default function DashboardPage() {
 
           <TabsContent value="confessions">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-xl uppercase font-black tracking-tight flex items-center gap-2 text-primary">
-                  <MessageSquareQuote className="h-6 w-6" /> Confession Logs
-                </CardTitle>
-                <CardDescription>Detailed technical traces of incoming anonymous submissions.</CardDescription>
+              <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="text-xl uppercase font-black tracking-tight flex items-center gap-2 text-primary">
+                    <MessageSquareQuote className="h-6 w-6" /> Confession Logs
+                  </CardTitle>
+                  <CardDescription>Search and technical traces of incoming anonymous submissions.</CardDescription>
+                </div>
+                <div className="relative max-w-sm w-full">
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    placeholder="Search by ID or Content..." 
+                    className="pl-10"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -260,7 +278,7 @@ export default function DashboardPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/40">
-                      {confessions?.map(c => (
+                      {filteredConfessions?.map(c => (
                         <tr key={c.id} className="group hover:bg-muted/50 transition-colors">
                           <td className="py-4 pl-2">
                              <div className="flex flex-col">
@@ -373,14 +391,18 @@ export default function DashboardPage() {
                         {allUsers.map(user => {
                           const userPresence = presence.find(p => p.id === user.id);
                           const lastSeen = userPresence?.lastSeen ? new Date(userPresence.lastSeen).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Never';
+                          const status = userPresence?.status || 'offline';
                           
                           if (user.id === currentUser.userId && !isHeadAdmin) return null;
                           return (
                             <tr key={user.id} className="group hover:bg-secondary/5 transition-colors">
                               <td className="py-4 pl-2">
                                 <div className="flex items-center gap-3">
-                                  <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center overflow-hidden border">
-                                    {user.photoUrl ? <img src={user.photoUrl} className="object-cover h-full w-full" /> : <User className="h-4 w-4" />}
+                                  <div className="relative">
+                                    <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center overflow-hidden border">
+                                      {user.photoUrl ? <img src={user.photoUrl} className="object-cover h-full w-full" /> : <User className="h-4 w-4" />}
+                                    </div>
+                                    <span className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background ${status === 'online' ? 'bg-emerald-500' : status === 'idle' ? 'bg-amber-500' : 'bg-red-500'}`}></span>
                                   </div>
                                   <div>
                                     <p className="font-bold text-xs">@{user.id}</p>
