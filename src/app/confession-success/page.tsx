@@ -23,7 +23,7 @@ function SuccessContent() {
 
   useEffect(() => {
     if (sid) {
-      // Setting document title ensures "Save as PDF" uses this filename
+      // Setting document title ensures "Save as PDF" uses this filename automatically
       document.title = `veilconfessions_${sid}`;
     }
     return () => {
@@ -73,7 +73,7 @@ function SuccessContent() {
           <CardContent className="p-12 space-y-10">
             <div className="bg-white/5 rounded-[2.5rem] p-10 border border-white/10 space-y-8 relative overflow-hidden shadow-inner print:bg-gray-50 print:border-gray-200">
                <div className="absolute top-[-20px] right-[-20px] opacity-[0.05] pointer-events-none print:hidden">
-                 <ShieldCheck className="h-64 w-64 rotate-12" />
+                 <ShieldCheck className="h-64 w-64 rotate-12 text-secondary" />
                </div>
                
                <div className="space-y-3 relative z-10">
@@ -109,10 +109,10 @@ function SuccessContent() {
             </div>
 
             <div className="space-y-4 print:hidden">
-              <Button onClick={handlePrint} className="w-full h-16 uppercase font-black tracking-widest text-[13px] bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20 rounded-2xl">
+              <Button onClick={handlePrint} className="w-full h-16 uppercase font-black tracking-widest text-[13px] bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20 rounded-2xl transition-all active:scale-95">
                 <Download className="mr-3 h-6 w-6" /> Save Receipt
               </Button>
-              <Button asChild variant="outline" className="w-full h-16 uppercase font-black tracking-widest text-[13px] border-white/10 hover:bg-white/5 rounded-2xl">
+              <Button asChild variant="outline" className="w-full h-16 uppercase font-black tracking-widest text-[13px] border-white/10 hover:bg-white/5 rounded-2xl transition-all active:scale-95">
                 <Link href="/"><ArrowRight className="mr-3 h-6 w-6" /> New Submission</Link>
               </Button>
             </div>

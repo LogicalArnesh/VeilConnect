@@ -10,7 +10,8 @@ import {
   MessageSquareQuote,
   Globe,
   Search,
-  Zap
+  Zap,
+  Filter
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
@@ -62,10 +63,6 @@ export default function DashboardPage() {
       setAllUsers(snap.docs.map(d => ({ ...d.data(), id: d.id })));
     });
 
-    const unsubPresence = onSnapshot(collection(db, 'presence'), (snap) => {
-      setPresence(snap.docs.map(d => ({ ...d.data(), id: d.id })));
-    });
-
     const unsubAnnounce = onSnapshot(query(collection(db, 'announcements'), orderBy('createdAt', 'desc'), limit(5)), (snap) => {
       setAnnouncements(snap.docs.map(d => ({ ...d.data(), id: d.id })));
     });
@@ -79,7 +76,6 @@ export default function DashboardPage() {
     return () => {
       unsubUser();
       unsubAll();
-      unsubPresence();
       unsubAnnounce();
       if (user) {
         setDoc(doc(db, 'presence', user.userId), { status: 'offline', lastSeen: new Date().toISOString() }, { merge: true });
@@ -105,9 +101,9 @@ export default function DashboardPage() {
     try {
       const confRef = doc(db, 'confessions', id);
       await updateDoc(confRef, updates);
-      toast({ title: "Sync Successful", description: "Confession status updated." });
+      toast({ title: "Sync Successful", description: "Confession parameters updated." });
     } catch (err) {
-      toast({ variant: "destructive", title: "Update Failed", description: "Database link interrupted." });
+      toast({ variant: "destructive", title: "Update Failed", description: "Authorization required for status change." });
     }
   };
 
@@ -160,7 +156,8 @@ export default function DashboardPage() {
 
   const filteredConfessions = confessions?.filter(c => 
     c.submissionId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.content.toLowerCase().includes(searchQuery.toLowerCase())
+    c.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.confessionNo.toString().includes(searchQuery)
   );
 
   return (
@@ -230,7 +227,7 @@ export default function DashboardPage() {
                 <div className="relative max-w-sm w-full">
                   <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                   <Input 
-                    placeholder="SEARCH BY ID..." 
+                    placeholder="SEARCH BY ID OR CONTENT..." 
                     className="pl-12 h-12 rounded-xl bg-background/50 font-mono text-xs"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -251,15 +248,17 @@ export default function DashboardPage() {
                   </thead>
                   <tbody className="divide-y divide-white/5">
                     {filteredConfessions?.map(c => (
-                      <tr key={c.id} className="hover:bg-white/5">
+                      <tr key={c.id} className="hover:bg-white/5 transition-colors">
                         <td className="py-8 pl-10">
                           <span className="font-black text-primary">#{c.confessionNo}</span>
                           <p className="text-[9px] font-mono text-muted-foreground">{c.submissionId}</p>
                         </td>
-                        <td className="py-8 max-w-xs text-sm italic opacity-80">"{c.content}"</td>
+                        <td className="py-8 max-w-xs">
+                          <p className="text-sm italic opacity-80 line-clamp-2">"{c.content}"</p>
+                        </td>
                         <td className="py-8 font-mono text-[10px] text-secondary font-black">
-                          <div className="flex items-center gap-2">
-                            <Globe className="h-3 w-3" /> {c.ipAddress || 'TRACED'}
+                          <div className="flex items-center gap-2 bg-secondary/10 px-3 py-1.5 rounded-lg border border-secondary/20 w-fit">
+                            <Globe className="h-3.5 w-3.5" /> {c.ipAddress || 'TRACED'}
                           </div>
                         </td>
                         <td className="py-8">
@@ -267,7 +266,7 @@ export default function DashboardPage() {
                             value={c.reviewStatus} 
                             onValueChange={(val) => updateConfessionStatus(c.id, { reviewStatus: val })}
                           >
-                            <SelectTrigger className="w-[120px] h-9 text-[9px] font-black uppercase rounded-lg">
+                            <SelectTrigger className={`w-[120px] h-9 text-[9px] font-black uppercase rounded-lg border-2 ${c.reviewStatus === 'accepted' ? 'border-secondary/50 text-secondary' : c.reviewStatus === 'rejected' ? 'border-destructive/50 text-destructive' : 'border-white/10'}`}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -282,7 +281,7 @@ export default function DashboardPage() {
                             value={c.publicationStatus} 
                             onValueChange={(val) => updateConfessionStatus(c.id, { publicationStatus: val })}
                           >
-                            <SelectTrigger className="w-[120px] h-9 text-[9px] font-black uppercase rounded-lg">
+                            <SelectTrigger className={`w-[120px] h-9 text-[9px] font-black uppercase rounded-lg border-2 ${c.publicationStatus === 'published' ? 'border-secondary/50 text-secondary' : c.publicationStatus === 'denied' ? 'border-destructive/50 text-destructive' : 'border-white/10'}`}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -325,13 +324,13 @@ export default function DashboardPage() {
                       {allUsers.map(user => {
                         if (user.id === currentUser.userId && !isHeadAdmin) return null;
                         return (
-                          <tr key={user.id} className="hover:bg-secondary/5">
+                          <tr key={user.id} className="hover:bg-secondary/5 transition-colors">
                             <td className="py-8 pl-10">
                               <p className="font-black">@{user.id}</p>
                               <p className="text-[10px] opacity-60 uppercase">{user.fullName}</p>
                             </td>
                             <td className="py-8">
-                              <Badge className="text-[9px] uppercase font-black">{user.status}</Badge>
+                              <Badge className={`text-[9px] uppercase font-black ${user.status === 'active' ? 'bg-secondary text-white' : 'bg-muted text-muted-foreground'}`}>{user.status}</Badge>
                             </td>
                             <td className="py-8">
                               <Select 
@@ -378,17 +377,17 @@ export default function DashboardPage() {
             <Card className="rounded-[2rem] border-white/10 p-10">
               <h3 className="text-sm font-black uppercase tracking-[0.3em] text-primary mb-6">Presence Configuration</h3>
               <RadioGroup defaultValue={currentStatus} onValueChange={updateStatus} className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="flex items-center space-x-4 p-6 border border-white/10 rounded-2xl bg-white/5">
+                <div className="flex items-center space-x-4 p-6 border border-white/10 rounded-2xl bg-white/5 cursor-pointer hover:bg-white/10 transition-colors">
                   <RadioGroupItem value="online" id="status-online" />
-                  <Label htmlFor="status-online" className="font-black uppercase text-[11px]">Online</Label>
+                  <Label htmlFor="status-online" className="font-black uppercase text-[11px] cursor-pointer">Online</Label>
                 </div>
-                <div className="flex items-center space-x-4 p-6 border border-white/10 rounded-2xl bg-white/5">
+                <div className="flex items-center space-x-4 p-6 border border-white/10 rounded-2xl bg-white/5 cursor-pointer hover:bg-white/10 transition-colors">
                   <RadioGroupItem value="idle" id="status-idle" />
-                  <Label htmlFor="status-idle" className="font-black uppercase text-[11px]">Idle</Label>
+                  <Label htmlFor="status-idle" className="font-black uppercase text-[11px] cursor-pointer">Idle</Label>
                 </div>
-                <div className="flex items-center space-x-4 p-6 border border-white/10 rounded-2xl bg-white/5">
+                <div className="flex items-center space-x-4 p-6 border border-white/10 rounded-2xl bg-white/5 cursor-pointer hover:bg-white/10 transition-colors">
                   <RadioGroupItem value="dnd" id="status-dnd" />
-                  <Label htmlFor="status-dnd" className="font-black uppercase text-[11px]">DND</Label>
+                  <Label htmlFor="status-dnd" className="font-black uppercase text-[11px] cursor-pointer">DND</Label>
                 </div>
               </RadioGroup>
             </Card>
@@ -401,7 +400,7 @@ export default function DashboardPage() {
 
 function StatCard({ title, value, icon }: { title: string; value: string; icon: React.ReactNode }) {
   return (
-    <Card className="rounded-[1.5rem] border-white/10 bg-white/5 shadow-xl">
+    <Card className="rounded-[1.5rem] border-white/10 bg-white/5 shadow-xl hover:scale-105 transition-transform">
       <CardContent className="p-8">
         <div className="flex items-center justify-between mb-4 opacity-60">
           <p className="text-[11px] font-black uppercase tracking-[0.3em]">{title}</p>
