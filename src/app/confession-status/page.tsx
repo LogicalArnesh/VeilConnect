@@ -7,7 +7,7 @@ import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2, CheckCircle2, Clock, XCircle, FileText, Download, ShieldCheck, Mail, ArrowLeft } from 'lucide-react';
+import { Search, Loader2, CheckCircle2, Clock, XCircle, FileText, Download, ShieldCheck, Mail, ArrowLeft, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 
@@ -48,118 +48,118 @@ export default function ConfessionStatusPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-secondary/5 via-background to-primary/5">
-      <div className="max-w-xl w-full space-y-8">
-        <div className="text-center space-y-2">
-          <Link href="/" className="inline-flex items-center text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors mb-4">
-             <ArrowLeft className="h-3 w-3 mr-1" /> Back to Base
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-secondary/10 via-background to-primary/10">
+      <div className="max-w-2xl w-full space-y-8">
+        <div className="text-center space-y-4">
+          <Link href="/" className="inline-flex items-center text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground hover:text-primary transition-all group">
+             <ArrowLeft className="h-4 w-4 mr-2 transition-transform group-hover:-translate-x-1" /> Return to Command Base
           </Link>
-          <h1 className="text-3xl font-black text-foreground uppercase tracking-tight">Mission Interrogation</h1>
-          <p className="text-xs text-muted-foreground font-bold uppercase tracking-widest">Track your operational submission status</p>
+          <h1 className="text-4xl font-black text-foreground uppercase tracking-tight">Mission Interrogation</h1>
+          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.4em] opacity-60">Track your operational mission status</p>
         </div>
 
-        <Card className="border-secondary/20 shadow-2xl bg-card/80 backdrop-blur-sm overflow-hidden">
-          <CardHeader className="p-8 pb-0">
-            <form onSubmit={handleSearch} className="flex gap-2">
+        <Card className="glass-card rounded-[2.5rem] overflow-hidden border-t-secondary/30">
+          <CardHeader className="p-10 pb-0">
+            <form onSubmit={handleSearch} className="flex gap-4">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-4 top-4 h-5 w-5 text-muted-foreground" />
                 <Input 
-                  placeholder="ENTER SUBMISSION ID (e.g. X1Y2Z3A4)" 
-                  className="pl-10 h-11 uppercase font-mono tracking-widest bg-background/50"
+                  placeholder="ENTER MISSION KEY (e.g. X1Y2Z3A4)" 
+                  className="pl-12 h-14 uppercase font-mono tracking-widest bg-background/40 rounded-2xl border-white/10"
                   value={sid}
                   onChange={(e) => setSid(e.target.value)}
                   required
                 />
               </div>
-              <Button type="submit" className="h-11 bg-secondary hover:bg-secondary/90 text-white font-bold" disabled={loading}>
-                {loading ? <Loader2 className="animate-spin h-4 w-4" /> : "TRACK"}
+              <Button type="submit" className="h-14 px-8 bg-secondary hover:bg-secondary/90 text-white font-black uppercase tracking-widest rounded-2xl" disabled={loading}>
+                {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "TRACK"}
               </Button>
             </form>
           </CardHeader>
 
-          <CardContent className="p-8">
+          <CardContent className="p-10">
             {!confession && searched && !loading && (
-              <div className="text-center py-12 space-y-4">
-                <XCircle className="h-12 w-12 text-destructive mx-auto opacity-50" />
-                <p className="text-sm font-bold text-muted-foreground">No records found for that ID.</p>
+              <div className="text-center py-16 space-y-6">
+                <XCircle className="h-16 w-16 text-destructive mx-auto opacity-30" />
+                <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">ID Not Found in Matrix.</p>
               </div>
             )}
 
             {!searched && (
-              <div className="text-center py-12 space-y-4 border-2 border-dashed rounded-2xl bg-muted/20">
-                <ShieldCheck className="h-12 w-12 text-secondary mx-auto opacity-50" />
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Awaiting Identity Key</p>
+              <div className="text-center py-20 space-y-6 border-2 border-dashed rounded-[2rem] border-white/5 bg-white/5">
+                <ShieldCheck className="h-20 w-20 text-secondary mx-auto opacity-20" />
+                <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.4em]">Awaiting Identity Key</p>
               </div>
             )}
 
             {confession && (
-              <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between border-b pb-4">
+              <div className="space-y-10 animate-in fade-in slide-in-from-bottom-6">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-6">
                     <div>
-                      <h3 className="text-sm font-black text-primary uppercase tracking-widest">Inquiry Transcript</h3>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase">ID: {confession.submissionId}</p>
+                      <h3 className="text-lg font-black text-primary uppercase tracking-tight">Inquiry Transcript</h3>
+                      <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-1">ID: {confession.submissionId}</p>
                     </div>
-                    <Badge variant="outline" className="bg-secondary/10 text-secondary border-secondary/20 font-black uppercase text-[10px]">
-                      Verified Operative
-                    </Badge>
+                    <div className="px-4 py-1.5 rounded-full bg-secondary/10 text-secondary border border-secondary/20 font-black uppercase text-[10px] tracking-widest">
+                      Verified Mission
+                    </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-muted/30 p-4 rounded-xl space-y-1 border">
-                       <p className="text-[9px] font-black uppercase text-muted-foreground">Submission Log</p>
-                       <p className="text-xs font-bold">{new Date(confession.createdAt).toLocaleDateString('en-IN', { dateStyle: 'long' })}</p>
-                       <p className="text-[10px] text-muted-foreground">{new Date(confession.createdAt).toLocaleTimeString('en-IN', { timeStyle: 'short' })} IST</p>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="bg-white/5 p-5 rounded-2xl space-y-2 border border-white/5 shadow-inner">
+                       <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Receipt Log</p>
+                       <p className="text-sm font-bold text-foreground">{new Date(confession.createdAt).toLocaleDateString('en-IN', { dateStyle: 'long' })}</p>
+                       <p className="text-[11px] text-muted-foreground font-medium">{new Date(confession.createdAt).toLocaleTimeString('en-IN', { timeStyle: 'short' })} IST</p>
                     </div>
-                    <div className="bg-muted/30 p-4 rounded-xl space-y-1 border">
-                       <p className="text-[9px] font-black uppercase text-muted-foreground">Calendar Pulse</p>
-                       <p className="text-xs font-bold">{new Date(confession.createdAt).toLocaleDateString('en-IN', { weekday: 'long' })}</p>
-                       <p className="text-[10px] text-muted-foreground">Cycle {new Date(confession.createdAt).getFullYear()}</p>
+                    <div className="bg-white/5 p-5 rounded-2xl space-y-2 border border-white/5 shadow-inner">
+                       <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">Mission Pulse</p>
+                       <p className="text-sm font-bold text-foreground">{new Date(confession.createdAt).toLocaleDateString('en-IN', { weekday: 'long' })}</p>
+                       <p className="text-[11px] text-muted-foreground font-medium">Cycle {new Date(confession.createdAt).getFullYear()}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-6">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-primary">Transmission Pipeline</h4>
-                  <div className="space-y-4">
+                <div className="space-y-8">
+                  <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-primary border-l-4 border-primary pl-3">Transmission Pipeline</h4>
+                  <div className="space-y-6">
                      <StatusStep 
                        title="Database Receipt" 
-                       description="Successfully logged into the encrypted matrix." 
+                       description="Mission successfully encrypted and logged into the matrix." 
                        status="completed" 
                      />
                      <StatusStep 
                        title="Command Review" 
-                       description={confession.reviewStatus === 'accepted' ? 'Authorized by intelligence command.' : confession.reviewStatus === 'rejected' ? 'Denied by command oversight.' : 'Awaiting operational clearance.'} 
+                       description={confession.reviewStatus === 'accepted' ? 'Authorized by intelligence command.' : confession.reviewStatus === 'rejected' ? 'Mission denied by command oversight.' : 'Awaiting operational clearance from command.'} 
                        status={confession.reviewStatus === 'accepted' ? 'completed' : confession.reviewStatus === 'rejected' ? 'failed' : 'pending'} 
                      />
                      <StatusStep 
-                       title="Publication Status" 
-                       description={confession.publicationStatus === 'published' ? 'Broadcast to the public network.' : confession.publicationStatus === 'denied' ? 'Publication restricted by policy.' : 'Awaiting broadcast schedule.'} 
+                       title="Broadcast Status" 
+                       description={confession.publicationStatus === 'published' ? 'Broadcast to the public network.' : confession.publicationStatus === 'denied' ? 'Mission broadcast restricted by policy.' : 'Awaiting broadcast schedule.'} 
                        status={confession.publicationStatus === 'published' ? 'completed' : confession.publicationStatus === 'denied' ? 'failed' : 'pending'} 
                      />
                   </div>
                 </div>
 
-                <div className="bg-primary/5 p-4 rounded-xl border border-primary/10">
-                   <p className="text-[10px] leading-relaxed font-medium">
-                     <span className="font-bold text-primary uppercase block mb-1">Confession Content</span>
-                     <span className="italic">"{confession.content}"</span>
+                <div className="bg-primary/5 p-6 rounded-[1.5rem] border border-primary/10 space-y-2">
+                   <p className="text-[11px] font-black text-primary uppercase tracking-[0.2em] mb-2">Operational Data</p>
+                   <p className="text-sm leading-relaxed font-medium text-foreground/80 italic">
+                     "{confession.content}"
                    </p>
                 </div>
 
-                <div className="flex gap-2 print:hidden">
-                   <Button onClick={handleDownload} className="flex-1 bg-primary hover:bg-primary/90 font-bold uppercase tracking-widest text-[11px]">
-                     <Download className="h-4 w-4 mr-2" /> Download Transcript
+                <div className="flex gap-4 print:hidden">
+                   <Button onClick={handleDownload} className="flex-1 h-14 bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-[11px] rounded-2xl">
+                     <Download className="h-5 w-5 mr-3" /> Download Transcript
                    </Button>
-                   <Button asChild variant="outline" className="flex-1 border-secondary/20 hover:bg-secondary/10 font-bold uppercase tracking-widest text-[11px]">
+                   <Button asChild variant="outline" className="flex-1 h-14 border-white/10 hover:bg-white/5 font-black uppercase tracking-widest text-[11px] rounded-2xl">
                      <a href="mailto:veilconfessions@gmail.com">
-                       <Mail className="h-4 w-4 mr-2" /> Contact Admin
+                       <Mail className="h-5 w-5 mr-3" /> Contact Admin
                      </a>
                    </Button>
                 </div>
 
-                <div className="text-center pt-4 border-t opacity-50">
-                  <p className="text-[9px] font-black uppercase tracking-tighter">
+                <div className="text-center pt-8 border-t border-white/5 opacity-40">
+                  <p className="text-[9px] font-black uppercase tracking-[0.3em]">
                     &copy; {new Date().getFullYear()} VEIL CONFESSIONS INTELLIGENCE UNIT
                   </p>
                 </div>
@@ -174,22 +174,14 @@ export default function ConfessionStatusPage() {
 
 function StatusStep({ title, description, status }: { title: string, description: string, status: 'completed' | 'pending' | 'failed' }) {
   return (
-    <div className="flex gap-4 items-start">
-       <div className={`mt-1 h-6 w-6 rounded-full border-2 flex items-center justify-center shrink-0 ${status === 'completed' ? 'bg-secondary border-secondary text-white' : status === 'failed' ? 'bg-destructive border-destructive text-white' : 'bg-background border-muted text-muted-foreground'}`}>
-          {status === 'completed' ? <CheckCircle2 className="h-4 w-4" /> : status === 'failed' ? <XCircle className="h-4 w-4" /> : <Clock className="h-4 w-4" />}
+    <div className="flex gap-6 items-start">
+       <div className={`mt-1 h-8 w-8 rounded-xl border-2 flex items-center justify-center shrink-0 shadow-lg ${status === 'completed' ? 'bg-secondary border-secondary text-white' : status === 'failed' ? 'bg-destructive border-destructive text-white' : 'bg-background border-white/20 text-muted-foreground'}`}>
+          {status === 'completed' ? <CheckCircle2 className="h-5 w-5" /> : status === 'failed' ? <XCircle className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
        </div>
-       <div>
-         <p className={`text-xs font-black uppercase tracking-widest ${status === 'failed' ? 'text-destructive' : 'text-foreground'}`}>{title}</p>
-         <p className="text-[10px] text-muted-foreground font-medium">{description}</p>
+       <div className="space-y-1">
+         <p className={`text-xs font-black uppercase tracking-[0.2em] ${status === 'failed' ? 'text-destructive' : 'text-foreground'}`}>{title}</p>
+         <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">{description}</p>
        </div>
-    </div>
-  );
-}
-
-function Badge({ children, variant = "default", className }: { children: React.ReactNode, variant?: string, className?: string }) {
-  return (
-    <div className={`px-2 py-0.5 rounded-full text-[9px] border ${className}`}>
-      {children}
     </div>
   );
 }

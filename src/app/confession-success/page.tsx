@@ -1,10 +1,11 @@
+
 "use client";
 
 import React, { Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2, Clock, Send, ShieldCheck, Loader2, Copy, Check, Download, Info } from 'lucide-react';
+import { CheckCircle2, Clock, Send, ShieldCheck, Loader2, Copy, Download, Info, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 
@@ -44,84 +45,81 @@ function SuccessContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-secondary/5">
+    <div className="min-h-screen bg-background flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/15 via-background to-secondary/15">
       <div className="max-w-md w-full space-y-6">
-        <Card ref={receiptRef} className="border-secondary/20 shadow-2xl overflow-hidden print:shadow-none print:border-none">
-          <CardHeader className="text-center pb-2 bg-gradient-to-b from-secondary/10 to-transparent">
-            <div className="flex justify-center mb-4">
-              <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center border-2 border-secondary shadow-lg shadow-secondary/10">
-                <CheckCircle2 className="h-10 w-10 text-secondary" />
+        <Card ref={receiptRef} className="glass-card rounded-[2.5rem] overflow-hidden print:shadow-none print:border-none print:bg-white">
+          <CardHeader className="text-center pb-2 bg-gradient-to-b from-secondary/15 to-transparent p-10">
+            <div className="flex justify-center mb-6">
+              <div className="h-20 w-20 bg-background rounded-3xl flex items-center justify-center border-2 border-secondary shadow-[0_0_30px_-5px_rgba(22,163,74,0.4)]">
+                <CheckCircle2 className="h-12 w-12 text-secondary" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-black text-foreground uppercase tracking-tight">Mission Receipt</CardTitle>
-            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.2em]">VeilConnect Official Transcript</p>
+            <CardTitle className="text-3xl font-black text-foreground uppercase tracking-tight">Mission Receipt</CardTitle>
+            <p className="text-[11px] text-muted-foreground font-black uppercase tracking-[0.3em] mt-1">Official Operational Transcript</p>
           </CardHeader>
           
-          <CardContent className="p-8 space-y-6">
-            <div className="bg-muted/30 rounded-2xl p-6 border border-border space-y-5 relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-2 opacity-5">
-                 <ShieldCheck className="h-24 w-24 rotate-12" />
+          <CardContent className="p-10 space-y-8">
+            <div className="bg-white/5 rounded-[2rem] p-8 border border-white/10 space-y-6 relative overflow-hidden shadow-inner">
+               <div className="absolute top-[-20px] right-[-20px] opacity-[0.03] pointer-events-none">
+                 <ShieldCheck className="h-48 w-48 rotate-12" />
                </div>
                
-               <div className="space-y-1 relative z-10">
-                <p className="text-[10px] uppercase font-black text-primary tracking-widest">Submission Key</p>
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xl font-mono font-black text-foreground tracking-wider">{sid}</p>
-                  <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground" onClick={copyToClipboard}>
-                    <Copy className="h-4 w-4" />
+               <div className="space-y-2 relative z-10">
+                <p className="text-[11px] uppercase font-black text-primary tracking-[0.2em]">Unique Submission Key</p>
+                <div className="flex items-center justify-between gap-4 bg-background/40 p-4 rounded-2xl border border-white/5">
+                  <p className="text-2xl font-mono font-black text-foreground tracking-widest">{sid}</p>
+                  <Button size="icon" variant="ghost" className="h-10 w-10 text-muted-foreground hover:text-primary hover:bg-primary/10" onClick={copyToClipboard}>
+                    <Copy className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 border-t pt-4 relative z-10">
+              <div className="grid grid-cols-2 gap-6 border-t border-white/5 pt-6 relative z-10">
                 <div className="space-y-1">
-                  <p className="text-[9px] uppercase font-black text-muted-foreground tracking-widest">Date</p>
-                  <p className="text-xs font-bold text-foreground">{dateStr.split(',')[1]}</p>
+                  <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Date Logged</p>
+                  <p className="text-sm font-bold text-foreground">{dateStr.split(',')[1]}</p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-[9px] uppercase font-black text-muted-foreground tracking-widest">Time</p>
-                  <p className="text-xs font-bold text-foreground">{timeStr}</p>
+                  <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Time (IST)</p>
+                  <p className="text-sm font-bold text-foreground">{timeStr}</p>
                 </div>
                 <div className="space-y-1 col-span-2">
-                  <p className="text-[9px] uppercase font-black text-muted-foreground tracking-widest">Day & Year</p>
-                  <p className="text-xs font-bold text-foreground">{dateStr.split(',')[0]}, {now.getFullYear()}</p>
+                  <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest">Operational Day</p>
+                  <p className="text-sm font-bold text-foreground">{dateStr.split(',')[0]}, Cycle {now.getFullYear()}</p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 flex gap-3">
-              <Info className="h-5 w-5 text-primary shrink-0" />
-              <p className="text-[10px] leading-relaxed font-medium">
-                <span className="font-bold text-primary uppercase block mb-1">Interrogation Protocol</span>
-                Using this Submission ID, you may interrogate command regarding the status or impact of your confession.
-              </p>
+            <div className="bg-primary/10 p-5 rounded-2xl border border-primary/20 flex gap-4">
+              <Info className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-[11px] font-black text-primary uppercase tracking-widest">Interrogation Protocol</p>
+                <p className="text-[10px] leading-relaxed font-medium text-muted-foreground">
+                  Save this key. Use it to interrogate command regarding the status or impact of your mission.
+                </p>
+              </div>
             </div>
 
             <div className="space-y-3 print:hidden">
-              <Button onClick={handlePrint} className="w-full h-12 uppercase font-bold tracking-widest bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20">
-                <Download className="mr-2 h-4 w-4" /> Save Receipt (PDF/IMG)
+              <Button onClick={handlePrint} className="w-full h-14 uppercase font-black tracking-widest text-[12px] bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20 rounded-2xl">
+                <Download className="mr-3 h-5 w-5" /> Save Transcript (PDF/IMG)
               </Button>
-              <Button asChild variant="outline" className="w-full h-12 uppercase font-bold tracking-widest border-primary/20 hover:text-primary hover:bg-primary/5">
-                <Link href="/"><Send className="mr-2 h-4 w-4" /> Send Another</Link>
+              <Button asChild variant="outline" className="w-full h-14 uppercase font-black tracking-widest text-[12px] border-white/10 hover:bg-white/5 rounded-2xl">
+                <Link href="/"><Send className="mr-3 h-5 w-5" /> Submit Another Mission</Link>
               </Button>
             </div>
 
-            <div className="text-center space-y-2 pt-4 border-t print:block">
-              <p className="text-[9px] text-muted-foreground uppercase font-black tracking-tighter opacity-60">
+            <div className="text-center space-y-3 pt-6 border-t border-white/5">
+              <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.1em] opacity-50">
                 &copy; {now.getFullYear()} VEIL CONFESSIONS INTELLIGENCE UNIT
               </p>
-              <p className="text-[9px] text-muted-foreground font-medium">
-                Contact: <span className="text-primary">veilconfessions@gmail.com</span>
-              </p>
+              <div className="flex items-center justify-center gap-2 text-[10px] font-bold text-primary">
+                 <Mail className="h-3.5 w-3.5" />
+                 <span>veilconfessions@gmail.com</span>
+              </div>
             </div>
           </CardContent>
         </Card>
-        
-        <div className="text-center print:hidden">
-          <Link href="/login" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors">
-            Team Authentication Portal
-          </Link>
-        </div>
       </div>
     </div>
   );
