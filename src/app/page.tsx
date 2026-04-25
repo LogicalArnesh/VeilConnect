@@ -53,7 +53,7 @@ export default function ConfessionLandingPage() {
       return;
     }
 
-    // Spam Protection: 5 minute cooldown
+    // Anti-Spam Check: 5 minute cooldown
     const lastSub = localStorage.getItem('veil_last_sub');
     if (lastSub && Date.now() - parseInt(lastSub) < 300000) {
       setError('Anti-Spam Alert: Please wait 5 minutes before sending another confession.');

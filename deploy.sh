@@ -27,7 +27,7 @@ git config user.name "VeilConnect Deployer"
 echo "➕ Adding updated confession files..."
 git add .
 
-# Create deployment commit
+# Create deployment commit - Using -m to avoid editor prompt
 echo "💾 Finalizing operational build..."
 git commit -m "System Overhaul: Red-Green-White Identity and Confession Tracking Active - $(date)" || echo "No changes to commit"
 
