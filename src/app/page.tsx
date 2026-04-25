@@ -40,7 +40,6 @@ export default function ConfessionLandingPage() {
     return () => clearInterval(timer);
   }, []);
 
-  // To fetch admin emails for notification
   const adminsQuery = useMemoFirebase(() => query(collection(db, 'userProfiles')), [db]);
   const { data: allUsers } = useCollection(adminsQuery);
 
@@ -48,7 +47,7 @@ export default function ConfessionLandingPage() {
     e.preventDefault();
     if (!confession.trim()) return;
     if (!isHuman) {
-      setError('Please verify that you are human.');
+      setError('Please verify that you are a human operative.');
       return;
     }
 
@@ -56,17 +55,27 @@ export default function ConfessionLandingPage() {
     setError(null);
 
     try {
-      // Get IP Address
       let ip = 'Unknown';
       try {
         const ipRes = await fetch('https://api.ipify.org?format=json');
         const ipData = await ipRes.json();
         ip = ipData.ip;
       } catch (err) {
-        console.warn('Could not fetch IP');
+        console.warn('Could not fetch public IP');
       }
 
-      // Get Confession Count
+      const browserFingerprint = {
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform,
+        screenResolution: `${window.screen.width}x${window.screen.height}`,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        cookiesEnabled: navigator.cookieEnabled,
+        hardwareConcurrency: navigator.hardwareConcurrency,
+        touchPoints: navigator.maxTouchPoints,
+        colorDepth: window.screen.colorDepth,
+      };
+
       const coll = collection(db, 'confessions');
       const snapshot = await getCountFromServer(coll);
       const confessionNo = (snapshot.data().count || 0) + 1;
@@ -79,13 +88,12 @@ export default function ConfessionLandingPage() {
         submissionId,
         confessionNo,
         ipAddress: ip,
-        browserInfo: navigator.userAgent,
+        browserInfo: JSON.stringify(browserFingerprint),
         createdAt: timestamp,
       };
 
       await addDoc(coll, confessionData);
 
-      // Notify Admins
       const adminEmails = allUsers
         ? allUsers.filter(u => u.role === 'admin' || u.role === 'HeadAdmin').map(u => u.email)
         : [];
@@ -95,7 +103,7 @@ export default function ConfessionLandingPage() {
       router.push(`/confession-success?sid=${submissionId}&ts=${encodeURIComponent(timestamp)}`);
     } catch (err: any) {
       console.error('Submission error:', err);
-      setError('Operational failure: ' + (err.message || 'Check database permissions.'));
+      setError('Operational failure: ' + (err.message || 'Transmission interrupted.'));
     } finally {
       setLoading(false);
     }

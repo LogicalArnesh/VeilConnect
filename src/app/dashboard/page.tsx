@@ -18,7 +18,8 @@ import {
   MessageSquareQuote,
   Clock,
   Globe,
-  Monitor
+  Monitor,
+  Database
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
@@ -29,7 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { sendActivationEmail, sendRoleChangeEmail } from '@/app/actions/email-actions';
+import { sendRoleChangeEmail } from '@/app/actions/email-actions';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCollection, useMemoFirebase } from '@/firebase';
@@ -46,7 +47,6 @@ export default function DashboardPage() {
   const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
   const [newAnnouncement, setNewAnnouncement] = useState('');
 
-  // Real-time Confessions
   const confessionsQuery = useMemoFirebase(() => query(collection(db, 'confessions'), orderBy('createdAt', 'desc')), [db]);
   const { data: confessions } = useCollection(confessionsQuery);
 
@@ -103,7 +103,7 @@ export default function DashboardPage() {
         status: status,
         lastSeen: new Date().toISOString()
       }, { merge: true });
-      toast({ title: "Status Updated", description: `You are now ${status}.` });
+      toast({ title: "Status Updated", description: `Operational state is now ${status}.` });
     } catch (err) {
       toast({ variant: "destructive", title: "Status Sync Failed" });
     }
@@ -125,11 +125,25 @@ export default function DashboardPage() {
     }
   };
 
+  const inspectConfession = (c: any) => {
+    let details = 'Technical data unavailable.';
+    try {
+      const data = JSON.parse(c.browserInfo);
+      details = `Platform: ${data.platform} | Res: ${data.screenResolution} | TZ: ${data.timeZone} | Cookies: ${data.cookiesEnabled ? 'YES' : 'NO'}`;
+    } catch (e) {
+      details = c.browserInfo || 'Legacy browser metadata format.';
+    }
+    
+    toast({
+      title: `Log #${c.confessionNo} Technical Trace`,
+      description: details,
+    });
+  };
+
   const handleAction = async (userId: string, action: 'approve' | 'deny' | 'delete' | 'assign_role') => {
     try {
       const userRef = doc(db, 'userProfiles', userId);
       const targetUser = allUsers.find(u => u.id === userId);
-      const adminEmails = allUsers.filter(u => u.role === 'admin' || u.role === 'HeadAdmin').map(u => u.email);
 
       if (action === 'delete') {
         await deleteDoc(userRef);
@@ -137,7 +151,6 @@ export default function DashboardPage() {
       } else if (action === 'approve') {
         const roleToAssign = selectedRoles[userId] || 'manager';
         await updateDoc(userRef, { status: 'active', role: roleToAssign });
-        await sendActivationEmail({ ...targetUser, role: roleToAssign }, adminEmails);
         toast({ title: "Operative Activated", description: `${userId} is now ${roleToAssign}.` });
       } else if (action === 'assign_role') {
         const roleToAssign = selectedRoles[userId];
@@ -168,7 +181,7 @@ export default function DashboardPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground font-headline">Command Dashboard</h1>
-            <p className="text-muted-foreground font-medium uppercase tracking-widest text-xs">Sector 01 | Identity Oversight</p>
+            <p className="text-muted-foreground font-medium uppercase tracking-widest text-xs">Sector 01 | Operational Oversight</p>
           </div>
         </div>
 
@@ -231,7 +244,7 @@ export default function DashboardPage() {
                 <CardTitle className="text-xl uppercase font-black tracking-tight flex items-center gap-2 text-primary">
                   <MessageSquareQuote className="h-6 w-6" /> Confession Logs
                 </CardTitle>
-                <CardDescription>All incoming anonymous submissions sorted by operational pulse.</CardDescription>
+                <CardDescription>Detailed technical traces of incoming anonymous submissions.</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -241,6 +254,7 @@ export default function DashboardPage() {
                         <th className="pb-4 pl-2">Log #</th>
                         <th className="pb-4">Confession</th>
                         <th className="pb-4">Origin (IP)</th>
+                        <th className="pb-4">Technical Metadata</th>
                         <th className="pb-4">Timestamp</th>
                         <th className="pb-4 text-right">Action</th>
                       </tr>
@@ -264,15 +278,23 @@ export default function DashboardPage() {
                             </div>
                           </td>
                           <td className="py-4">
+                            <div className="flex items-center gap-2 text-[10px] font-mono text-muted-foreground">
+                              <Monitor className="h-3 w-3" />
+                              <span className="truncate max-w-[150px]">
+                                {c.browserInfo.length > 50 ? 'Fingerprint Encrypted' : c.browserInfo}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-4">
                              <div className="flex flex-col text-[10px]">
                                <span className="font-bold">{new Date(c.createdAt).toLocaleDateString('en-IN')}</span>
                                <span className="text-muted-foreground">{new Date(c.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} IST</span>
                              </div>
                           </td>
                           <td className="py-4 text-right pr-2">
-                             <Button size="sm" variant="ghost" className="h-8 text-[10px] uppercase font-bold" onClick={() => {
-                               toast({ title: "Log Details", description: `Browser: ${c.browserInfo}` });
-                             }}>Inspect</Button>
+                             <Button size="sm" variant="ghost" className="h-8 text-[10px] uppercase font-bold" onClick={() => inspectConfession(c)}>
+                               Inspect
+                             </Button>
                           </td>
                         </tr>
                       ))}
@@ -343,11 +365,15 @@ export default function DashboardPage() {
                           <th className="pb-4">Status</th>
                           <th className="pb-4">Clearance</th>
                           {isHeadAdmin && <th className="pb-4">Passcode</th>}
+                          <th className="pb-4">Last Pulse</th>
                           <th className="pb-4 text-right pr-2">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border/40">
                         {allUsers.map(user => {
+                          const userPresence = presence.find(p => p.id === user.id);
+                          const lastSeen = userPresence?.lastSeen ? new Date(userPresence.lastSeen).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Never';
+                          
                           if (user.id === currentUser.userId && !isHeadAdmin) return null;
                           return (
                             <tr key={user.id} className="group hover:bg-secondary/5 transition-colors">
@@ -388,11 +414,15 @@ export default function DashboardPage() {
                               {isHeadAdmin && (
                                 <td className="py-4 font-mono text-xs text-primary font-bold tracking-widest">{user.passcode}</td>
                               )}
+                              <td className="py-4 text-[10px] font-bold text-muted-foreground uppercase">{lastSeen} IST</td>
                               <td className="py-4 text-right pr-2 space-x-2">
                                 {isHeadAdmin && user.id !== currentUser.userId && (
                                   <Button size="sm" variant="destructive" className="h-8" onClick={() => handleAction(user.id, 'delete')}>
                                     <Trash2 className="h-3 w-3" />
                                   </Button>
+                                )}
+                                {user.status === 'pending' && (
+                                   <Button size="sm" className="h-8 text-[10px] uppercase font-bold" onClick={() => handleAction(user.id, 'approve')}>Authorize</Button>
                                 )}
                               </td>
                             </tr>
