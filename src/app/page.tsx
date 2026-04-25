@@ -111,21 +111,20 @@ export default function ConfessionLandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 sm:p-12 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-secondary/20 -z-10" />
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 sm:p-12 relative overflow-hidden bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-secondary/10">
       
       <div className="max-w-2xl w-full space-y-8 relative z-10">
         <div className="flex flex-col items-center text-center space-y-4">
-          <div className="relative w-28 h-28 rounded-3xl overflow-hidden border-4 border-primary shadow-[0_0_50px_-12px_rgba(225,29,72,0.5)] ring-8 ring-primary/5 transition-transform hover:scale-105 duration-500">
+          <div className="relative w-28 h-28 rounded-3xl overflow-hidden border-4 border-primary shadow-glow-red ring-8 ring-primary/5 transition-all hover:scale-105 duration-500">
              {logo && <Image src={logo.imageUrl} alt="Logo" fill className="object-cover" />}
           </div>
           <div className="space-y-1">
             <h1 className="text-5xl font-black tracking-tighter text-foreground font-headline uppercase leading-none">
               VEIL <span className="text-primary text-glow-red">CONFESSIONS</span>
             </h1>
-            <div className="flex items-center justify-center gap-2 mt-3">
+            <div className="flex items-center justify-center gap-2 mt-3 bg-white/5 py-1 px-4 rounded-full border border-white/5">
               <Clock className="h-4 w-4 text-secondary animate-pulse" />
-              <p className="text-muted-foreground font-bold uppercase tracking-[0.3em] text-[10px] opacity-80">{currentTime}</p>
+              <p className="text-muted-foreground font-black uppercase tracking-[0.3em] text-[10px] opacity-80">{currentTime}</p>
             </div>
           </div>
         </div>
@@ -137,8 +136,8 @@ export default function ConfessionLandingPage() {
                 <ShieldCheck className="h-7 w-7 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-2xl font-black tracking-tight uppercase">Secure Submission</CardTitle>
-                <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Encrypted Identity Protection Active</CardDescription>
+                <CardTitle className="text-2xl font-black tracking-tight uppercase">Secure Mission Portal</CardTitle>
+                <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Identity Integrity Protocol Active</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -155,11 +154,11 @@ export default function ConfessionLandingPage() {
                 <div className="flex justify-between items-center px-2">
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-secondary" />
-                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.1em]">AES-256 Protocol Enabled</p>
+                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.1em]">AES-256 Sector Encryption</p>
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="h-1.5 w-1.5 rounded-full bg-secondary animate-pulse" />
-                    <p className="text-[10px] text-secondary font-black uppercase tracking-[0.1em]">Connection: Secure</p>
+                    <p className="text-[10px] text-secondary font-black uppercase tracking-[0.1em]">Signal: Verified</p>
                   </div>
                 </div>
               </div>
@@ -175,12 +174,12 @@ export default function ConfessionLandingPage() {
                 className="group flex items-center space-x-5 p-6 border rounded-[1.5rem] bg-white/5 border-white/10 hover:border-secondary/50 transition-all cursor-pointer hover:bg-secondary/5 active:scale-[0.98]" 
                 onClick={() => setIsHuman(!isHuman)}
               >
-                <div className={`h-8 w-8 rounded-xl border-2 flex items-center justify-center transition-all duration-300 ${isHuman ? 'bg-secondary border-secondary shadow-[0_0_15px_rgba(22,163,74,0.5)]' : 'bg-background border-white/20 group-hover:border-secondary/50'}`}>
+                <div className={`h-8 w-8 rounded-xl border-2 flex items-center justify-center transition-all duration-300 ${isHuman ? 'bg-secondary border-secondary shadow-glow-green' : 'bg-background border-white/20 group-hover:border-secondary/50'}`}>
                    {isHuman && <CheckCircle2 className="h-5 w-5 text-white" />}
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-black text-foreground uppercase tracking-tight">Human Operative Verification</span>
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Identity integrity check required</span>
+                  <span className="text-sm font-black text-foreground uppercase tracking-tight">Identity integrity check</span>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">Human operative verification required</span>
                 </div>
               </div>
 
@@ -212,7 +211,7 @@ export default function ConfessionLandingPage() {
            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
              &copy; {new Date().getFullYear()} VEIL CONFESSIONS INTELLIGENCE UNIT.
            </p>
-           <p className="text-[8px] mt-2 font-bold text-muted-foreground">ALL OPERATIONAL DATA IS ENCRYPTED AND LOGGED INDIVIDUALLY.</p>
+           <p className="text-[8px] mt-2 font-bold text-muted-foreground uppercase tracking-widest">Authorized Operations Sector 01</p>
         </div>
       </div>
     </div>

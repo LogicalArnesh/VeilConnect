@@ -1,17 +1,23 @@
 
 #!/bin/bash
 
-# VeilConnect Auto-Deployment Script
+# VeilConnect Auto-Deployment Script (Authenticated)
 # Execute this to push your workspace changes to your GitHub repository
 
-echo "🚀 Starting deployment process..."
+TOKEN="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"
+REMOTE_URL="https://$TOKEN@github.com/LogicalArnesh/VeilConnect.git"
+
+echo "🚀 Starting authenticated deployment process..."
 
 # Initialize git if not already done
 if [ ! -d ".git" ]; then
     echo "📁 Initializing Git repository..."
     git init
-    git remote add origin https://github.com/LogicalArnesh/VeilConnect.git
 fi
+
+# Set remote with token
+git remote remove origin 2>/dev/null
+git remote add origin "$REMOTE_URL"
 
 # Set git identity
 git config user.email "deploy@veilconnect.local"
@@ -30,8 +36,7 @@ echo "📤 Pushing to GitHub Intelligence HQ (Main)..."
 git branch -M main
 
 # Force push to ensure remote matches local workspace exactly
-# NOTE: You will need to provide your Personal Access Token if prompted
 git push -u origin main --force
 
-echo "✅ Mission Successful. Your code is now live at https://github.com/LogicalArnesh/VeilConnect.git"
+echo "✅ Mission Successful. Your code is now live at GitHub."
 echo "Netlify will automatically detect this push and re-deploy your site."
