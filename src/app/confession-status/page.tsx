@@ -51,7 +51,7 @@ export default function ConfessionStatusPage() {
              <ArrowLeft className="h-4 w-4 mr-2 transition-transform group-hover:-translate-x-1" /> Return to Command Base
           </Link>
           <h1 className="text-4xl font-black text-foreground uppercase tracking-tight">Confession Interrogation</h1>
-          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.4em] opacity-60">Track your anonymous mission status</p>
+          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.4em] opacity-60">Track your anonymous confession status</p>
         </div>
 
         <Card className="glass-card rounded-[2.5rem] overflow-hidden border-t-secondary/30 shadow-2xl">
