@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -42,7 +43,7 @@ export default function ConfessionStatusPage() {
       if (!snap.empty) {
         setConfession({ ...snap.docs[0].data(), id: snap.docs[0].id });
       } else {
-        toast({ variant: "destructive", title: "Record Not Found", description: "Submission ID does not exist in our database." });
+        toast({ variant: "destructive", title: "Record Not Found", description: "Submission ID does not exist in our secure database." });
       }
     } catch (err) {
       toast({ variant: "destructive", title: "Inquiry Failed", description: "System connection interrupted." });
@@ -69,10 +70,10 @@ export default function ConfessionStatusPage() {
       <div className="max-w-2xl w-full space-y-8 print:max-w-full">
         <div className="text-center space-y-4 print:hidden">
           <Link href="/" className="inline-flex items-center text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground hover:text-primary transition-all group">
-             <ArrowLeft className="h-4 w-4 mr-2" /> Return to Base
+             <ArrowLeft className="h-4 w-4 mr-2" /> Return to Command Base
           </Link>
           <h1 className="text-4xl font-black text-foreground uppercase tracking-tight">Status Interrogation</h1>
-          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.4em] opacity-60">Track your encrypted transmission status</p>
+          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.4em] opacity-60">Track your encrypted transmission sector status</p>
         </div>
 
         <Card className="glass-card rounded-[2.5rem] overflow-hidden border-t-secondary/30 shadow-2xl print:shadow-none print:border-none print:rounded-none">
@@ -98,14 +99,14 @@ export default function ConfessionStatusPage() {
             {!confession && searched && !loading && (
               <div className="text-center py-16 space-y-6">
                 <XCircle className="h-16 w-16 text-destructive mx-auto opacity-30" />
-                <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">ID Not Found.</p>
+                <p className="text-sm font-black uppercase tracking-widest text-muted-foreground">Identity Record Not Found.</p>
               </div>
             )}
 
             {!searched && (
               <div className="text-center py-20 space-y-6 border-2 border-dashed rounded-[2rem] border-white/5 bg-white/5">
                 <ShieldCheck className="h-20 w-20 text-secondary mx-auto opacity-20" />
-                <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.4em]">Awaiting Identity Key</p>
+                <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.4em]">Awaiting Key Input</p>
               </div>
             )}
 
@@ -118,7 +119,7 @@ export default function ConfessionStatusPage() {
                         {logo && <Image src={logo.imageUrl} alt="Logo" fill className="object-contain" />}
                       </div>
                       <div>
-                        <h3 className="text-lg font-black text-primary uppercase">Confession Sector Log</h3>
+                        <h3 className="text-lg font-black text-primary uppercase">Confession Log Report</h3>
                         <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mt-1">ID: {confession.submissionId}</p>
                       </div>
                     </div>
@@ -131,7 +132,7 @@ export default function ConfessionStatusPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-white/5 p-5 rounded-2xl space-y-2 border border-white/5 print:bg-gray-50 print:border-gray-200">
                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                         <Calendar className="h-3 w-3" /> Initial Receipt
+                         <Calendar className="h-3 w-3" /> Initial Transmission
                        </p>
                        <p className="text-xs font-bold text-foreground">{formatIST(confession.createdAt)}</p>
                     </div>
@@ -139,29 +140,29 @@ export default function ConfessionStatusPage() {
                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
                          <Shield className="h-3 w-3" /> SECURITY STATUS
                        </p>
-                       <p className="text-xs font-black text-secondary">E2E ENCRYPTED</p>
+                       <p className="text-xs font-black text-secondary">AES-256 ENCRYPTED</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-8">
-                  <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-primary border-l-4 border-primary pl-3">Sector Lifecycle</h4>
+                  <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-primary border-l-4 border-primary pl-3">Operational Lifecycle</h4>
                   <div className="space-y-6">
                      <StatusStep 
                        title="Uplink Sync" 
-                       description="Confession successfully encrypted and synced to the secure database." 
+                       description="Confession encrypted and synced to the secure database." 
                        status="completed" 
                        timestamp={formatIST(confession.createdAt)}
                      />
                      <StatusStep 
-                       title="Command Clearance" 
-                       description={confession.reviewStatus === 'accepted' ? 'Confession cleared by Command.' : confession.reviewStatus === 'rejected' ? 'Confession denied by Command.' : 'Awaiting operational clearance.'} 
+                       title="Command Authorization" 
+                       description={confession.reviewStatus === 'accepted' ? 'Authorized by Command Sector.' : confession.reviewStatus === 'rejected' ? 'Access denied by Command Sector.' : 'Awaiting operational authorization.'} 
                        status={confession.reviewStatus === 'accepted' ? 'completed' : confession.reviewStatus === 'rejected' ? 'failed' : 'pending'} 
                        timestamp={formatIST(confession.reviewStatusChangedAt)}
                      />
                      <StatusStep 
                        title="Global Broadcast" 
-                       description={confession.publicationStatus === 'published' ? 'Broadcast to the public intelligence network.' : confession.publicationStatus === 'denied' ? 'Broadcast restricted by sector policy.' : 'Awaiting broadcast schedule.'} 
+                       description={confession.publicationStatus === 'published' ? 'Broadcasting to public network.' : confession.publicationStatus === 'denied' ? 'Broadcast restricted by policy.' : 'Awaiting broadcast schedule.'} 
                        status={confession.publicationStatus === 'published' ? 'completed' : confession.publicationStatus === 'denied' ? 'failed' : 'pending'} 
                        timestamp={formatIST(confession.publicationStatusChangedAt)}
                      />
@@ -180,7 +181,7 @@ export default function ConfessionStatusPage() {
                 </div>
 
                 <div className="text-center opacity-40 pt-10 border-t border-white/5 print:border-gray-200">
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em]">Official VeiLConnect Sector Document (c) {new Date().getFullYear()}</p>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em]">Official VeiLConnect Intelligence Document (c) {new Date().getFullYear()}</p>
                 </div>
               </div>
             )}

@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -16,7 +17,8 @@ import {
   XCircle,
   Clock,
   Check,
-  X
+  X,
+  Calendar
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
@@ -96,7 +98,7 @@ export default function DashboardPage() {
         status: status,
         lastSeen: new Date().toISOString()
       }, { merge: true });
-      toast({ title: "Presence Updated", description: `State is now ${status}.` });
+      toast({ title: "Presence Updated", description: `State is now ${status.toUpperCase()}.` });
     } catch (err) {
       toast({ variant: "destructive", title: "Presence Sync Failed" });
     }
@@ -118,16 +120,16 @@ export default function DashboardPage() {
     try {
       const confRef = doc(db, 'confessions', id);
       await updateDoc(confRef, updates);
-      toast({ title: "Sector Sync Successful", description: `${type.toUpperCase()} status updated to ${status.toUpperCase()}.` });
+      toast({ title: "Sector Sync Successful", description: `${type.toUpperCase()} updated to ${status.toUpperCase()}.` });
     } catch (err) {
-      toast({ variant: "destructive", title: "Update Denied", description: "Authorization failed. Check your security clearance." });
+      toast({ variant: "destructive", title: "Update Denied", description: "Authorization failed. Check security clearance." });
     } finally {
       setUpdatingId(null);
     }
   };
 
   const deleteConfession = async (id: string) => {
-    if (!confirm('PERMANENT DELETION: Are you sure you want to purge this record?')) return;
+    if (!confirm('PERMANENT DELETION: Are you sure you want to purge this record from existence?')) return;
     try {
       await deleteDoc(doc(db, 'confessions', id));
       toast({ title: "Record Purged", description: "Identity data permanently deleted." });
@@ -196,8 +198,8 @@ export default function DashboardPage() {
       <main className="container mx-auto p-6 max-w-7xl space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-4xl font-black tracking-tight text-foreground font-headline uppercase">Command Dashboard</h1>
-            <p className="text-muted-foreground font-bold uppercase tracking-[0.3em] text-[10px] opacity-60">Confession Intelligence Oversight</p>
+            <h1 className="text-4xl font-black tracking-tight text-foreground uppercase">Command Console</h1>
+            <p className="text-muted-foreground font-bold uppercase tracking-[0.3em] text-[10px] opacity-60">Confession Intelligence Oversight (Sector 01)</p>
           </div>
         </div>
 
@@ -205,21 +207,21 @@ export default function DashboardPage() {
           <TabsList className="bg-muted/30 border-white/5 p-1 rounded-2xl h-14">
             <TabsTrigger value="overview" className="rounded-xl px-6 font-black uppercase tracking-widest text-[10px]">Overview</TabsTrigger>
             <TabsTrigger value="confessions" className="rounded-xl px-6 font-black uppercase tracking-widest text-[10px]">Confessions</TabsTrigger>
-            <TabsTrigger value="profile" className="rounded-xl px-6 font-black uppercase tracking-widest text-[10px]">My Profile</TabsTrigger>
+            <TabsTrigger value="profile" className="rounded-xl px-6 font-black uppercase tracking-widest text-[10px]">Presence</TabsTrigger>
             {isAdmin && <TabsTrigger value="users" className="rounded-xl px-6 font-black uppercase tracking-widest text-[10px]">Operatives</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="overview">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <StatCard title="Total Confessions" value={confessions?.length.toString() || '0'} icon={<MessageSquareQuote className="h-6 w-6" />} />
+              <StatCard title="Total Transmissions" value={confessions?.length.toString() || '0'} icon={<MessageSquareQuote className="h-6 w-6" />} />
               <StatCard title="Active Operatives" value={allUsers.filter(u => u.status === 'active').length.toString()} icon={<ShieldCheck className="h-6 w-6" />} />
-              <StatCard title="Command Status" value="Online" icon={<Zap className="h-6 w-6 text-secondary" />} />
+              <StatCard title="Uplink Status" value="Online" icon={<Zap className="h-6 w-6 text-secondary" />} />
             </div>
             
-            <Card className="mt-8 border-primary/20 bg-primary/5 rounded-[2rem] overflow-hidden shadow-xl">
+            <Card className="mt-8 border-primary/20 bg-primary/5 rounded-[2rem] overflow-hidden shadow-2xl">
               <CardHeader>
                 <CardTitle className="flex items-center gap-3 text-primary uppercase text-sm font-black tracking-[0.2em]">
-                  <Megaphone className="h-6 w-6" /> System Broadcasts
+                  <Megaphone className="h-6 w-6" /> System Intelligence Broadcasts
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-8 space-y-6">
@@ -240,7 +242,7 @@ export default function DashboardPage() {
                       <p className="text-sm font-medium mb-2">{a.content}</p>
                       <div className="flex justify-between text-[10px] uppercase font-black opacity-60">
                         <span>@{a.authorId}</span>
-                        <span>{new Date(a.createdAt).toLocaleTimeString()}</span>
+                        <span>{new Date(a.createdAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })} IST</span>
                       </div>
                     </div>
                   ))}
@@ -252,12 +254,12 @@ export default function DashboardPage() {
           <TabsContent value="confessions">
             <Card className="rounded-[2.5rem] overflow-hidden border-white/10 shadow-2xl">
               <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-10 bg-muted/20">
-                <CardTitle className="text-2xl uppercase font-black text-primary">Confession Logs</CardTitle>
+                <CardTitle className="text-2xl uppercase font-black text-primary">Confession Log Forensics</CardTitle>
                 <div className="relative max-w-sm w-full">
                   <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                   <Input 
-                    placeholder="SEARCH BY ID OR CONTENT..." 
-                    className="pl-12 h-12 rounded-xl bg-background/50 font-mono text-xs"
+                    placeholder="SEARCH BY KEY OR CONTENT..." 
+                    className="pl-12 h-12 rounded-xl bg-background/50 font-mono text-xs uppercase"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -268,11 +270,11 @@ export default function DashboardPage() {
                   <thead>
                     <tr className="bg-muted/10 text-left text-muted-foreground uppercase text-[10px] font-black tracking-[0.3em]">
                       <th className="py-6 pl-10">Log Index</th>
-                      <th className="py-6">Content Transcript</th>
-                      <th className="py-6">Review Command</th>
-                      <th className="py-6">Publish Command</th>
+                      <th className="py-6">Transcript</th>
+                      <th className="py-6">Authorization</th>
+                      <th className="py-6">Broadcast</th>
                       <th className="py-6">Origin IP</th>
-                      <th className="py-6 pr-10 text-right">Logged Time</th>
+                      <th className="py-6 pr-10 text-right">Timestamp</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -280,7 +282,7 @@ export default function DashboardPage() {
                       <tr>
                         <td colSpan={6} className="py-20 text-center">
                           <Loader2 className="animate-spin h-8 w-8 text-primary mx-auto" />
-                          <p className="text-[10px] uppercase font-black mt-4 text-muted-foreground tracking-widest">Decrypting Logs...</p>
+                          <p className="text-[10px] uppercase font-black mt-4 text-muted-foreground tracking-widest">Decrypting Files...</p>
                         </td>
                       </tr>
                     )}
@@ -291,14 +293,14 @@ export default function DashboardPage() {
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors"
                               onClick={() => deleteConfession(c.id)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                             <div>
                               <span className="font-black text-primary">#{c.confessionNo}</span>
-                              <p className="text-[9px] font-mono text-muted-foreground">{c.submissionId}</p>
+                              <p className="text-[9px] font-mono text-muted-foreground uppercase">{c.submissionId}</p>
                             </div>
                           </div>
                         </td>
@@ -331,7 +333,7 @@ export default function DashboardPage() {
                                </Badge>
                              </div>
                           </div>
-                          {c.reviewStatusChangedAt && <p className="text-[8px] mt-1 text-muted-foreground font-bold">{new Date(c.reviewStatusChangedAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}</p>}
+                          {c.reviewStatusChangedAt && <p className="text-[8px] mt-1 text-muted-foreground font-bold">{new Date(c.reviewStatusChangedAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })} IST</p>}
                         </td>
                         <td className="py-8">
                           <div className="flex gap-2">
@@ -359,16 +361,16 @@ export default function DashboardPage() {
                                </Badge>
                              </div>
                           </div>
-                          {c.publicationStatusChangedAt && <p className="text-[8px] mt-1 text-muted-foreground font-bold">{new Date(c.publicationStatusChangedAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}</p>}
+                          {c.publicationStatusChangedAt && <p className="text-[8px] mt-1 text-muted-foreground font-bold">{new Date(c.publicationStatusChangedAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })} IST</p>}
                         </td>
                         <td className="py-8 font-mono text-[10px] text-secondary font-black">
                           <div className="flex items-center gap-2 bg-secondary/10 px-3 py-1.5 rounded-lg border border-secondary/20 w-fit">
-                            <Globe className="h-3.5 w-3.5" /> {c.ipAddress || 'TRACED'}
+                            <Globe className="h-3.5 w-3.5" /> {c.ipAddress || 'UNKNOWN'}
                           </div>
                         </td>
                         <td className="py-8 pr-10 text-[10px] font-bold text-right">
-                          {new Date(c.createdAt).toLocaleDateString()}<br/>
-                          <span className="opacity-60">{new Date(c.createdAt).toLocaleTimeString()}</span>
+                          <p className="text-foreground">{new Date(c.createdAt).toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })}</p>
+                          <span className="opacity-40">{new Date(c.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })} IST</span>
                         </td>
                       </tr>
                     ))}
@@ -382,7 +384,7 @@ export default function DashboardPage() {
             <TabsContent value="users">
               <Card className="rounded-[2.5rem] overflow-hidden border-white/10 shadow-xl">
                 <CardHeader className="p-10 bg-muted/20">
-                  <CardTitle className="text-2xl font-black uppercase">Operative Authorization</CardTitle>
+                  <CardTitle className="text-2xl font-black uppercase">Operative Sector Assignments</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0 overflow-x-auto">
                   <table className="w-full text-sm">
@@ -390,7 +392,7 @@ export default function DashboardPage() {
                       <tr className="bg-muted/10 text-left text-muted-foreground uppercase text-[10px] font-black tracking-[0.3em]">
                         <th className="py-6 pl-10">Operative</th>
                         <th className="py-6">Status</th>
-                        <th className="py-6">Sector Assignment</th>
+                        <th className="py-6">Sector Role</th>
                         {isHeadAdmin && <th className="py-6">Passcode</th>}
                         <th className="py-6 pr-10 text-right">Command</th>
                       </tr>
@@ -402,7 +404,7 @@ export default function DashboardPage() {
                           <tr key={user.id} className="hover:bg-secondary/5 transition-colors">
                             <td className="py-8 pl-10">
                               <p className="font-black">@{user.id}</p>
-                              <p className="text-[10px] opacity-60 uppercase">{user.fullName}</p>
+                              <p className="text-[10px] opacity-60 uppercase font-bold">{user.fullName}</p>
                             </td>
                             <td className="py-8">
                               <Badge className={`text-[9px] uppercase font-black ${user.status === 'active' ? 'bg-secondary text-white' : 'bg-muted text-muted-foreground'}`}>{user.status}</Badge>
@@ -424,7 +426,7 @@ export default function DashboardPage() {
                                 </SelectContent>
                               </Select>
                               {selectedRoles[user.id] && selectedRoles[user.id] !== user.role && (
-                                <Button size="sm" onClick={() => handleAction(user.id, 'assign_role')} className="mt-2 h-7 text-[9px] font-black">Update</Button>
+                                <Button size="sm" onClick={() => handleAction(user.id, 'assign_role')} className="mt-2 h-7 text-[9px] font-black uppercase">Update Sector</Button>
                               )}
                             </td>
                             {isHeadAdmin && (
@@ -432,10 +434,10 @@ export default function DashboardPage() {
                             )}
                             <td className="py-8 pr-10 text-right space-x-2">
                               {isHeadAdmin && user.id !== currentUser.userId && (
-                                <Button size="icon" variant="destructive" className="h-9 w-9" onClick={() => handleAction(user.id, 'delete')}><Trash2 className="h-4 w-4" /></Button>
+                                <Button size="icon" variant="destructive" className="h-9 w-9 rounded-xl" onClick={() => handleAction(user.id, 'delete')}><Trash2 className="h-4 w-4" /></Button>
                               )}
                               {user.status === 'pending' && (
-                                <Button size="sm" className="h-9 text-[10px] font-black uppercase" onClick={() => handleAction(user.id, 'approve')}>Authorize</Button>
+                                <Button size="sm" className="h-9 text-[10px] font-black uppercase rounded-xl" onClick={() => handleAction(user.id, 'approve')}>Authorize</Button>
                               )}
                             </td>
                           </tr>
@@ -449,22 +451,42 @@ export default function DashboardPage() {
           )}
 
           <TabsContent value="profile">
-            <Card className="rounded-[2rem] border-white/10 p-10">
-              <h3 className="text-sm font-black uppercase tracking-[0.3em] text-primary mb-6">Presence Configuration</h3>
-              <RadioGroup defaultValue={currentStatus} onValueChange={updateStatus} className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div className="flex items-center space-x-4 p-6 border border-white/10 rounded-2xl bg-white/5 cursor-pointer hover:bg-white/10 transition-colors">
-                  <RadioGroupItem value="online" id="status-online" />
-                  <Label htmlFor="status-online" className="font-black uppercase text-[11px] cursor-pointer">Online</Label>
+            <Card className="rounded-[2.5rem] border-white/10 p-10 shadow-2xl">
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-[0.3em] text-primary mb-6 flex items-center gap-2">
+                    <Zap className="h-5 w-5" /> Operational Presence
+                  </h3>
+                  <RadioGroup defaultValue={currentStatus} onValueChange={updateStatus} className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div className="flex items-center space-x-4 p-8 border border-white/10 rounded-2xl bg-white/5 cursor-pointer hover:bg-white/10 transition-all group">
+                      <RadioGroupItem value="online" id="status-online" />
+                      <Label htmlFor="status-online" className="font-black uppercase text-[11px] cursor-pointer group-hover:text-primary transition-colors">Sector Online</Label>
+                    </div>
+                    <div className="flex items-center space-x-4 p-8 border border-white/10 rounded-2xl bg-white/5 cursor-pointer hover:bg-white/10 transition-all group">
+                      <RadioGroupItem value="idle" id="status-idle" />
+                      <Label htmlFor="status-idle" className="font-black uppercase text-[11px] cursor-pointer group-hover:text-amber-500 transition-colors">Sector Idle</Label>
+                    </div>
+                    <div className="flex items-center space-x-4 p-8 border border-white/10 rounded-2xl bg-white/5 cursor-pointer hover:bg-white/10 transition-all group">
+                      <RadioGroupItem value="dnd" id="status-dnd" />
+                      <Label htmlFor="status-dnd" className="font-black uppercase text-[11px] cursor-pointer group-hover:text-destructive transition-colors">Secure DND</Label>
+                    </div>
+                  </RadioGroup>
                 </div>
-                <div className="flex items-center space-x-4 p-6 border border-white/10 rounded-2xl bg-white/5 cursor-pointer hover:bg-white/10 transition-colors">
-                  <RadioGroupItem value="idle" id="status-idle" />
-                  <Label htmlFor="status-idle" className="font-black uppercase text-[11px] cursor-pointer">Idle</Label>
+
+                <div className="pt-10 border-t border-white/5">
+                   <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Identity Details</h4>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
+                         <p className="text-[9px] font-bold text-muted-foreground uppercase mb-1">Full Name</p>
+                         <p className="text-sm font-black">{currentUser.fullName}</p>
+                      </div>
+                      <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
+                         <p className="text-[9px] font-bold text-muted-foreground uppercase mb-1">Operational Role</p>
+                         <p className="text-sm font-black text-primary uppercase">{currentUser.role}</p>
+                      </div>
+                   </div>
                 </div>
-                <div className="flex items-center space-x-4 p-6 border border-white/10 rounded-2xl bg-white/5 cursor-pointer hover:bg-white/10 transition-colors">
-                  <RadioGroupItem value="dnd" id="status-dnd" />
-                  <Label htmlFor="status-dnd" className="font-black uppercase text-[11px] cursor-pointer">DND</Label>
-                </div>
-              </RadioGroup>
+              </div>
             </Card>
           </TabsContent>
         </Tabs>
@@ -475,13 +497,13 @@ export default function DashboardPage() {
 
 function StatCard({ title, value, icon }: { title: string; value: string; icon: React.ReactNode }) {
   return (
-    <Card className="rounded-[1.5rem] border-white/10 bg-white/5 shadow-xl hover:scale-105 transition-transform">
-      <CardContent className="p-8">
-        <div className="flex items-center justify-between mb-4 opacity-60">
+    <Card className="rounded-[2rem] border-white/10 bg-white/5 shadow-xl hover:scale-105 transition-all duration-300 border-t-primary/20">
+      <CardContent className="p-10">
+        <div className="flex items-center justify-between mb-6 opacity-40">
           <p className="text-[11px] font-black uppercase tracking-[0.3em]">{title}</p>
           {icon}
         </div>
-        <p className="text-4xl font-black text-foreground">{value}</p>
+        <p className="text-5xl font-black text-foreground">{value}</p>
       </CardContent>
     </Card>
   );
