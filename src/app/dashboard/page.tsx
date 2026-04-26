@@ -17,7 +17,8 @@ import {
   Clock,
   Check,
   X,
-  AlertTriangle
+  AlertTriangle,
+  Copy
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
@@ -108,8 +109,8 @@ export default function DashboardPage() {
       await updateDoc(confRef, updatePayload);
       toast({ title: "Sector Synced", description: `${type.toUpperCase()} protocol updated.` });
     } catch (err) {
-      console.error(err);
-      toast({ variant: "destructive", title: "Command Failed", description: "Authorization link failure. Access denied." });
+      console.error("Firestore Update Error:", err);
+      toast({ variant: "destructive", title: "Command Failed", description: "Authorization link failure. System log error." });
     } finally {
       setUpdatingId(null);
     }
@@ -123,6 +124,11 @@ export default function DashboardPage() {
     } catch (err) {
       toast({ variant: "destructive", title: "Purge Failed" });
     }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({ title: "Key Copied", description: "Submission ID copied to clipboard." });
   };
 
   const postAnnouncement = async () => {
@@ -191,7 +197,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20" data-unhackable="true">
+    <div className="min-h-screen bg-background pb-20">
       <DashboardHeader userId={currentUser.userId} role={currentUser.role} />
       
       <main className="container mx-auto p-6 max-w-7xl space-y-8">
@@ -298,7 +304,17 @@ export default function DashboardPage() {
                               <Trash2 className="h-4 w-4" />
                             </Button>
                             <div>
-                              <span className="font-black text-primary">#{c.confessionNo}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="font-black text-primary">#{c.confessionNo}</span>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-6 w-6 opacity-40 hover:opacity-100" 
+                                  onClick={() => copyToClipboard(c.submissionId)}
+                                >
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </div>
                               <p className="text-[9px] font-mono text-muted-foreground uppercase">{c.submissionId}</p>
                             </div>
                           </div>
