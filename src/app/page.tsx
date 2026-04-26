@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Send, ShieldCheck, CheckCircle2, Loader2, AlertCircle, Clock, Shield, Search, Wifi, Database, Terminal, Cpu } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, getCountFromServer, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { sendConfessionAlertToAdmins } from '@/app/actions/email-actions';
 import { useCollection, useMemoFirebase } from '@/firebase';
@@ -41,7 +41,6 @@ export default function ConfessionLandingPage() {
     updateTime();
     const timer = setInterval(updateTime, 1000);
 
-    // Mock Intelligence Logs
     const logInterval = setInterval(() => {
       const logs = [
         "ENCRYPTING SECTOR 01...",
@@ -84,19 +83,21 @@ export default function ConfessionLandingPage() {
         console.warn('IP Trace Failure');
       }
 
-      // ANTI-SPAM: Check IP limits (5 per 24 hours)
+      // ANTI-SPAM: Fixed query to avoid Index Error. Fetch by IP and filter in-memory.
       const oneDayAgo = new Date();
       oneDayAgo.setHours(oneDayAgo.getHours() - 24);
       
       const spamQuery = query(
         collection(db, 'confessions'), 
-        where('ipAddress', '==', ip),
-        where('createdAt', '>=', oneDayAgo.toISOString())
+        where('ipAddress', '==', ip)
       );
-      const spamCountSnap = await getCountFromServer(spamQuery);
-      const recentCount = spamCountSnap.data().count;
+      const spamSnap = await getDocs(spamQuery);
+      const recentDocs = spamSnap.docs.filter(doc => {
+        const createdAt = doc.data().createdAt;
+        return createdAt && new Date(createdAt) >= oneDayAgo;
+      });
 
-      if (recentCount >= 5) {
+      if (recentDocs.length >= 5) {
         setError('CRITICAL BREACH: Mass spamming detected from this sector. Transmission blocked. Contact Command Sector for operational restoration.');
         setLoading(false);
         return;
@@ -111,8 +112,9 @@ export default function ConfessionLandingPage() {
       };
 
       const coll = collection(db, 'confessions');
-      const snapshot = await getCountFromServer(coll);
-      const confessionNo = (snapshot.data().count || 0) + 1;
+      // Simple total count for numbering
+      const totalSnap = await getDocs(coll);
+      const confessionNo = totalSnap.size + 1;
 
       const submissionId = Math.random().toString(36).substring(2, 10).toUpperCase();
       const timestamp = new Date().toISOString();
@@ -150,7 +152,6 @@ export default function ConfessionLandingPage() {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 sm:p-12 relative overflow-hidden bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-secondary/10" data-unhackable="true">
       <div className="max-w-2xl w-full space-y-8 relative z-10">
         
-        {/* Mock System Status Bar */}
         <div className="flex justify-between items-center px-6 py-2 bg-black/40 border border-white/5 rounded-full backdrop-blur-sm">
            <div className="flex items-center gap-4">
              <div className="flex items-center gap-1.5">
@@ -172,7 +173,7 @@ export default function ConfessionLandingPage() {
 
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="relative w-28 h-28 rounded-3xl overflow-hidden border-4 border-primary shadow-glow-red ring-8 ring-primary/5 transition-all hover:scale-105 duration-500">
-             {logo && <Image src={logo.imageUrl} alt="Veil Logo" fill className="object-cover" />}
+             {logo && <Image src={logo.imageUrl} alt="Veil Logo" fill className="object-cover" unoptimized />}
           </div>
           <div className="space-y-1">
             <h1 className="text-5xl font-black tracking-tighter text-foreground font-headline uppercase leading-none">
@@ -208,7 +209,6 @@ export default function ConfessionLandingPage() {
                   required
                 />
                 
-                {/* Mock Terminal Logs */}
                 <div className="bg-black/80 rounded-xl p-4 font-mono text-[9px] text-secondary/60 space-y-1 overflow-hidden border border-white/5">
                    {sysLogs.map((log, i) => (
                      <div key={i} className="flex gap-2">

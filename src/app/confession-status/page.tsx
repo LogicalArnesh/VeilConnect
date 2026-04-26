@@ -116,7 +116,7 @@ export default function ConfessionStatusPage() {
                   <div className="flex items-center justify-between border-b border-white/5 pb-6 print:border-gray-200">
                     <div className="flex items-center gap-4">
                       <div className="h-16 w-16 relative">
-                        {logo && <Image src={logo.imageUrl} alt="Logo" fill className="object-contain" />}
+                        {logo && <Image src={logo.imageUrl} alt="Logo" fill className="object-contain" unoptimized />}
                       </div>
                       <div>
                         <h3 className="text-lg font-black text-primary uppercase">Confession Log Report</h3>

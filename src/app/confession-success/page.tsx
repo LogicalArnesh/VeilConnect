@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { Suspense, useRef, useEffect } from 'react';
@@ -43,7 +44,7 @@ function SuccessContent() {
     <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4 print:p-0 print:bg-white" data-unhackable="true">
       <div className="max-w-[420px] w-full space-y-6 print:max-w-full">
         {/* Restaurant style receipt */}
-        <Card ref={receiptRef} className="bg-white text-black rounded-none shadow-2xl border-none font-mono text-[11px] relative overflow-hidden print:shadow-none print:w-full print:border-none">
+        <Card ref={receiptRef} className="bg-white text-black rounded-none shadow-2xl border-none font-mono text-[11px] relative overflow-hidden print:shadow-none print:w-full print:border-none print:m-0">
           <div className="h-2 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAxMCI+PHBvbHlnb24gcG9pbnRzPSIwLDEwIDEwLDAgMjAsMTAiIGZpbGw9IiNmMWY1ZjkiLz48L3N2Zy4=')] bg-repeat-x print:hidden"></div>
           
           <CardHeader className="text-center pt-10 pb-6 border-b-2 border-dashed border-gray-300">
@@ -56,7 +57,7 @@ function SuccessContent() {
                     width={96} 
                     height={96} 
                     className="object-contain" 
-                    unoptimized={logo.imageUrl.includes('gemini.google.com')}
+                    unoptimized
                   />
                 )}
               </div>
@@ -82,7 +83,6 @@ function SuccessContent() {
               <div className="flex justify-between border-b border-gray-100 pb-2">
                 <span className="font-bold opacity-60">PROTOCOL:</span>
                 <div className="flex items-center gap-1 text-green-600">
-                   <Check className="h-3 w-3" />
                    <span className="font-black">AES-256 E2E</span>
                 </div>
               </div>
