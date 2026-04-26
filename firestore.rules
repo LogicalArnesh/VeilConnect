@@ -12,7 +12,7 @@ service cloud.firestore {
       allow read, write: if true; 
     }
     
-    // Public confessions - anyone can create, admins can read/update
+    // Public confessions - anyone can create, admins can read/update/delete
     match /confessions/{confessionId} {
       allow create: if true;
       allow read: if true;

@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -8,9 +7,9 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Send, ShieldCheck, CheckCircle2, Loader2, AlertCircle, Clock, Shield, Search } from 'lucide-react';
+import { Send, ShieldCheck, CheckCircle2, Loader2, AlertCircle, Clock, Shield, Search, Wifi, Database, Terminal, Cpu } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, getCountFromServer, query, where, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, getCountFromServer, query, where } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { sendConfessionAlertToAdmins } from '@/app/actions/email-actions';
 import { useCollection, useMemoFirebase } from '@/firebase';
@@ -25,6 +24,7 @@ export default function ConfessionLandingPage() {
   const [isHuman, setIsHuman] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState<string>('');
+  const [sysLogs, setSysLogs] = useState<string[]>([]);
 
   const logo = PlaceHolderImages.find(img => img.id === 'team-logo');
 
@@ -39,7 +39,24 @@ export default function ConfessionLandingPage() {
     };
     updateTime();
     const timer = setInterval(updateTime, 1000);
-    return () => clearInterval(timer);
+
+    // Mock Intelligence Logs
+    const logInterval = setInterval(() => {
+      const logs = [
+        "ENCRYPTING SECTOR 01...",
+        "DATABASE UPLINK: STABLE",
+        "E2E SIGNAL: VERIFIED",
+        "IP TRACE PROTECTION: ACTIVE",
+        "CORE SYNC: IST ZONE",
+        "ANTI-SPAM SHIELD: ONLINE"
+      ];
+      setSysLogs(prev => [...prev.slice(-3), logs[Math.floor(Math.random() * logs.length)]]);
+    }, 3000);
+
+    return () => {
+      clearInterval(timer);
+      clearInterval(logInterval);
+    };
   }, []);
 
   const adminsQuery = useMemoFirebase(() => query(collection(db, 'userProfiles')), [db]);
@@ -49,7 +66,7 @@ export default function ConfessionLandingPage() {
     e.preventDefault();
     if (!confession.trim()) return;
     if (!isHuman) {
-      setError('Please verify your identity as a human operative.');
+      setError('CRITICAL: IDENTITY INTEGRITY CHECK FAILED.');
       return;
     }
 
@@ -79,7 +96,7 @@ export default function ConfessionLandingPage() {
       const recentCount = spamCountSnap.data().count;
 
       if (recentCount >= 5) {
-        setError('CRITICAL: Mass spamming detected from this IP sector. Transmission blocked. Please contact Head Admin for operational issues.');
+        setError('CRITICAL BREACH: Mass spamming detected from this sector. Transmission blocked. Contact Command Sector for operational restoration.');
         setLoading(false);
         return;
       }
@@ -122,15 +139,36 @@ export default function ConfessionLandingPage() {
 
       router.push(`/confession-success?sid=${submissionId}&ts=${encodeURIComponent(timestamp)}`);
     } catch (err: any) {
-      setError('Transmission failure: ' + (err.message || 'Operational link broken.'));
+      setError('TRANSMISSION FAILURE: ' + (err.message || 'Operational link broken.'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 sm:p-12 relative overflow-hidden bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-secondary/10">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 sm:p-12 relative overflow-hidden bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-secondary/10" data-unhackable="true">
       <div className="max-w-2xl w-full space-y-8 relative z-10">
+        
+        {/* Mock System Status Bar */}
+        <div className="flex justify-between items-center px-6 py-2 bg-black/40 border border-white/5 rounded-full backdrop-blur-sm">
+           <div className="flex items-center gap-4">
+             <div className="flex items-center gap-1.5">
+               <Wifi className="h-3 w-3 text-secondary" />
+               <span className="text-[9px] font-black uppercase text-secondary">Uplink: Live</span>
+             </div>
+             <div className="flex items-center gap-1.5">
+               <Database className="h-3 w-3 text-primary" />
+               <span className="text-[9px] font-black uppercase text-primary">DB: Encrypted</span>
+             </div>
+           </div>
+           <div className="flex items-center gap-4">
+              <div className="flex items-center gap-1.5">
+                 <Cpu className="h-3 w-3 text-muted-foreground" />
+                 <span className="text-[9px] font-black uppercase text-muted-foreground">Protocols: v4.0.5</span>
+              </div>
+           </div>
+        </div>
+
         <div className="flex flex-col items-center text-center space-y-4">
           <div className="relative w-28 h-28 rounded-3xl overflow-hidden border-4 border-primary shadow-glow-red ring-8 ring-primary/5 transition-all hover:scale-105 duration-500">
              {logo && <Image src={logo.imageUrl} alt="Veil Logo" fill className="object-cover" />}
@@ -153,8 +191,8 @@ export default function ConfessionLandingPage() {
                 <ShieldCheck className="h-7 w-7 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-2xl font-black tracking-tight uppercase">Secure Confession Portal</CardTitle>
-                <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">End-to-End Encryption Protocol Active</CardDescription>
+                <CardTitle className="text-2xl font-black tracking-tight uppercase">Secure Transmission Portal</CardTitle>
+                <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Military-Grade Encryption Active</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -162,20 +200,30 @@ export default function ConfessionLandingPage() {
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="space-y-4">
                 <Textarea 
-                  placeholder="Type your confession anonymously..." 
+                  placeholder="Initiate transmission..." 
                   className="min-h-[250px] text-lg resize-none focus-visible:ring-primary border-white/10 bg-background/40 rounded-3xl p-6 placeholder:text-muted-foreground/30 transition-all focus:bg-background/60 shadow-inner"
                   value={confession}
                   onChange={(e) => setConfession(e.target.value)}
                   required
                 />
+                
+                {/* Mock Terminal Logs */}
+                <div className="bg-black/80 rounded-xl p-4 font-mono text-[9px] text-secondary/60 space-y-1 overflow-hidden border border-white/5">
+                   {sysLogs.map((log, i) => (
+                     <div key={i} className="flex gap-2">
+                       <span className="text-primary font-black">{'>'}</span> {log}
+                     </div>
+                   ))}
+                </div>
+
                 <div className="flex justify-between items-center px-2">
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-secondary" />
-                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.1em]">AES-256 Sector Protection</p>
+                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.1em]">AES-256 AES PROTECTION</p>
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="h-1.5 w-1.5 rounded-full bg-secondary animate-pulse" />
-                    <p className="text-[10px] text-secondary font-black uppercase tracking-[0.1em]">Signal: Secure</p>
+                    <p className="text-[10px] text-secondary font-black uppercase tracking-[0.1em]">CONNECTION: SECURE</p>
                   </div>
                 </div>
               </div>
@@ -207,7 +255,7 @@ export default function ConfessionLandingPage() {
                 disabled={loading}
               >
                 {loading ? <Loader2 className="animate-spin h-7 w-7" /> : <Send className="h-7 w-7" />}
-                {loading ? 'Transmitting...' : 'Submit Confession'}
+                {loading ? 'TRANSMITTING...' : 'Transmit Confession'}
               </Button>
             </form>
           </CardContent>
@@ -216,17 +264,17 @@ export default function ConfessionLandingPage() {
         <div className="flex flex-col gap-5 items-center pt-6">
           <Link href="/confession-status" className="inline-flex items-center gap-3 px-8 py-3 rounded-full bg-secondary/10 text-[11px] font-black uppercase tracking-widest text-secondary border border-secondary/20 hover:bg-secondary/20 transition-all group shadow-sm">
             <Search className="h-4 w-4 opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all" />
-            Check Confession Status
+            Interrogate Status
           </Link>
           <Link href="/login" className="inline-flex items-center gap-3 px-8 py-3 rounded-full bg-white/5 text-[11px] font-black uppercase tracking-widest text-muted-foreground border border-white/10 hover:text-primary hover:bg-primary/5 transition-all group">
             <ShieldCheck className="h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all" />
-            ADMIN LOGIN
+            COMMAND LOGIN
           </Link>
         </div>
         
         <div className="text-center pt-10 border-t border-white/5 opacity-40">
            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground">
-             &copy; {new Date().getFullYear()} VEIL CONFESSIONS INTELLIGENCE UNIT.
+             &copy; {new Date().getFullYear()} VEIL CONNECT INTELLIGENCE UNIT. AUTHORIZED ACCESS ONLY.
            </p>
         </div>
       </div>

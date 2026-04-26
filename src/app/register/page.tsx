@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -7,7 +6,7 @@ import { AuthLayout } from '@/components/auth/auth-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Mail, Lock, AlertCircle, IdCard, ShieldCheck } from 'lucide-react';
+import { User, Mail, Lock, AlertCircle, IdCard, ShieldCheck, LockIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useFirestore } from '@/firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -19,6 +18,7 @@ export default function RegisterPage() {
   const db = useFirestore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [registrationDisabled, setRegistrationDisabled] = useState(true); // DISABLING NEW REGISTRATIONS BY COMMAND DIRECTIVE
   const [formData, setFormData] = useState({
     userId: '',
     fullName: '',
@@ -28,6 +28,8 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (registrationDisabled) return;
+    
     setLoading(true);
     setError(null);
 
@@ -70,6 +72,28 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  if (registrationDisabled) {
+    return (
+      <AuthLayout>
+        <div className="space-y-6 text-center py-10">
+          <LockIcon className="h-16 w-16 text-primary mx-auto animate-pulse" />
+          <div className="space-y-2">
+             <h2 className="text-2xl font-black uppercase text-primary">Registration Locked</h2>
+             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest leading-relaxed">
+               By direct command of Sector 01, new operative registrations are temporarily suspended.
+             </p>
+          </div>
+          <div className="bg-primary/10 p-5 rounded-2xl border border-primary/20">
+             <p className="text-[10px] font-mono text-primary font-black uppercase">DIRECTIVE: VEIL-SEC-099</p>
+          </div>
+          <Button asChild variant="outline" className="w-full">
+            <Link href="/login">Return to Command Access</Link>
+          </Button>
+        </div>
+      </AuthLayout>
+    );
+  }
 
   return (
     <AuthLayout>

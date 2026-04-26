@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -121,9 +120,19 @@ export default function DashboardPage() {
       await updateDoc(confRef, updates);
       toast({ title: "Sector Sync Successful", description: `${type.toUpperCase()} status updated to ${status.toUpperCase()}.` });
     } catch (err) {
-      toast({ variant: "destructive", title: "Update Denied", description: "Authorization failed." });
+      toast({ variant: "destructive", title: "Update Denied", description: "Authorization failed. Check your security clearance." });
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const deleteConfession = async (id: string) => {
+    if (!confirm('PERMANENT DELETION: Are you sure you want to purge this record?')) return;
+    try {
+      await deleteDoc(doc(db, 'confessions', id));
+      toast({ title: "Record Purged", description: "Identity data permanently deleted." });
+    } catch (err) {
+      toast({ variant: "destructive", title: "Purge Failed" });
     }
   };
 
@@ -181,7 +190,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-20" data-unhackable="true">
       <DashboardHeader userId={currentUser.userId} role={currentUser.role} />
       
       <main className="container mx-auto p-6 max-w-7xl space-y-8">
@@ -278,8 +287,20 @@ export default function DashboardPage() {
                     {filteredConfessions?.map(c => (
                       <tr key={c.id} className="hover:bg-white/5 transition-colors group">
                         <td className="py-8 pl-10">
-                          <span className="font-black text-primary">#{c.confessionNo}</span>
-                          <p className="text-[9px] font-mono text-muted-foreground">{c.submissionId}</p>
+                          <div className="flex items-center gap-4">
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => deleteConfession(c.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                            <div>
+                              <span className="font-black text-primary">#{c.confessionNo}</span>
+                              <p className="text-[9px] font-mono text-muted-foreground">{c.submissionId}</p>
+                            </div>
+                          </div>
                         </td>
                         <td className="py-8 max-w-xs">
                           <p className="text-sm italic opacity-80 line-clamp-2">"{c.content}"</p>
@@ -288,8 +309,8 @@ export default function DashboardPage() {
                           <div className="flex gap-2">
                              <Button 
                                size="sm" 
-                               variant={c.reviewStatus === 'accepted' ? 'default' : 'outline'}
-                               className={`h-8 w-8 p-0 rounded-lg ${c.reviewStatus === 'accepted' ? 'bg-secondary hover:bg-secondary/80' : 'border-white/10'}`}
+                               variant="outline"
+                               className={`h-9 w-9 p-0 rounded-xl transition-all ${c.reviewStatus === 'accepted' ? 'bg-secondary text-white border-secondary shadow-glow-green' : 'border-white/10 hover:border-secondary'}`}
                                onClick={() => setConfessionStatus(c.id, 'review', 'accepted')}
                                disabled={updatingId === c.id}
                              >
@@ -297,8 +318,8 @@ export default function DashboardPage() {
                              </Button>
                              <Button 
                                size="sm" 
-                               variant={c.reviewStatus === 'rejected' ? 'destructive' : 'outline'}
-                               className={`h-8 w-8 p-0 rounded-lg ${c.reviewStatus === 'rejected' ? '' : 'border-white/10'}`}
+                               variant="outline"
+                               className={`h-9 w-9 p-0 rounded-xl transition-all ${c.reviewStatus === 'rejected' ? 'bg-destructive text-white border-destructive' : 'border-white/10 hover:border-destructive'}`}
                                onClick={() => setConfessionStatus(c.id, 'review', 'rejected')}
                                disabled={updatingId === c.id}
                              >
@@ -310,14 +331,14 @@ export default function DashboardPage() {
                                </Badge>
                              </div>
                           </div>
-                          {c.reviewStatusChangedAt && <p className="text-[8px] mt-1 text-muted-foreground">{new Date(c.reviewStatusChangedAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p>}
+                          {c.reviewStatusChangedAt && <p className="text-[8px] mt-1 text-muted-foreground font-bold">{new Date(c.reviewStatusChangedAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}</p>}
                         </td>
                         <td className="py-8">
                           <div className="flex gap-2">
                              <Button 
                                size="sm" 
-                               variant={c.publicationStatus === 'published' ? 'default' : 'outline'}
-                               className={`h-8 w-8 p-0 rounded-lg ${c.publicationStatus === 'published' ? 'bg-secondary hover:bg-secondary/80' : 'border-white/10'}`}
+                               variant="outline"
+                               className={`h-9 w-9 p-0 rounded-xl transition-all ${c.publicationStatus === 'published' ? 'bg-secondary text-white border-secondary shadow-glow-green' : 'border-white/10 hover:border-secondary'}`}
                                onClick={() => setConfessionStatus(c.id, 'publication', 'published')}
                                disabled={updatingId === c.id}
                              >
@@ -325,8 +346,8 @@ export default function DashboardPage() {
                              </Button>
                              <Button 
                                size="sm" 
-                               variant={c.publicationStatus === 'denied' ? 'destructive' : 'outline'}
-                               className={`h-8 w-8 p-0 rounded-lg ${c.publicationStatus === 'denied' ? '' : 'border-white/10'}`}
+                               variant="outline"
+                               className={`h-9 w-9 p-0 rounded-xl transition-all ${c.publicationStatus === 'denied' ? 'bg-destructive text-white border-destructive' : 'border-white/10 hover:border-destructive'}`}
                                onClick={() => setConfessionStatus(c.id, 'publication', 'denied')}
                                disabled={updatingId === c.id}
                              >
@@ -338,7 +359,7 @@ export default function DashboardPage() {
                                </Badge>
                              </div>
                           </div>
-                          {c.publicationStatusChangedAt && <p className="text-[8px] mt-1 text-muted-foreground">{new Date(c.publicationStatusChangedAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p>}
+                          {c.publicationStatusChangedAt && <p className="text-[8px] mt-1 text-muted-foreground font-bold">{new Date(c.publicationStatusChangedAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}</p>}
                         </td>
                         <td className="py-8 font-mono text-[10px] text-secondary font-black">
                           <div className="flex items-center gap-2 bg-secondary/10 px-3 py-1.5 rounded-lg border border-secondary/20 w-fit">

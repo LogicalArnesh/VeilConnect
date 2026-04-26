@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -7,7 +6,7 @@ import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2, CheckCircle2, Clock, XCircle, Download, ShieldCheck, Mail, ArrowLeft, Calendar } from 'lucide-react';
+import { Search, Loader2, CheckCircle2, Clock, XCircle, Download, ShieldCheck, ArrowLeft, Calendar, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -53,7 +52,7 @@ export default function ConfessionStatusPage() {
   };
 
   const formatIST = (dateStr: string | null) => {
-    if (!dateStr) return "N/A";
+    if (!dateStr) return "PENDING";
     return new Date(dateStr).toLocaleString('en-IN', {
       timeZone: 'Asia/Kolkata',
       day: '2-digit',
@@ -66,14 +65,14 @@ export default function ConfessionStatusPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-secondary/10 via-background to-primary/10 print:bg-white print:p-0">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-secondary/10 via-background to-primary/10 print:bg-white print:p-0" data-unhackable="true">
       <div className="max-w-2xl w-full space-y-8 print:max-w-full">
         <div className="text-center space-y-4 print:hidden">
           <Link href="/" className="inline-flex items-center text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground hover:text-primary transition-all group">
              <ArrowLeft className="h-4 w-4 mr-2" /> Return to Base
           </Link>
-          <h1 className="text-4xl font-black text-foreground uppercase tracking-tight">Confession Interrogation</h1>
-          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.4em] opacity-60">Track your anonymous confession status</p>
+          <h1 className="text-4xl font-black text-foreground uppercase tracking-tight">Status Interrogation</h1>
+          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.4em] opacity-60">Track your encrypted transmission status</p>
         </div>
 
         <Card className="glass-card rounded-[2.5rem] overflow-hidden border-t-secondary/30 shadow-2xl print:shadow-none print:border-none print:rounded-none">
@@ -124,8 +123,8 @@ export default function ConfessionStatusPage() {
                       </div>
                     </div>
                     <div className="text-right hidden print:block">
-                      <p className="text-[10px] font-bold">STATUS REPORT</p>
-                      <p className="text-[10px] opacity-60">Generated: {formatIST(new Date().toISOString())}</p>
+                      <p className="text-[10px] font-black">OFFICIAL STATUS REPORT</p>
+                      <p className="text-[10px] opacity-60">LOG TIME: {formatIST(new Date().toISOString())}</p>
                     </div>
                   </div>
 
@@ -138,31 +137,31 @@ export default function ConfessionStatusPage() {
                     </div>
                     <div className="bg-white/5 p-5 rounded-2xl space-y-2 border border-white/5 print:bg-gray-50 print:border-gray-200">
                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                         <ShieldCheck className="h-3 w-3" /> Security Trace
+                         <Shield className="h-3 w-3" /> SECURITY STATUS
                        </p>
-                       <p className="text-xs font-bold text-foreground">{confession.ipAddress}</p>
+                       <p className="text-xs font-black text-secondary">E2E ENCRYPTED</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-8">
-                  <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-primary border-l-4 border-primary pl-3">Operational Lifecycle</h4>
+                  <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-primary border-l-4 border-primary pl-3">Sector Lifecycle</h4>
                   <div className="space-y-6">
                      <StatusStep 
-                       title="Database Receipt" 
-                       description="Confession successfully encrypted and logged into the secure sector." 
+                       title="Uplink Sync" 
+                       description="Confession successfully encrypted and synced to the secure database." 
                        status="completed" 
                        timestamp={formatIST(confession.createdAt)}
                      />
                      <StatusStep 
-                       title="Command Review" 
-                       description={confession.reviewStatus === 'accepted' ? 'Confession authorized by command.' : confession.reviewStatus === 'rejected' ? 'Confession denied by command.' : 'Awaiting operational clearance.'} 
+                       title="Command Clearance" 
+                       description={confession.reviewStatus === 'accepted' ? 'Confession cleared by Command.' : confession.reviewStatus === 'rejected' ? 'Confession denied by Command.' : 'Awaiting operational clearance.'} 
                        status={confession.reviewStatus === 'accepted' ? 'completed' : confession.reviewStatus === 'rejected' ? 'failed' : 'pending'} 
                        timestamp={formatIST(confession.reviewStatusChangedAt)}
                      />
                      <StatusStep 
-                       title="Broadcast Status" 
-                       description={confession.publicationStatus === 'published' ? 'Broadcast to the public network sector.' : confession.publicationStatus === 'denied' ? 'Broadcast restricted by sector policy.' : 'Awaiting broadcast schedule.'} 
+                       title="Global Broadcast" 
+                       description={confession.publicationStatus === 'published' ? 'Broadcast to the public intelligence network.' : confession.publicationStatus === 'denied' ? 'Broadcast restricted by sector policy.' : 'Awaiting broadcast schedule.'} 
                        status={confession.publicationStatus === 'published' ? 'completed' : confession.publicationStatus === 'denied' ? 'failed' : 'pending'} 
                        timestamp={formatIST(confession.publicationStatusChangedAt)}
                      />
@@ -170,18 +169,18 @@ export default function ConfessionStatusPage() {
                 </div>
 
                 <div className="bg-primary/5 p-6 rounded-[1.5rem] border border-primary/10 space-y-2 print:bg-gray-50 print:border-gray-200">
-                   <p className="text-[11px] font-black text-primary uppercase tracking-[0.2em] mb-2">Original Content Transcript</p>
-                   <p className="text-sm italic text-foreground/80 font-mono">"{confession.content}"</p>
+                   <p className="text-[11px] font-black text-primary uppercase tracking-[0.2em] mb-2">Transcript Excerpt</p>
+                   <p className="text-xs italic text-foreground/80 font-mono">"{confession.content.substring(0, 100)}..."</p>
                 </div>
 
                 <div className="flex gap-4 print:hidden">
-                   <Button onClick={() => window.print()} className="flex-1 h-14 bg-primary hover:bg-primary/90 font-black uppercase rounded-2xl">
+                   <Button onClick={() => window.print()} className="flex-1 h-14 bg-primary hover:bg-primary/90 font-black uppercase rounded-2xl text-[10px] tracking-widest">
                      <Download className="h-5 w-5 mr-3" /> Save Status Report (PDF)
                    </Button>
                 </div>
 
                 <div className="text-center opacity-40 pt-10 border-t border-white/5 print:border-gray-200">
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em]">Official Intelligence Sector Document - Authorized Personnel Only</p>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em]">Official Intelligence Sector Document (c) {new Date().getFullYear()}</p>
                 </div>
               </div>
             )}
