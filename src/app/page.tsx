@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Send, ShieldCheck, CheckCircle2, Loader2, AlertCircle, Clock, Shield, Wifi, Database, Cpu, Search } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, getDocs, query } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, Timestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { sendConfessionAlertToAdmins } from '@/app/actions/email-actions';
 import { useCollection, useMemoFirebase } from '@/firebase';
@@ -62,6 +62,17 @@ export default function ConfessionLandingPage() {
   const usersQuery = useMemoFirebase(() => query(collection(db, 'userProfiles')), [db]);
   const { data: allUsers } = useCollection(usersQuery);
 
+  const checkSpam = async (ip: string) => {
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const q = query(
+      collection(db, 'confessions'),
+      where('ipAddress', '==', ip)
+    );
+    const snap = await getDocs(q);
+    const recentOnes = snap.docs.filter(d => d.data().createdAt > yesterday);
+    return recentOnes.length >= 5;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!confession.trim()) return;
@@ -81,6 +92,13 @@ export default function ConfessionLandingPage() {
         ip = ipData.ip;
       } catch (err) {
         console.warn('IP Trace Failure');
+      }
+
+      const isSpamming = await checkSpam(ip);
+      if (isSpamming) {
+        setError('SECURITY BREACH: Transmission limit exceeded (5 per 24h). Contact Admin for oversight issues.');
+        setLoading(false);
+        return;
       }
 
       const browserFingerprint = {
@@ -151,7 +169,7 @@ export default function ConfessionLandingPage() {
         </div>
 
         <div className="flex flex-col items-center text-center space-y-4">
-          <div className="relative w-28 h-28 rounded-3xl overflow-hidden border-4 border-primary shadow-glow-red ring-8 ring-primary/5 transition-all hover:scale-105 duration-500 bg-black">
+          <div className="relative w-32 h-32 rounded-[2.5rem] overflow-hidden border-4 border-primary shadow-glow-red ring-8 ring-primary/5 transition-all hover:scale-105 duration-500 bg-black">
              {logo && <Image src={logo.imageUrl} alt="Veil Logo" fill className="object-cover" unoptimized data-ai-hint={logo.imageHint} />}
           </div>
           <div className="space-y-1">

@@ -88,23 +88,28 @@ export default function DashboardPage() {
 
   const setConfessionStatus = async (id: string, type: 'review' | 'publication', status: string) => {
     setUpdatingId(id);
-    const updates: any = {};
     const now = new Date().toISOString();
+    const confRef = doc(db, 'confessions', id);
     
+    let updatePayload: any = {};
     if (type === 'review') {
-      updates.reviewStatus = status;
-      updates.reviewStatusChangedAt = now;
+      updatePayload = {
+        reviewStatus: status,
+        reviewStatusChangedAt: now
+      };
     } else {
-      updates.publicationStatus = status;
-      updates.publicationStatusChangedAt = now;
+      updatePayload = {
+        publicationStatus: status,
+        publicationStatusChangedAt: now
+      };
     }
 
     try {
-      const confRef = doc(db, 'confessions', id);
-      await updateDoc(confRef, updates);
-      toast({ title: "Sync Successful", description: `${type.toUpperCase()} updated to ${status.toUpperCase()}.` });
+      await updateDoc(confRef, updatePayload);
+      toast({ title: "Sector Synced", description: `${type.toUpperCase()} protocol updated.` });
     } catch (err) {
-      toast({ variant: "destructive", title: "Update Failed", description: "Authorization link failure. Access denied." });
+      console.error(err);
+      toast({ variant: "destructive", title: "Command Failed", description: "Authorization link failure. Access denied." });
     } finally {
       setUpdatingId(null);
     }

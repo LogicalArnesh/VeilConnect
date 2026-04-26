@@ -143,7 +143,7 @@ function SuccessContent() {
             <div className="border-t-2 border-dashed border-gray-200 pt-8 text-center space-y-3">
               <div className="flex items-center justify-center gap-2 text-primary">
                 <ShieldCheck className="h-3 w-3" />
-                <p className="font-black uppercase tracking-[0.2em] text-[10px]">Transmission Verified</p>
+                <p className="font-black uppercase tracking-[0.2em] text-[10px]">Submission Verified</p>
               </div>
               <div className="text-[8px] opacity-40 leading-tight font-bold">
                 (C) {new Date().getFullYear()} VeiLConnect INTELLIGENCE.<br/>
