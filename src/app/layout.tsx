@@ -4,7 +4,7 @@ import { FirebaseClientProvider } from '@/firebase';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'VeilConnect | VEIL CONFESSIONS',
+  title: 'VeiLConnect | VeiLConfeSsions',
   description: 'Professional team communication and task management platform.',
 };
 

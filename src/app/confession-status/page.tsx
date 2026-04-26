@@ -180,7 +180,7 @@ export default function ConfessionStatusPage() {
                 </div>
 
                 <div className="text-center opacity-40 pt-10 border-t border-white/5 print:border-gray-200">
-                  <p className="text-[9px] font-black uppercase tracking-[0.2em]">Official Intelligence Sector Document (c) {new Date().getFullYear()}</p>
+                  <p className="text-[9px] font-black uppercase tracking-[0.2em]">Official VeiLConnect Sector Document (c) {new Date().getFullYear()}</p>
                 </div>
               </div>
             )}

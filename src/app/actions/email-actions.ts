@@ -27,9 +27,9 @@ function getISTDateString() {
 
 const EMAIL_FOOTER = `
   <div style="margin-top: 40px; border-top: 2px solid ${COLOR_GREEN}; padding-top: 25px; color: #64748b; font-size: 11px; text-align: center; font-family: 'Inter', sans-serif;">
-    <p style="margin: 0; font-weight: 800; color: ${COLOR_RED}; text-transform: uppercase; letter-spacing: 2px;">VeilConnect Intelligence Ops</p>
+    <p style="margin: 0; font-weight: 800; color: ${COLOR_RED}; text-transform: uppercase; letter-spacing: 2px;">VeiLConnect Intelligence Ops</p>
     <p style="margin: 6px 0;">Authorized Personnel Only. Logged Access strictly monitored.</p>
-    <p style="margin: 6px 0;">&copy; ${new Date().getFullYear()} Veil Confessions. All Rights Reserved.</p>
+    <p style="margin: 6px 0;">&copy; ${new Date().getFullYear()} VeiLConfeSsions. All Rights Reserved.</p>
   </div>
 `;
 
@@ -45,7 +45,7 @@ export async function sendConfessionAlertToAdmins(confessionData: any, adminEmai
 
   const mailPromises = recipients.map(email => 
     transporter.sendMail({
-      from: '"Veil Intelligence Unit" <noreply.veilconfessions@gmail.com>',
+      from: '"VeiL Intelligence Unit" <noreply.veilconfessions@gmail.com>',
       to: email,
       subject: `[INTEL BRIEFING] Confession Received #${confessionData.confessionNo}`,
       html: `
@@ -93,7 +93,7 @@ export async function sendSecurityEmail(to: string, code: string, name: string) 
   const time = getISTDateString();
   try {
     await transporter.sendMail({
-      from: '"Veil Security Team" <noreply.veilconfessions@gmail.com>',
+      from: '"VeiL Security Team" <noreply.veilconfessions@gmail.com>',
       to,
       subject: 'Security Protocol: Operational Key Required',
       html: `
@@ -124,7 +124,7 @@ export async function sendSecurityEmail(to: string, code: string, name: string) 
 export async function sendRoleChangeEmail(to: string, name: string, newRole: string) {
   const time = getISTDateString();
   await transporter.sendMail({
-    from: '"Veil Command" <noreply.veilconfessions@gmail.com>',
+    from: '"VeiL Command" <noreply.veilconfessions@gmail.com>',
     to,
     subject: `Sector Update: ${newRole.toUpperCase()} Assignment Active`,
     html: `
@@ -148,7 +148,7 @@ export async function sendRoleChangeEmail(to: string, name: string, newRole: str
 export async function sendResetConfirmationEmail(to: string, name: string, type: 'uid' | 'password') {
   const time = getISTDateString();
   await transporter.sendMail({
-    from: '"Veil Security" <noreply.veilconfessions@gmail.com>',
+    from: '"VeiL Security" <noreply.veilconfessions@gmail.com>',
     to,
     subject: 'Security Update: Identity Protocol Synced',
     html: `
@@ -172,7 +172,7 @@ export async function sendResetConfirmationEmail(to: string, name: string, type:
 export async function sendRecoveryEmail(to: string, code: string, type: 'uid' | 'password') {
   const time = getISTDateString();
   await transporter.sendMail({
-    from: '"Veil Security" <noreply.veilconfessions@gmail.com>',
+    from: '"VeiL Security" <noreply.veilconfessions@gmail.com>',
     to,
     subject: 'Operational Recovery: Emergency Protocol',
     html: `
@@ -201,7 +201,7 @@ export async function notifyAdminsOfRequest(userData: any, adminEmails: string[]
   const time = getISTDateString();
   const mailPromises = recipients.map(email => 
     transporter.sendMail({
-      from: '"Veil Security" <noreply.veilconfessions@gmail.com>',
+      from: '"VeiL Security" <noreply.veilconfessions@gmail.com>',
       to: email,
       subject: `[SEC ALERT] New Identity Registration: @${userData.id}`,
       html: `
@@ -234,7 +234,7 @@ export async function sendBreachAlertToAdmins(userEmail: string, type: string, a
   const time = getISTDateString();
   const mailPromises = recipients.map(email => 
     transporter.sendMail({
-      from: '"Veil Counter-Intelligence" <noreply.veilconfessions@gmail.com>',
+      from: '"VeiL Counter-Intelligence" <noreply.veilconfessions@gmail.com>',
       to: email,
       subject: `[CRITICAL BREACH] Unauthorized Trace: ${userEmail}`,
       html: `

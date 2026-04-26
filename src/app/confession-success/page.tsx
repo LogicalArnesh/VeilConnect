@@ -49,11 +49,11 @@ function SuccessContent() {
           
           <CardHeader className="text-center pt-8 pb-4 border-b-2 border-dashed border-gray-300">
             <div className="flex justify-center mb-4">
-              <div className="relative h-14 w-14 grayscale opacity-90">
+              <div className="relative h-20 w-20">
                 {logo && <Image src={logo.imageUrl} alt="Logo" fill className="object-contain" />}
               </div>
             </div>
-            <h2 className="text-base font-black tracking-tighter uppercase">Veil Confessions</h2>
+            <h2 className="text-base font-black tracking-tighter uppercase">VeiLConfeSsions</h2>
             <p className="opacity-70 text-[9px] font-bold">INTEL SECTOR 01-C COMMAND</p>
             <p className="opacity-70 text-[9px] font-bold tracking-widest mt-1">AUTH TOKEN: V-{(Math.random()*9000 + 1000).toFixed(0)}</p>
           </CardHeader>
@@ -104,7 +104,7 @@ function SuccessContent() {
             <div className="border-t-2 border-dashed border-gray-200 pt-6 text-center space-y-2">
               <p className="font-black uppercase tracking-[0.2em] text-[10px]">Transmission Verified</p>
               <div className="text-[8px] opacity-60 leading-tight">
-                (C) {new Date().getFullYear()} VEIL CONNECT INTEL.<br/>
+                (C) {new Date().getFullYear()} VeiLConnect INTEL.<br/>
                 AUTHORIZED PERSONNEL ONLY.
               </div>
             </div>
