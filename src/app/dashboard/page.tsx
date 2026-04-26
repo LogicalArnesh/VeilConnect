@@ -58,13 +58,6 @@ export default function DashboardPage() {
     const user = JSON.parse(storedUser);
     setCurrentUser(user);
 
-    const unsubUser = onSnapshot(doc(db, 'userProfiles', user.userId), (snap) => {
-      if (snap.exists()) {
-        const data = snap.data();
-        setCurrentUser({ ...user, ...data, userId: snap.id });
-      }
-    });
-
     const unsubAll = onSnapshot(collection(db, 'userProfiles'), (snap) => {
       setAllUsers(snap.docs.map(d => ({ ...d.data(), id: d.id })));
     });
@@ -73,19 +66,9 @@ export default function DashboardPage() {
       setAnnouncements(snap.docs.map(d => ({ ...d.data(), id: d.id })));
     });
 
-    setDoc(doc(db, 'presence', user.userId), {
-      userId: user.userId,
-      status: 'online',
-      lastSeen: new Date().toISOString()
-    }, { merge: true });
-
     return () => {
-      unsubUser();
       unsubAll();
       unsubAnnounce();
-      if (user) {
-        setDoc(doc(db, 'presence', user.userId), { status: 'offline', lastSeen: new Date().toISOString() }, { merge: true });
-      }
     };
   }, [router, db]);
 
@@ -119,19 +102,19 @@ export default function DashboardPage() {
     try {
       const confRef = doc(db, 'confessions', id);
       await updateDoc(confRef, updates);
-      toast({ title: "Sector Sync Successful", description: `${type.toUpperCase()} updated to ${status.toUpperCase()}.` });
+      toast({ title: "Sync Successful", description: `${type.toUpperCase()} updated to ${status.toUpperCase()}.` });
     } catch (err) {
-      toast({ variant: "destructive", title: "Update Denied", description: "Authorization failed. Check security clearance." });
+      toast({ variant: "destructive", title: "Update Failed", description: "Authorization link failure. Access denied." });
     } finally {
       setUpdatingId(null);
     }
   };
 
   const deleteConfession = async (id: string) => {
-    if (!confirm('CRITICAL ACTION: Permanently purge this record from existence?')) return;
+    if (!confirm('CRITICAL ACTION: Permanently purge this submission?')) return;
     try {
       await deleteDoc(doc(db, 'confessions', id));
-      toast({ title: "Record Purged", description: "Identity data permanently deleted." });
+      toast({ title: "Submission Purged", description: "Data permanently deleted." });
     } catch (err) {
       toast({ variant: "destructive", title: "Purge Failed" });
     }
@@ -160,11 +143,11 @@ export default function DashboardPage() {
 
       if (action === 'delete') {
         await deleteDoc(userRef);
-        toast({ title: "Identity Purged", description: `Operative ${userId} removed.` });
+        toast({ title: "Operative Purged", description: `ID @${userId} removed.` });
       } else if (action === 'approve') {
         const roleToAssign = selectedRoles[userId] || 'manager';
         await updateDoc(userRef, { status: 'active', role: roleToAssign });
-        toast({ title: "Operative Activated", description: `${userId} sector assigned: ${roleToAssign}.` });
+        toast({ title: "Operative Authorized", description: `@${userId} activated as ${roleToAssign}.` });
       } else if (action === 'assign_role') {
         const roleToAssign = selectedRoles[userId];
         if (!roleToAssign) return;
@@ -172,7 +155,7 @@ export default function DashboardPage() {
         if (targetUser?.email) {
           await sendRoleChangeEmail(targetUser.email, targetUser.fullName, roleToAssign);
         }
-        toast({ title: "Sector Updated", description: `${userId} moved to ${roleToAssign}.` });
+        toast({ title: "Sector Updated", description: `@${userId} moved to ${roleToAssign}.` });
       }
     } catch (err) {
       toast({ variant: "destructive", title: "Action Failed" });
@@ -190,6 +173,18 @@ export default function DashboardPage() {
     c.confessionNo.toString().includes(searchQuery)
   );
 
+  const formatIST = (dateStr: string | null) => {
+    if (!dateStr) return "N/A";
+    return new Date(dateStr).toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }) + " IST";
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20" data-unhackable="true">
       <DashboardHeader userId={currentUser.userId} role={currentUser.role} />
@@ -197,24 +192,24 @@ export default function DashboardPage() {
       <main className="container mx-auto p-6 max-w-7xl space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
-            <h1 className="text-4xl font-black tracking-tight text-foreground uppercase">Command Console</h1>
-            <p className="text-muted-foreground font-bold uppercase tracking-[0.3em] text-[10px] opacity-60">Confession Intelligence Oversight (Sector 01)</p>
+            <h1 className="text-4xl font-black tracking-tight text-foreground uppercase">Command Center</h1>
+            <p className="text-muted-foreground font-bold uppercase tracking-[0.3em] text-[10px] opacity-60">Confession Oversight Matrix (Sector 01)</p>
           </div>
         </div>
 
         <Tabs defaultValue="overview" className="space-y-8">
           <TabsList className="bg-muted/30 border-white/5 p-1 rounded-2xl h-14">
             <TabsTrigger value="overview" className="rounded-xl px-6 font-black uppercase tracking-widest text-[10px]">Overview</TabsTrigger>
-            <TabsTrigger value="confessions" className="rounded-xl px-6 font-black uppercase tracking-widest text-[10px]">Confessions</TabsTrigger>
+            <TabsTrigger value="confessions" className="rounded-xl px-6 font-black uppercase tracking-widest text-[10px]">Log Explorer</TabsTrigger>
             <TabsTrigger value="profile" className="rounded-xl px-6 font-black uppercase tracking-widest text-[10px]">Presence</TabsTrigger>
             {isAdmin && <TabsTrigger value="users" className="rounded-xl px-6 font-black uppercase tracking-widest text-[10px]">Operatives</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="overview">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <StatCard title="Total Transmissions" value={confessions?.length.toString() || '0'} icon={<MessageSquareQuote className="h-6 w-6" />} />
+              <StatCard title="Submissions" value={confessions?.length.toString() || '0'} icon={<MessageSquareQuote className="h-6 w-6" />} />
               <StatCard title="Active Operatives" value={allUsers.filter(u => u.status === 'active').length.toString()} icon={<ShieldCheck className="h-6 w-6" />} />
-              <StatCard title="Uplink Status" value="Online" icon={<Zap className="h-6 w-6 text-secondary" />} />
+              <StatCard title="Sync Status" value="Online" icon={<Zap className="h-6 w-6 text-secondary" />} />
             </div>
             
             <Card className="mt-8 border-primary/20 bg-primary/5 rounded-[2rem] overflow-hidden shadow-2xl">
@@ -241,7 +236,7 @@ export default function DashboardPage() {
                       <p className="text-sm font-medium mb-2">{a.content}</p>
                       <div className="flex justify-between text-[10px] uppercase font-black opacity-60">
                         <span>@{a.authorId}</span>
-                        <span>{new Date(a.createdAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })} IST</span>
+                        <span>{formatIST(a.createdAt)}</span>
                       </div>
                     </div>
                   ))}
@@ -257,7 +252,7 @@ export default function DashboardPage() {
                 <div className="relative max-w-sm w-full">
                   <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                   <Input 
-                    placeholder="SEARCH BY KEY OR CONTENT..." 
+                    placeholder="SEARCH SUBMISSION KEY..." 
                     className="pl-12 h-12 rounded-xl bg-background/50 font-mono text-xs uppercase"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -268,11 +263,11 @@ export default function DashboardPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-muted/10 text-left text-muted-foreground uppercase text-[10px] font-black tracking-[0.3em]">
-                      <th className="py-6 pl-10">Log Index</th>
-                      <th className="py-6">Transcript</th>
+                      <th className="py-6 pl-10">Index Key</th>
+                      <th className="py-6">Content</th>
                       <th className="py-6">Authorization</th>
-                      <th className="py-6">Broadcast</th>
-                      <th className="py-6">Origin IP</th>
+                      <th className="py-6">Publication</th>
+                      <th className="py-6">Trace</th>
                       <th className="py-6 pr-10 text-right">Timestamp</th>
                     </tr>
                   </thead>
@@ -334,12 +329,7 @@ export default function DashboardPage() {
                                </Badge>
                              </div>
                           </div>
-                          {c.reviewStatusChangedAt && (
-                            <div className="mt-1 flex items-center gap-1 opacity-40">
-                               <Clock className="h-2.5 w-2.5" />
-                               <p className="text-[8px] font-bold">{new Date(c.reviewStatusChangedAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })} IST</p>
-                            </div>
-                          )}
+                          <p className="text-[8px] font-bold opacity-30 mt-1">{formatIST(c.reviewStatusChangedAt)}</p>
                         </td>
                         <td className="py-8">
                           <div className="flex gap-2">
@@ -356,7 +346,7 @@ export default function DashboardPage() {
                              <Button 
                                size="sm" 
                                variant="outline"
-                               className={`h-10 w-10 p-0 rounded-xl transition-all ${c.publicationStatus === 'denied' ? 'bg-destructive text-white border-destructive shadow-glow-red' : 'border-white/10 hover:border-destructive hover:bg-destructive/10'}`}
+                               className={`h-10 w-10 p-0 rounded-xl transition-all ${c.publicationStatus === 'denied' ? 'bg-destructive text-white border-destructive shadow-glow-red' : 'border-white/10 hover:border-secondary hover:bg-secondary/10'}`}
                                onClick={() => setConfessionStatus(c.id, 'publication', 'denied')}
                                disabled={updatingId === c.id}
                                title="Restrict"
@@ -369,12 +359,7 @@ export default function DashboardPage() {
                                </Badge>
                              </div>
                           </div>
-                          {c.publicationStatusChangedAt && (
-                            <div className="mt-1 flex items-center gap-1 opacity-40">
-                               <Clock className="h-2.5 w-2.5" />
-                               <p className="text-[8px] font-bold">{new Date(c.publicationStatusChangedAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })} IST</p>
-                            </div>
-                          )}
+                          <p className="text-[8px] font-bold opacity-30 mt-1">{formatIST(c.publicationStatusChangedAt)}</p>
                         </td>
                         <td className="py-8 font-mono text-[10px] text-secondary font-black">
                           <div className="flex items-center gap-2 bg-secondary/10 px-3 py-1.5 rounded-lg border border-secondary/20 w-fit">

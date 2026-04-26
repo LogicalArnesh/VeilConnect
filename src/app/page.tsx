@@ -8,9 +8,9 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Send, ShieldCheck, CheckCircle2, Loader2, AlertCircle, Clock, Shield, Search, Wifi, Database, Terminal, Cpu } from 'lucide-react';
+import { Send, ShieldCheck, CheckCircle2, Loader2, AlertCircle, Clock, Shield, Wifi, Database, Cpu, Search } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { sendConfessionAlertToAdmins } from '@/app/actions/email-actions';
 import { useCollection, useMemoFirebase } from '@/firebase';
@@ -48,7 +48,7 @@ export default function ConfessionLandingPage() {
         "E2E SIGNAL: VERIFIED",
         "IP TRACE PROTECTION: ACTIVE",
         "CORE SYNC: IST ZONE",
-        "ANTI-SPAM SHIELD: BYPASSED"
+        "INTEGRITY CHECK: PASSED"
       ];
       setSysLogs(prev => [...prev.slice(-3), logs[Math.floor(Math.random() * logs.length)]]);
     }, 3000);
@@ -59,14 +59,14 @@ export default function ConfessionLandingPage() {
     };
   }, []);
 
-  const adminsQuery = useMemoFirebase(() => query(collection(db, 'userProfiles')), [db]);
-  const { data: allUsers } = useCollection(adminsQuery);
+  const usersQuery = useMemoFirebase(() => query(collection(db, 'userProfiles')), [db]);
+  const { data: allUsers } = useCollection(usersQuery);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!confession.trim()) return;
     if (!isHuman) {
-      setError('CRITICAL: IDENTITY INTEGRITY CHECK FAILED.');
+      setError('CRITICAL: IDENTITY INTEGRITY CHECK REQUIRED.');
       return;
     }
 
@@ -121,7 +121,7 @@ export default function ConfessionLandingPage() {
 
       router.push(`/confession-success?sid=${submissionId}&ts=${encodeURIComponent(timestamp)}`);
     } catch (err: any) {
-      setError('TRANSMISSION FAILURE: ' + (err.message || 'Operational link broken.'));
+      setError('SUBMISSION FAILURE: ' + (err.message || 'Operational link broken.'));
     } finally {
       setLoading(false);
     }
@@ -151,8 +151,8 @@ export default function ConfessionLandingPage() {
         </div>
 
         <div className="flex flex-col items-center text-center space-y-4">
-          <div className="relative w-28 h-28 rounded-3xl overflow-hidden border-4 border-primary shadow-glow-red ring-8 ring-primary/5 transition-all hover:scale-105 duration-500">
-             {logo && <Image src={logo.imageUrl} alt="Veil Logo" fill className="object-cover" unoptimized />}
+          <div className="relative w-28 h-28 rounded-3xl overflow-hidden border-4 border-primary shadow-glow-red ring-8 ring-primary/5 transition-all hover:scale-105 duration-500 bg-black">
+             {logo && <Image src={logo.imageUrl} alt="Veil Logo" fill className="object-cover" unoptimized data-ai-hint={logo.imageHint} />}
           </div>
           <div className="space-y-1">
             <h1 className="text-5xl font-black tracking-tighter text-foreground font-headline uppercase leading-none">
@@ -172,8 +172,8 @@ export default function ConfessionLandingPage() {
                 <ShieldCheck className="h-7 w-7 text-primary" />
               </div>
               <div>
-                <CardTitle className="text-2xl font-black tracking-tight uppercase">Secure Transmission Portal</CardTitle>
-                <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Military-Grade Encryption Active</CardDescription>
+                <CardTitle className="text-2xl font-black tracking-tight uppercase">Secure Submission Portal</CardTitle>
+                <CardDescription className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Encryption Matrix Active</CardDescription>
               </div>
             </div>
           </CardHeader>
@@ -181,7 +181,7 @@ export default function ConfessionLandingPage() {
             <form onSubmit={handleSubmit} className="space-y-8">
               <div className="space-y-4">
                 <Textarea 
-                  placeholder="Initiate transmission..." 
+                  placeholder="Enter your confession..." 
                   className="min-h-[250px] text-lg resize-none focus-visible:ring-primary border-white/10 bg-background/40 rounded-3xl p-6 placeholder:text-muted-foreground/30 transition-all focus:bg-background/60 shadow-inner"
                   value={confession}
                   onChange={(e) => setConfession(e.target.value)}
@@ -199,7 +199,7 @@ export default function ConfessionLandingPage() {
                 <div className="flex justify-between items-center px-2">
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-secondary" />
-                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.1em]">AES-256 AES PROTECTION</p>
+                    <p className="text-[10px] text-muted-foreground uppercase font-black tracking-[0.1em]">AES-256 PROTECTION</p>
                   </div>
                   <div className="flex items-center gap-1">
                     <div className="h-1.5 w-1.5 rounded-full bg-secondary animate-pulse" />
@@ -235,7 +235,7 @@ export default function ConfessionLandingPage() {
                 disabled={loading}
               >
                 {loading ? <Loader2 className="animate-spin h-7 w-7" /> : <Send className="h-7 w-7" />}
-                {loading ? 'TRANSMITTING...' : 'Transmit Confession'}
+                {loading ? 'SYNCING...' : 'Submit Confession'}
               </Button>
             </form>
           </CardContent>
@@ -244,7 +244,7 @@ export default function ConfessionLandingPage() {
         <div className="flex flex-col gap-5 items-center pt-6">
           <Link href="/confession-status" className="inline-flex items-center gap-3 px-8 py-3 rounded-full bg-secondary/10 text-[11px] font-black uppercase tracking-widest text-secondary border border-secondary/20 hover:bg-secondary/20 transition-all group shadow-sm">
             <Search className="h-4 w-4 opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all" />
-            Interrogate Status
+            Check Status
           </Link>
           <Link href="/login" className="inline-flex items-center gap-3 px-8 py-3 rounded-full bg-white/5 text-[11px] font-black uppercase tracking-widest text-muted-foreground border border-white/10 hover:text-primary hover:bg-primary/5 transition-all group">
             <ShieldCheck className="h-4 w-4 opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all" />
