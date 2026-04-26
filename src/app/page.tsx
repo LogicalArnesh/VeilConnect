@@ -48,7 +48,7 @@ export default function ConfessionLandingPage() {
         "E2E SIGNAL: VERIFIED",
         "IP TRACE PROTECTION: ACTIVE",
         "CORE SYNC: IST ZONE",
-        "ANTI-SPAM SHIELD: ONLINE"
+        "ANTI-SPAM SHIELD: BYPASSED"
       ];
       setSysLogs(prev => [...prev.slice(-3), logs[Math.floor(Math.random() * logs.length)]]);
     }, 3000);
@@ -83,26 +83,6 @@ export default function ConfessionLandingPage() {
         console.warn('IP Trace Failure');
       }
 
-      // ANTI-SPAM: Fixed query to avoid Index Error. Fetch by IP and filter in-memory.
-      const oneDayAgo = new Date();
-      oneDayAgo.setHours(oneDayAgo.getHours() - 24);
-      
-      const spamQuery = query(
-        collection(db, 'confessions'), 
-        where('ipAddress', '==', ip)
-      );
-      const spamSnap = await getDocs(spamQuery);
-      const recentDocs = spamSnap.docs.filter(doc => {
-        const createdAt = doc.data().createdAt;
-        return createdAt && new Date(createdAt) >= oneDayAgo;
-      });
-
-      if (recentDocs.length >= 5) {
-        setError('CRITICAL BREACH: Mass spamming detected from this sector. Transmission blocked. Contact Command Sector for operational restoration.');
-        setLoading(false);
-        return;
-      }
-
       const browserFingerprint = {
         userAgent: navigator.userAgent,
         platform: navigator.platform,
@@ -112,7 +92,6 @@ export default function ConfessionLandingPage() {
       };
 
       const coll = collection(db, 'confessions');
-      // Simple total count for numbering
       const totalSnap = await getDocs(coll);
       const confessionNo = totalSnap.size + 1;
 
