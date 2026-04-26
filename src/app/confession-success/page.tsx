@@ -1,11 +1,10 @@
-
 "use client";
 
 import React, { Suspense, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
+import { Download, ArrowRight, Loader2, ShieldCheck, Check } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -50,7 +49,16 @@ function SuccessContent() {
           <CardHeader className="text-center pt-10 pb-6 border-b-2 border-dashed border-gray-300">
             <div className="flex justify-center mb-6">
               <div className="relative h-24 w-24">
-                {logo && <Image src={logo.imageUrl} alt="VeiL Logo" fill className="object-contain" />}
+                {logo && (
+                  <Image 
+                    src={logo.imageUrl} 
+                    alt="VeiL Logo" 
+                    width={96} 
+                    height={96} 
+                    className="object-contain" 
+                    unoptimized={logo.imageUrl.includes('gemini.google.com')}
+                  />
+                )}
               </div>
             </div>
             <h2 className="text-xl font-black tracking-tighter uppercase">VeiLConfeSsions</h2>
@@ -73,7 +81,10 @@ function SuccessContent() {
               </div>
               <div className="flex justify-between border-b border-gray-100 pb-2">
                 <span className="font-bold opacity-60">PROTOCOL:</span>
-                <span className="font-black text-green-600">AES-256 E2E</span>
+                <div className="flex items-center gap-1 text-green-600">
+                   <Check className="h-3 w-3" />
+                   <span className="font-black">AES-256 E2E</span>
+                </div>
               </div>
               <div className="flex justify-between border-b border-gray-100 pb-2">
                 <span className="font-bold opacity-60">DATE:</span>

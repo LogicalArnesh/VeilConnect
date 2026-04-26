@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -14,11 +13,11 @@ import {
   Zap,
   Loader2,
   CheckCircle2,
-  XCircle,
   Clock,
   Check,
   X,
-  Calendar
+  Calendar,
+  AlertTriangle
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
@@ -129,7 +128,7 @@ export default function DashboardPage() {
   };
 
   const deleteConfession = async (id: string) => {
-    if (!confirm('PERMANENT DELETION: Are you sure you want to purge this record from existence?')) return;
+    if (!confirm('CRITICAL ACTION: Permanently purge this record from existence?')) return;
     try {
       await deleteDoc(doc(db, 'confessions', id));
       toast({ title: "Record Purged", description: "Identity data permanently deleted." });
@@ -312,56 +311,70 @@ export default function DashboardPage() {
                              <Button 
                                size="sm" 
                                variant="outline"
-                               className={`h-9 w-9 p-0 rounded-xl transition-all ${c.reviewStatus === 'accepted' ? 'bg-secondary text-white border-secondary shadow-glow-green' : 'border-white/10 hover:border-secondary'}`}
+                               className={`h-10 w-10 p-0 rounded-xl transition-all ${c.reviewStatus === 'accepted' ? 'bg-secondary text-white border-secondary shadow-glow-green' : 'border-white/10 hover:border-secondary hover:bg-secondary/10'}`}
                                onClick={() => setConfessionStatus(c.id, 'review', 'accepted')}
                                disabled={updatingId === c.id}
+                               title="Authorize"
                              >
-                               <Check className="h-4 w-4" />
+                               <Check className="h-5 w-5" />
                              </Button>
                              <Button 
                                size="sm" 
                                variant="outline"
-                               className={`h-9 w-9 p-0 rounded-xl transition-all ${c.reviewStatus === 'rejected' ? 'bg-destructive text-white border-destructive' : 'border-white/10 hover:border-destructive'}`}
+                               className={`h-10 w-10 p-0 rounded-xl transition-all ${c.reviewStatus === 'rejected' ? 'bg-destructive text-white border-destructive shadow-glow-red' : 'border-white/10 hover:border-destructive hover:bg-destructive/10'}`}
                                onClick={() => setConfessionStatus(c.id, 'review', 'rejected')}
                                disabled={updatingId === c.id}
+                               title="Deny"
                              >
-                               <X className="h-4 w-4" />
+                               <X className="h-5 w-5" />
                              </Button>
-                             <div className="flex flex-col justify-center">
+                             <div className="flex flex-col justify-center ml-1">
                                <Badge className={`text-[8px] uppercase font-black h-4 px-1.5 ${c.reviewStatus === 'accepted' ? 'bg-secondary text-white' : c.reviewStatus === 'rejected' ? 'bg-destructive text-white' : 'bg-muted text-muted-foreground'}`}>
                                  {c.reviewStatus}
                                </Badge>
                              </div>
                           </div>
-                          {c.reviewStatusChangedAt && <p className="text-[8px] mt-1 text-muted-foreground font-bold">{new Date(c.reviewStatusChangedAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })} IST</p>}
+                          {c.reviewStatusChangedAt && (
+                            <div className="mt-1 flex items-center gap-1 opacity-40">
+                               <Clock className="h-2.5 w-2.5" />
+                               <p className="text-[8px] font-bold">{new Date(c.reviewStatusChangedAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })} IST</p>
+                            </div>
+                          )}
                         </td>
                         <td className="py-8">
                           <div className="flex gap-2">
                              <Button 
                                size="sm" 
                                variant="outline"
-                               className={`h-9 w-9 p-0 rounded-xl transition-all ${c.publicationStatus === 'published' ? 'bg-secondary text-white border-secondary shadow-glow-green' : 'border-white/10 hover:border-secondary'}`}
+                               className={`h-10 w-10 p-0 rounded-xl transition-all ${c.publicationStatus === 'published' ? 'bg-secondary text-white border-secondary shadow-glow-green' : 'border-white/10 hover:border-secondary hover:bg-secondary/10'}`}
                                onClick={() => setConfessionStatus(c.id, 'publication', 'published')}
                                disabled={updatingId === c.id}
+                               title="Publish"
                              >
-                               <Check className="h-4 w-4" />
+                               <CheckCircle2 className="h-5 w-5" />
                              </Button>
                              <Button 
                                size="sm" 
                                variant="outline"
-                               className={`h-9 w-9 p-0 rounded-xl transition-all ${c.publicationStatus === 'denied' ? 'bg-destructive text-white border-destructive' : 'border-white/10 hover:border-destructive'}`}
+                               className={`h-10 w-10 p-0 rounded-xl transition-all ${c.publicationStatus === 'denied' ? 'bg-destructive text-white border-destructive shadow-glow-red' : 'border-white/10 hover:border-destructive hover:bg-destructive/10'}`}
                                onClick={() => setConfessionStatus(c.id, 'publication', 'denied')}
                                disabled={updatingId === c.id}
+                               title="Restrict"
                              >
-                               <X className="h-4 w-4" />
+                               <AlertTriangle className="h-5 w-5" />
                              </Button>
-                             <div className="flex flex-col justify-center">
+                             <div className="flex flex-col justify-center ml-1">
                                <Badge className={`text-[8px] uppercase font-black h-4 px-1.5 ${c.publicationStatus === 'published' ? 'bg-secondary text-white' : c.publicationStatus === 'denied' ? 'bg-destructive text-white' : 'bg-muted text-muted-foreground'}`}>
                                  {c.publicationStatus}
                                </Badge>
                              </div>
                           </div>
-                          {c.publicationStatusChangedAt && <p className="text-[8px] mt-1 text-muted-foreground font-bold">{new Date(c.publicationStatusChangedAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })} IST</p>}
+                          {c.publicationStatusChangedAt && (
+                            <div className="mt-1 flex items-center gap-1 opacity-40">
+                               <Clock className="h-2.5 w-2.5" />
+                               <p className="text-[8px] font-bold">{new Date(c.publicationStatusChangedAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })} IST</p>
+                            </div>
+                          )}
                         </td>
                         <td className="py-8 font-mono text-[10px] text-secondary font-black">
                           <div className="flex items-center gap-2 bg-secondary/10 px-3 py-1.5 rounded-lg border border-secondary/20 w-fit">
