@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { Suspense, useRef, useEffect } from 'react';
@@ -23,7 +24,6 @@ function SuccessContent() {
 
   useEffect(() => {
     if (sid) {
-      // Setting document title ensures "Save as PDF" uses this filename automatically
       document.title = `veilconfessions_${sid}`;
     }
     return () => {
@@ -33,9 +33,9 @@ function SuccessContent() {
 
   const dateStr = now.toLocaleDateString('en-IN', {
     day: '2-digit',
-    month: 'long',
+    month: 'short',
     year: 'numeric',
-    weekday: 'long'
+    weekday: 'short'
   });
   
   const timeStr = now.toLocaleTimeString('en-IN', {
@@ -57,73 +57,85 @@ function SuccessContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/15 via-background to-secondary/15">
-      <div className="max-w-xl w-full space-y-6">
-        <Card ref={receiptRef} className="glass-card rounded-[3rem] overflow-hidden shadow-2xl border-white/10 print:shadow-none print:border-none print:bg-white print:rounded-none">
-          <CardHeader className="text-center pb-2 bg-gradient-to-b from-secondary/10 to-transparent p-12">
-            <div className="flex justify-center mb-8">
-              <div className="relative h-24 w-24 bg-background rounded-[2rem] flex items-center justify-center border-2 border-secondary shadow-glow-green p-1">
-                {logo && <Image src={logo.imageUrl} alt="Logo" fill className="object-cover rounded-[1.8rem]" />}
+    <div className="min-h-screen bg-muted/30 flex items-center justify-center p-4 print:p-0">
+      <div className="max-w-[400px] w-full space-y-6">
+        {/* Restaurant style receipt */}
+        <Card ref={receiptRef} className="bg-white text-black rounded-none shadow-xl border-none font-mono text-[12px] relative overflow-hidden print:shadow-none print:w-full">
+          {/* Jagged edge effect (top) */}
+          <div className="absolute top-0 left-0 right-0 h-2 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAxMCI+PHBvbHlnb24gcG9pbnRzPSIwLDEwIDEwLDAgMjAsMTAiIGZpbGw9IiNmMWY1ZjkiLz48L3N2Zy4=')] bg-repeat-x"></div>
+          
+          <CardHeader className="text-center pt-10 pb-4 border-b-2 border-dashed border-gray-200">
+            <div className="flex justify-center mb-4">
+              <div className="relative h-16 w-16 grayscale opacity-80">
+                {logo && <Image src={logo.imageUrl} alt="Logo" fill className="object-contain" />}
               </div>
             </div>
-            <CardTitle className="text-4xl font-black text-foreground uppercase tracking-tight">Confession Receipt</CardTitle>
-            <p className="text-[11px] text-muted-foreground font-black uppercase tracking-[0.4em] mt-2">Official Operational Record</p>
+            <h2 className="text-lg font-black tracking-tighter uppercase">Veil Confessions</h2>
+            <p className="opacity-70 text-[10px]">INTEL SECTOR 01-C</p>
+            <p className="opacity-70 text-[10px]">AUTH NO: {Math.floor(Math.random()*900000 + 100000)}</p>
           </CardHeader>
           
-          <CardContent className="p-12 space-y-10">
-            <div className="bg-white/5 rounded-[2.5rem] p-10 border border-white/10 space-y-8 relative overflow-hidden shadow-inner print:bg-gray-50 print:border-gray-200">
-               <div className="absolute top-[-20px] right-[-20px] opacity-[0.05] pointer-events-none print:hidden">
-                 <ShieldCheck className="h-64 w-64 rotate-12 text-secondary" />
-               </div>
-               
-               <div className="space-y-3 relative z-10">
-                <p className="text-[12px] uppercase font-black text-primary tracking-[0.2em]">Unique Submission ID</p>
-                <div className="flex items-center justify-between gap-6 bg-background/50 p-6 rounded-3xl border border-white/5 print:border-gray-300">
-                  <p className="text-3xl font-mono font-black text-foreground tracking-widest">{sid}</p>
-                  <Button size="icon" variant="ghost" className="h-12 w-12 text-muted-foreground hover:text-primary print:hidden" onClick={copyToClipboard}>
-                    <Copy className="h-6 w-6" />
-                  </Button>
-                </div>
-              </div>
+          <CardContent className="p-8 space-y-6">
+            <div className="text-center space-y-1">
+              <p className="font-bold text-sm uppercase">Submission Receipt</p>
+              <p className="text-[10px] opacity-60">******************************</p>
+            </div>
 
-              <div className="grid grid-cols-2 gap-8 border-t border-white/5 pt-8 relative z-10 print:border-gray-200">
-                <div className="space-y-1">
-                  <p className="text-[11px] uppercase font-black text-muted-foreground tracking-widest">Date Logged</p>
-                  <p className="text-lg font-bold text-foreground">{dateStr.split(',')[1]}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[11px] uppercase font-black text-muted-foreground tracking-widest">Timestamp (IST)</p>
-                  <p className="text-lg font-bold text-foreground">{timeStr}</p>
-                </div>
+            <div className="space-y-4">
+              <div className="flex justify-between">
+                <span>DATE:</span>
+                <span className="font-bold">{dateStr}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>TIME:</span>
+                <span className="font-bold">{timeStr}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>METHOD:</span>
+                <span className="font-bold">E2E ENCRYPTED</span>
+              </div>
+              <div className="flex justify-between border-t border-dashed border-gray-200 pt-4">
+                <span className="font-bold">SUBMISSION ID:</span>
+                <span className="font-black text-sm tracking-tighter">{sid}</span>
               </div>
             </div>
 
-            <div className="bg-primary/10 p-6 rounded-[2rem] border border-primary/20 flex gap-5 print:hidden">
-              <Info className="h-8 w-8 text-primary shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <p className="text-[12px] font-black text-primary uppercase tracking-widest">Tracking Protocol</p>
-                <p className="text-[11px] leading-relaxed font-medium text-muted-foreground">
-                  Save this key. Use it to interrogate the intelligence sector regarding your confession status.
-                </p>
+            <div className="pt-6 text-center space-y-4">
+              <div className="flex justify-center">
+                 {/* Simple mock barcode */}
+                 <div className="flex gap-[1px] h-10 items-end">
+                    {[1,3,2,4,1,5,2,1,3,1,2,4,1,2,3,1,2,4,1,3].map((h, i) => (
+                      <div key={i} className="bg-black w-[2px]" style={{height: `${100-h*10}%`}}></div>
+                    ))}
+                 </div>
               </div>
-            </div>
-
-            <div className="space-y-4 print:hidden">
-              <Button onClick={handlePrint} className="w-full h-16 uppercase font-black tracking-widest text-[13px] bg-secondary hover:bg-secondary/90 shadow-lg shadow-secondary/20 rounded-2xl transition-all active:scale-95">
-                <Download className="mr-3 h-6 w-6" /> Save Receipt
-              </Button>
-              <Button asChild variant="outline" className="w-full h-16 uppercase font-black tracking-widest text-[13px] border-white/10 hover:bg-white/5 rounded-2xl transition-all active:scale-95">
-                <Link href="/"><ArrowRight className="mr-3 h-6 w-6" /> New Submission</Link>
-              </Button>
-            </div>
-
-            <div className="text-center space-y-4 pt-10 border-t border-white/5 print:border-gray-200">
-              <p className="text-[11px] text-muted-foreground uppercase font-black tracking-[0.2em] opacity-60">
-                &copy; {now.getFullYear()} VEIL CONFESSIONS INTELLIGENCE UNIT
+              <p className="text-[9px] opacity-70 px-4 leading-tight italic">
+                Save this receipt for interrogation of the intelligence sector. Status can be interrogated via our status portal.
               </p>
             </div>
+
+            <div className="border-t-2 border-dashed border-gray-200 pt-6 text-center space-y-1">
+              <p className="font-bold uppercase tracking-widest">Thank you for your intel</p>
+              <p className="text-[9px] opacity-50">SISTEM SYNC VERIFIED</p>
+            </div>
           </CardContent>
+
+          {/* Jagged edge effect (bottom) */}
+          <div className="h-2 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAxMCI+PHBvbHlnb24gcG9pbnRzPSIwLDAgMTAsMTAgMjAsMCIgZmlsbD0id2hpdGUiLz48L3N2Zy4=')] bg-repeat-x"></div>
         </Card>
+
+        <div className="space-y-3 print:hidden px-4">
+          <Button onClick={handlePrint} className="w-full h-12 bg-black text-white hover:bg-black/90 rounded-xl font-bold uppercase tracking-widest text-xs">
+            <Download className="mr-2 h-4 w-4" /> Save Receipt (PDF)
+          </Button>
+          <Button asChild variant="outline" className="w-full h-12 border-gray-300 rounded-xl font-bold uppercase tracking-widest text-xs">
+            <Link href="/"><ArrowRight className="mr-2 h-4 w-4" /> New Submission</Link>
+          </Button>
+        </div>
+
+        <div className="text-center print:hidden">
+          <Link href="/confession-status" className="text-[10px] font-black uppercase text-primary hover:underline">Interrogate Status Portal</Link>
+        </div>
       </div>
     </div>
   );

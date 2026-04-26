@@ -15,7 +15,9 @@ import {
   Loader2,
   CheckCircle2,
   XCircle,
-  Clock
+  Clock,
+  Check,
+  X
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
@@ -101,14 +103,25 @@ export default function DashboardPage() {
     }
   };
 
-  const updateConfessionStatus = async (id: string, updates: any) => {
+  const setConfessionStatus = async (id: string, type: 'review' | 'publication', status: string) => {
     setUpdatingId(id);
+    const updates: any = {};
+    const now = new Date().toISOString();
+    
+    if (type === 'review') {
+      updates.reviewStatus = status;
+      updates.reviewStatusChangedAt = now;
+    } else {
+      updates.publicationStatus = status;
+      updates.publicationStatusChangedAt = now;
+    }
+
     try {
       const confRef = doc(db, 'confessions', id);
       await updateDoc(confRef, updates);
-      toast({ title: "Sync Successful", description: "Confession parameters updated." });
+      toast({ title: "Sector Sync Successful", description: `${type.toUpperCase()} status updated to ${status.toUpperCase()}.` });
     } catch (err) {
-      toast({ variant: "destructive", title: "Update Failed", description: "Command authorization denied for this change." });
+      toast({ variant: "destructive", title: "Update Denied", description: "Authorization failed." });
     } finally {
       setUpdatingId(null);
     }
@@ -247,9 +260,9 @@ export default function DashboardPage() {
                     <tr className="bg-muted/10 text-left text-muted-foreground uppercase text-[10px] font-black tracking-[0.3em]">
                       <th className="py-6 pl-10">Log Index</th>
                       <th className="py-6">Content Transcript</th>
+                      <th className="py-6">Review Command</th>
+                      <th className="py-6">Publish Command</th>
                       <th className="py-6">Origin IP</th>
-                      <th className="py-6">Review Status</th>
-                      <th className="py-6">Public Status</th>
                       <th className="py-6 pr-10 text-right">Logged Time</th>
                     </tr>
                   </thead>
@@ -263,7 +276,7 @@ export default function DashboardPage() {
                       </tr>
                     )}
                     {filteredConfessions?.map(c => (
-                      <tr key={c.id} className="hover:bg-white/5 transition-colors">
+                      <tr key={c.id} className="hover:bg-white/5 transition-colors group">
                         <td className="py-8 pl-10">
                           <span className="font-black text-primary">#{c.confessionNo}</span>
                           <p className="text-[9px] font-mono text-muted-foreground">{c.submissionId}</p>
@@ -271,45 +284,65 @@ export default function DashboardPage() {
                         <td className="py-8 max-w-xs">
                           <p className="text-sm italic opacity-80 line-clamp-2">"{c.content}"</p>
                         </td>
+                        <td className="py-8">
+                          <div className="flex gap-2">
+                             <Button 
+                               size="sm" 
+                               variant={c.reviewStatus === 'accepted' ? 'default' : 'outline'}
+                               className={`h-8 w-8 p-0 rounded-lg ${c.reviewStatus === 'accepted' ? 'bg-secondary hover:bg-secondary/80' : 'border-white/10'}`}
+                               onClick={() => setConfessionStatus(c.id, 'review', 'accepted')}
+                               disabled={updatingId === c.id}
+                             >
+                               <Check className="h-4 w-4" />
+                             </Button>
+                             <Button 
+                               size="sm" 
+                               variant={c.reviewStatus === 'rejected' ? 'destructive' : 'outline'}
+                               className={`h-8 w-8 p-0 rounded-lg ${c.reviewStatus === 'rejected' ? '' : 'border-white/10'}`}
+                               onClick={() => setConfessionStatus(c.id, 'review', 'rejected')}
+                               disabled={updatingId === c.id}
+                             >
+                               <X className="h-4 w-4" />
+                             </Button>
+                             <div className="flex flex-col justify-center">
+                               <Badge className={`text-[8px] uppercase font-black h-4 px-1.5 ${c.reviewStatus === 'accepted' ? 'bg-secondary text-white' : c.reviewStatus === 'rejected' ? 'bg-destructive text-white' : 'bg-muted text-muted-foreground'}`}>
+                                 {c.reviewStatus}
+                               </Badge>
+                             </div>
+                          </div>
+                          {c.reviewStatusChangedAt && <p className="text-[8px] mt-1 text-muted-foreground">{new Date(c.reviewStatusChangedAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p>}
+                        </td>
+                        <td className="py-8">
+                          <div className="flex gap-2">
+                             <Button 
+                               size="sm" 
+                               variant={c.publicationStatus === 'published' ? 'default' : 'outline'}
+                               className={`h-8 w-8 p-0 rounded-lg ${c.publicationStatus === 'published' ? 'bg-secondary hover:bg-secondary/80' : 'border-white/10'}`}
+                               onClick={() => setConfessionStatus(c.id, 'publication', 'published')}
+                               disabled={updatingId === c.id}
+                             >
+                               <Check className="h-4 w-4" />
+                             </Button>
+                             <Button 
+                               size="sm" 
+                               variant={c.publicationStatus === 'denied' ? 'destructive' : 'outline'}
+                               className={`h-8 w-8 p-0 rounded-lg ${c.publicationStatus === 'denied' ? '' : 'border-white/10'}`}
+                               onClick={() => setConfessionStatus(c.id, 'publication', 'denied')}
+                               disabled={updatingId === c.id}
+                             >
+                               <X className="h-4 w-4" />
+                             </Button>
+                             <div className="flex flex-col justify-center">
+                               <Badge className={`text-[8px] uppercase font-black h-4 px-1.5 ${c.publicationStatus === 'published' ? 'bg-secondary text-white' : c.publicationStatus === 'denied' ? 'bg-destructive text-white' : 'bg-muted text-muted-foreground'}`}>
+                                 {c.publicationStatus}
+                               </Badge>
+                             </div>
+                          </div>
+                          {c.publicationStatusChangedAt && <p className="text-[8px] mt-1 text-muted-foreground">{new Date(c.publicationStatusChangedAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</p>}
+                        </td>
                         <td className="py-8 font-mono text-[10px] text-secondary font-black">
                           <div className="flex items-center gap-2 bg-secondary/10 px-3 py-1.5 rounded-lg border border-secondary/20 w-fit">
                             <Globe className="h-3.5 w-3.5" /> {c.ipAddress || 'TRACED'}
-                          </div>
-                        </td>
-                        <td className="py-8">
-                          <div className="flex flex-col gap-2">
-                            <Select 
-                              value={c.reviewStatus} 
-                              onValueChange={(val) => updateConfessionStatus(c.id, { reviewStatus: val })}
-                              disabled={updatingId === c.id}
-                            >
-                              <SelectTrigger className={`w-[130px] h-9 text-[9px] font-black uppercase rounded-lg border-2 ${c.reviewStatus === 'accepted' ? 'border-secondary/50 text-secondary' : c.reviewStatus === 'rejected' ? 'border-destructive/50 text-destructive' : 'border-white/10'}`}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="accepted">Accepted</SelectItem>
-                                <SelectItem value="rejected">Rejected</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </td>
-                        <td className="py-8">
-                          <div className="flex flex-col gap-2">
-                            <Select 
-                              value={c.publicationStatus} 
-                              onValueChange={(val) => updateConfessionStatus(c.id, { publicationStatus: val })}
-                              disabled={updatingId === c.id}
-                            >
-                              <SelectTrigger className={`w-[130px] h-9 text-[9px] font-black uppercase rounded-lg border-2 ${c.publicationStatus === 'published' ? 'border-secondary/50 text-secondary' : c.publicationStatus === 'denied' ? 'border-destructive/50 text-destructive' : 'border-white/10'}`}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="waiting">Waiting</SelectItem>
-                                <SelectItem value="published">Published</SelectItem>
-                                <SelectItem value="denied">Denied</SelectItem>
-                              </SelectContent>
-                            </Select>
                           </div>
                         </td>
                         <td className="py-8 pr-10 text-[10px] font-bold text-right">

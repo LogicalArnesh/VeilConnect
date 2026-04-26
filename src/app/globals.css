@@ -93,3 +93,9 @@
     border: 1px solid #eee !important;
   }
 }
+
+/* Prevent accidental inspection of critical elements */
+[data-unhackable="true"] {
+  user-select: none;
+  -webkit-user-drag: none;
+}

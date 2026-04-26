@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -9,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Send, ShieldCheck, CheckCircle2, Loader2, AlertCircle, Clock, Shield, Search } from 'lucide-react';
 import { useFirestore } from '@/firebase';
-import { collection, addDoc, getCountFromServer, query } from 'firebase/firestore';
+import { collection, addDoc, getCountFromServer, query, where, Timestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { sendConfessionAlertToAdmins } from '@/app/actions/email-actions';
 import { useCollection, useMemoFirebase } from '@/firebase';
@@ -65,6 +66,24 @@ export default function ConfessionLandingPage() {
         console.warn('IP Trace Failure');
       }
 
+      // ANTI-SPAM: Check IP limits (5 per 24 hours)
+      const oneDayAgo = new Date();
+      oneDayAgo.setHours(oneDayAgo.getHours() - 24);
+      
+      const spamQuery = query(
+        collection(db, 'confessions'), 
+        where('ipAddress', '==', ip),
+        where('createdAt', '>=', oneDayAgo.toISOString())
+      );
+      const spamCountSnap = await getCountFromServer(spamQuery);
+      const recentCount = spamCountSnap.data().count;
+
+      if (recentCount >= 5) {
+        setError('CRITICAL: Mass spamming detected from this IP sector. Transmission blocked. Please contact Head Admin for operational issues.');
+        setLoading(false);
+        return;
+      }
+
       const browserFingerprint = {
         userAgent: navigator.userAgent,
         platform: navigator.platform,
@@ -88,7 +107,9 @@ export default function ConfessionLandingPage() {
         browserInfo: JSON.stringify(browserFingerprint),
         createdAt: timestamp,
         reviewStatus: 'pending',
-        publicationStatus: 'waiting'
+        publicationStatus: 'waiting',
+        reviewStatusChangedAt: null,
+        publicationStatusChangedAt: null,
       };
 
       await addDoc(coll, confessionData);
@@ -161,8 +182,8 @@ export default function ConfessionLandingPage() {
 
               {error && (
                 <div className="bg-destructive/20 text-destructive-foreground p-5 rounded-2xl text-xs flex items-center gap-4 border border-destructive/30 animate-in fade-in zoom-in-95 font-bold">
-                  <AlertCircle className="h-5 w-5" />
-                  {error}
+                  <AlertCircle className="h-5 w-5 shrink-0" />
+                  <p>{error}</p>
                 </div>
               )}
 
