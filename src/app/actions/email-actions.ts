@@ -15,7 +15,8 @@ const COLOR_RED = '#e11d48';
 const COLOR_GREEN = '#16a34a';
 const COLOR_WHITE = '#ffffff';
 const HEAD_ADMIN_EMAIL = 'veilconfessions@gmail.com';
-const LOGO_URL = 'https://gemini.google.com/share/930f0ea98142';
+const LOGO_URL = 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Logo-ai-veil.png';
+const BANNER_URL = 'https://upload.wikimedia.org/wikipedia/commons/7/71/Logo-long-veil.png';
 
 function getISTDateString() {
   return new Date().toLocaleString('en-IN', {
@@ -35,7 +36,11 @@ const EMAIL_FOOTER = `
 
 const LOGO_HTML = `
   <div style="text-align: center; margin-bottom: 25px;">
-    <img src="${LOGO_URL}" alt="VEIL" style="width: 80px; height: 80px; border-radius: 20px; object-fit: cover; border: 3px solid ${COLOR_RED};" />
+    <div style="display: inline-block; position: relative; width: 100px; height: 110px; background: ${COLOR_RED}; border-radius: 10px 10px 50% 50%; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+      <div style="width: 100%; height: 100%; background: white; border-radius: 8px 8px 45% 45%; overflow: hidden;">
+        <img src="${LOGO_URL}" alt="VEIL" style="width: 100%; height: 100%; object-fit: contain;" />
+      </div>
+    </div>
   </div>
 `;
 
@@ -52,9 +57,12 @@ export async function sendConfessionAlertToAdmins(confessionData: any, adminEmai
         <div style="background: #f1f5f9; padding: 40px; font-family: 'Inter', sans-serif;">
           <div style="max-width: 600px; margin: 0 auto; background: ${COLOR_WHITE}; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.1); border: 1px solid #e2e8f0;">
             <div style="background: linear-gradient(135deg, ${COLOR_RED}, ${COLOR_GREEN}); padding: 50px 40px; text-align: center;">
+              <div style="margin-bottom: 20px;">
+                <img src="${BANNER_URL}" alt="VeiL Banner" style="width: 100%; max-width: 300px; height: auto;" />
+              </div>
               ${LOGO_HTML}
               <h1 style="color: ${COLOR_WHITE}; margin: 0; font-size: 28px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px;">Intelligence Briefing</h1>
-              <p style="color: ${COLOR_WHITE}; opacity: 0.8; font-size: 12px; margin-top: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">Confession Log #FS-${confessionData.confessionNo}</p>
+              <p style="color: ${COLOR_WHITE}; opacity: 0.8; font-size: 12px; margin-top: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px;">Confession Log #VeiL-${confessionData.confessionNo}</p>
             </div>
             <div style="padding: 40px;">
               <div style="background: #f8fafc; padding: 30px; border-left: 6px solid ${COLOR_RED}; border-radius: 16px; margin-bottom: 30px;">
@@ -76,8 +84,13 @@ export async function sendConfessionAlertToAdmins(confessionData: any, adminEmai
                 </tr>
               </table>
 
+              <div style="margin-top: 30px; padding: 20px; background: #fff5f5; border: 1px solid ${COLOR_RED}; border-radius: 12px;">
+                <p style="color: ${COLOR_RED}; font-size: 11px; font-weight: 800; margin: 0; text-transform: uppercase;">Security Advisory</p>
+                <p style="color: #64748b; font-size: 10px; margin: 5px 0 0 0;">This intelligence is classified. Unauthorized distribution or reproduction is a violation of Sector 01 protocols.</p>
+              </div>
+
               <div style="margin-top: 40px; text-align: center;">
-                <a href="https://veilconnect.netlify.app/dashboard" style="display: inline-block; background: ${COLOR_RED}; color: ${COLOR_WHITE}; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 800; text-transform: uppercase; font-size: 12px; letter-spacing: 1px;">Open Command Console</a>
+                <a href="https://veilconnect.netlify.app/dashboard" style="display: inline-block; background: ${COLOR_RED}; color: ${COLOR_WHITE}; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 800; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(225, 29, 72, 0.3);">Open Command Console</a>
               </div>
             </div>
             ${EMAIL_FOOTER}

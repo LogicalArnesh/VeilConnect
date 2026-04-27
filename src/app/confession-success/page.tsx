@@ -15,11 +15,13 @@ function SuccessContent() {
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const receiptRef = useRef<HTMLDivElement>(null);
-  const logo = PlaceHolderImages.find(img => img.id === 'team-logo');
+  const logoUrl = 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Logo-ai-veil.png';
+  const bannerUrl = 'https://upload.wikimedia.org/wikipedia/commons/7/71/Logo-long-veil.png';
   const [copied, setCopied] = useState(false);
   
   const sid = searchParams.get('sid');
   const ts = searchParams.get('ts');
+  const cno = searchParams.get('cno');
 
   const now = ts ? new Date(ts) : new Date();
 
@@ -61,16 +63,14 @@ function SuccessContent() {
           
           <CardHeader className="text-center pt-10 pb-6 border-b-2 border-dashed border-gray-300">
             <div className="flex justify-center mb-6">
-              <div className="relative h-24 w-24 bg-black rounded-2xl overflow-hidden p-2">
-                {logo && (
+              <div className="relative h-24 w-24 bg-white rounded-2xl overflow-hidden p-2 border border-gray-100">
                   <Image 
-                    src={logo.imageUrl} 
+                    src={logoUrl} 
                     alt="VeiL Logo" 
                     fill
                     className="object-contain" 
                     unoptimized
                   />
-                )}
               </div>
             </div>
             <h2 className="text-xl font-black tracking-tighter uppercase">VeiLConfeSsions</h2>
@@ -88,8 +88,8 @@ function SuccessContent() {
 
             <div className="space-y-4 text-xs">
               <div className="flex justify-between border-b border-gray-100 pb-2">
-                <span className="font-bold opacity-60">LOG INDEX:</span>
-                <span className="font-black">#FS-{(Math.random()*9999).toFixed(0)}</span>
+                <span className="font-bold opacity-60 uppercase tracking-tighter">LOG INDEX:</span>
+                <span className="font-black text-sm">VeiL#{cno || 'N/A'}</span>
               </div>
               <div className="flex justify-between border-b border-gray-100 pb-2">
                 <span className="font-bold opacity-60">SECURITY:</span>
@@ -133,7 +133,10 @@ function SuccessContent() {
                  <span className="text-[7px] font-bold opacity-30">VEIL-INTEL-SYNC-NODE-01</span>
               </div>
               
-              <div className="bg-gray-100/50 p-4 rounded-lg space-y-2">
+              <div className="bg-gray-100/50 p-4 rounded-lg space-y-4">
+                <div className="flex justify-center">
+                  <img src={bannerUrl} alt="VeiL Banner" className="w-full max-w-[200px] h-auto opacity-80" />
+                </div>
                 <p className="text-[9px] leading-relaxed font-bold italic opacity-70">
                   RETAIN THIS RECEIPT: Your submission is now encrypted and queued for command review. All data is handled under Sector 01 security protocols.
                 </p>
@@ -152,15 +155,15 @@ function SuccessContent() {
             </div>
           </CardContent>
 
-          <div className="h-2 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAxMCI+PHBvbHlnb24gcG9pbnRzPSIwLDAgMTAsMTAgMjAsMCIgZmlsbD0id2hpdGUiLz48L3N2Zy4=')] bg-repeat-x print:hidden"></div>
+          <div className="h-4 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAxMCI+PHBvbHlnb24gcG9pbnRzPSIwLDAgMTAsMTAgMjAsMCIgZmlsbD0id2hpdGUiLz48L3N2Zy4=')] bg-repeat-x print:hidden"></div>
         </Card>
 
         <div className="space-y-4 print:hidden px-4">
-          <Button onClick={() => window.print()} className="w-full h-14 bg-black text-white hover:bg-gray-900 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl">
-            <Download className="mr-3 h-5 w-5" /> Save Receipt (PDF)
+          <Button onClick={() => window.print()} className="w-full h-16 bg-primary text-white hover:bg-primary/90 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-glow-red transition-all active:scale-[0.98]">
+            <Download className="mr-3 h-6 w-6" /> Save Receipt (PDF)
           </Button>
-          <Button asChild variant="outline" className="w-full h-14 border-gray-300 bg-white hover:bg-gray-50 rounded-2xl font-black uppercase tracking-widest text-[10px] text-black">
-            <Link href="/"><ArrowRight className="mr-3 h-5 w-5" /> New Submission</Link>
+          <Button asChild variant="outline" className="w-full h-16 glass-card rounded-2xl font-black uppercase tracking-widest text-[11px] text-foreground border-white/20 hover:bg-white/10">
+            <Link href="/"><ArrowRight className="mr-3 h-6 w-6" /> New Transmission</Link>
           </Button>
         </div>
 

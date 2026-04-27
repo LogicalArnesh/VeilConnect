@@ -27,7 +27,8 @@ export default function ConfessionLandingPage() {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [sysLogs, setSysLogs] = useState<string[]>([]);
 
-  const logo = PlaceHolderImages.find(img => img.id === 'team-logo');
+  const logoUrl = 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Logo-ai-veil.png';
+  const bannerUrl = 'https://upload.wikimedia.org/wikipedia/commons/7/71/Logo-long-veil.png';
 
   useEffect(() => {
     const updateTime = () => {
@@ -137,7 +138,7 @@ export default function ConfessionLandingPage() {
       
       await sendConfessionAlertToAdmins(confessionData, adminEmails);
 
-      router.push(`/confession-success?sid=${submissionId}&ts=${encodeURIComponent(timestamp)}`);
+      router.push(`/confession-success?sid=${submissionId}&ts=${encodeURIComponent(timestamp)}&cno=${confessionNo}`);
     } catch (err: any) {
       setError('SUBMISSION FAILURE: ' + (err.message || 'Operational link broken.'));
     } finally {
@@ -169,8 +170,8 @@ export default function ConfessionLandingPage() {
         </div>
 
         <div className="flex flex-col items-center text-center space-y-4">
-          <div className="relative w-32 h-32 rounded-[2.5rem] overflow-hidden border-4 border-primary shadow-glow-red ring-8 ring-primary/5 transition-all hover:scale-105 duration-500 bg-black">
-             {logo && <Image src={logo.imageUrl} alt="Veil Logo" fill className="object-cover" unoptimized data-ai-hint={logo.imageHint} />}
+          <div className="relative w-32 h-32 rounded-[2.5rem] overflow-hidden border-4 border-primary shadow-glow-red ring-8 ring-primary/5 transition-all hover:scale-105 duration-500 bg-white backdrop-blur-md">
+             <Image src={logoUrl} alt="Veil Logo" fill className="object-contain p-2" unoptimized />
           </div>
           <div className="space-y-1">
             <h1 className="text-5xl font-black tracking-tighter text-foreground font-headline uppercase leading-none">
@@ -183,7 +184,7 @@ export default function ConfessionLandingPage() {
           </div>
         </div>
 
-        <Card className="glass-card rounded-[2.5rem] overflow-hidden border-t-primary/30 shadow-2xl">
+        <Card className="glass-card rounded-[3rem] overflow-hidden border-t-primary/50 shadow-2xl backdrop-blur-xl">
           <CardHeader className="bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-white/5 p-10">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/30">

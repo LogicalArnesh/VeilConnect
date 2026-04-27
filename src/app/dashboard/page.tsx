@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   ShieldCheck, 
   Trash2, 
-  Megaphone,
   MessageSquareQuote,
   Globe,
   Search,
@@ -18,8 +17,10 @@ import {
   Check,
   X,
   AlertTriangle,
-  Copy
+  Copy,
+  ExternalLink
 } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useFirestore } from '@/firebase';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc, setDoc, addDoc, query, orderBy, limit } from 'firebase/firestore';
@@ -40,10 +41,8 @@ export default function DashboardPage() {
   const { toast } = useToast();
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [allUsers, setAllUsers] = useState<any[]>([]);
-  const [announcements, setAnnouncements] = useState<any[]>([]);
   const [currentStatus, setCurrentStatus] = useState<string>('online');
   const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
-  const [newAnnouncement, setNewAnnouncement] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -58,18 +57,14 @@ export default function DashboardPage() {
     }
     const user = JSON.parse(storedUser);
     setCurrentUser(user);
+    const logoUrl = 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Logo-ai-veil.png';
 
     const unsubAll = onSnapshot(collection(db, 'userProfiles'), (snap) => {
       setAllUsers(snap.docs.map(d => ({ ...d.data(), id: d.id })));
     });
 
-    const unsubAnnounce = onSnapshot(query(collection(db, 'announcements'), orderBy('createdAt', 'desc'), limit(5)), (snap) => {
-      setAnnouncements(snap.docs.map(d => ({ ...d.data(), id: d.id })));
-    });
-
     return () => {
       unsubAll();
-      unsubAnnounce();
     };
   }, [router, db]);
 
@@ -96,21 +91,27 @@ export default function DashboardPage() {
     if (type === 'review') {
       updatePayload = {
         reviewStatus: status,
-        reviewStatusChangedAt: now
+        reviewStatusChangedAt: now,
+        reviewStatusChangedBy: currentUser.fullName
       };
     } else {
       updatePayload = {
         publicationStatus: status,
-        publicationStatusChangedAt: now
+        publicationStatusChangedAt: now,
+        publicationStatusChangedBy: currentUser.fullName
       };
     }
 
     try {
-      await updateDoc(confRef, updatePayload);
+      await setDoc(confRef, updatePayload, { merge: true });
       toast({ title: "Sector Synced", description: `${type.toUpperCase()} protocol updated.` });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Firestore Update Error:", err);
-      toast({ variant: "destructive", title: "Command Failed", description: "Authorization link failure. System log error." });
+      toast({ 
+        variant: "destructive", 
+        title: "Protocol Breach", 
+        description: `Failed to update status: ${err.message || 'Access Denied'}` 
+      });
     } finally {
       setUpdatingId(null);
     }
@@ -129,22 +130,6 @@ export default function DashboardPage() {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({ title: "Key Copied", description: "Submission ID copied to clipboard." });
-  };
-
-  const postAnnouncement = async () => {
-    if (!newAnnouncement.trim()) return;
-    try {
-      await addDoc(collection(db, 'announcements'), {
-        content: newAnnouncement,
-        authorId: currentUser.userId,
-        authorName: currentUser.fullName,
-        createdAt: new Date().toISOString()
-      });
-      setNewAnnouncement('');
-      toast({ title: "Broadcast Sent", description: "System update is live." });
-    } catch (err) {
-      toast({ variant: "destructive", title: "Broadcast Failed" });
-    }
   };
 
   const handleAction = async (userId: string, action: 'approve' | 'deny' | 'delete' | 'assign_role') => {
@@ -179,9 +164,9 @@ export default function DashboardPage() {
   const isHeadAdmin = currentUser.role === 'HeadAdmin';
 
   const filteredConfessions = confessions?.filter(c => 
-    c.submissionId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.confessionNo.toString().includes(searchQuery)
+    c.submissionId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.content?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.confessionNo?.toString().includes(searchQuery)
   );
 
   const formatIST = (dateStr: string | null) => {
@@ -222,49 +207,17 @@ export default function DashboardPage() {
               <StatCard title="Active Operatives" value={allUsers.filter(u => u.status === 'active').length.toString()} icon={<ShieldCheck className="h-6 w-6" />} />
               <StatCard title="Sync Status" value="Online" icon={<Zap className="h-6 w-6 text-secondary" />} />
             </div>
-            
-            <Card className="mt-8 border-primary/20 bg-primary/5 rounded-[2rem] overflow-hidden shadow-2xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-primary uppercase text-sm font-black tracking-[0.2em]">
-                  <Megaphone className="h-6 w-6" /> System Intelligence Broadcasts
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-8 space-y-6">
-                {isAdmin && (
-                  <div className="flex gap-4">
-                    <Input 
-                      placeholder="Type operational update..." 
-                      value={newAnnouncement}
-                      onChange={(e) => setNewAnnouncement(e.target.value)}
-                      className="bg-background/40 rounded-xl h-12"
-                    />
-                    <Button onClick={postAnnouncement} className="bg-primary hover:bg-primary/90 h-12 px-8 font-black uppercase tracking-widest rounded-xl">Broadcast</Button>
-                  </div>
-                )}
-                <div className="space-y-4">
-                  {announcements.map(a => (
-                    <div key={a.id} className="p-5 border border-white/5 rounded-2xl bg-white/5">
-                      <p className="text-sm font-medium mb-2">{a.content}</p>
-                      <div className="flex justify-between text-[10px] uppercase font-black opacity-60">
-                        <span>@{a.authorId}</span>
-                        <span>{formatIST(a.createdAt)}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
 
           <TabsContent value="confessions">
-            <Card className="rounded-[2.5rem] overflow-hidden border-white/10 shadow-2xl">
-              <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-10 bg-muted/20">
-                <CardTitle className="text-2xl uppercase font-black text-primary">Confession Log Forensics</CardTitle>
+            <Card className="mt-8 glass-card rounded-[2rem] overflow-hidden shadow-2xl border-primary/20">
+              <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 md:p-10 bg-white/5">
+                <CardTitle className="text-xl md:text-2xl uppercase font-black text-primary">Confession Log Forensics</CardTitle>
                 <div className="relative max-w-sm w-full">
                   <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                   <Input 
                     placeholder="SEARCH SUBMISSION KEY..." 
-                    className="pl-12 h-12 rounded-xl bg-background/50 font-mono text-xs uppercase"
+                    className="pl-12 h-12 rounded-xl bg-background/20 font-mono text-xs uppercase border-white/5 focus:bg-background/40 transition-all"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -305,7 +258,7 @@ export default function DashboardPage() {
                             </Button>
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className="font-black text-primary">#{c.confessionNo}</span>
+                                <span className="font-black text-primary">VeiL#{c.confessionNo}</span>
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
@@ -317,6 +270,14 @@ export default function DashboardPage() {
                               </div>
                               <p className="text-[9px] font-mono text-muted-foreground uppercase">{c.submissionId}</p>
                             </div>
+                            <Link 
+                              href={`/confession-status?sid=${c.submissionId}`} 
+                              target="_blank"
+                              className="h-8 w-8 flex items-center justify-center rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-all ml-2"
+                              title="Verify Public Status"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </Link>
                           </div>
                         </td>
                         <td className="py-8 max-w-xs">
@@ -401,9 +362,9 @@ export default function DashboardPage() {
 
           {isAdmin && (
             <TabsContent value="users">
-              <Card className="rounded-[2.5rem] overflow-hidden border-white/10 shadow-xl">
-                <CardHeader className="p-10 bg-muted/20">
-                  <CardTitle className="text-2xl font-black uppercase">Operative Sector Assignments</CardTitle>
+              <Card className="glass-card rounded-[2.5rem] overflow-hidden shadow-xl">
+                <CardHeader className="p-6 md:p-10 bg-white/5">
+                  <CardTitle className="text-xl md:text-2xl font-black uppercase">Operative Sector Assignments</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0 overflow-x-auto">
                   <table className="w-full text-sm">
@@ -492,8 +453,17 @@ export default function DashboardPage() {
                   </RadioGroup>
                 </div>
 
-                <div className="pt-10 border-t border-white/5">
-                   <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Identity Details</h4>
+                <div className="pt-10 border-t border-white/5 space-y-8">
+                   <div className="flex flex-col md:flex-row items-center gap-8 bg-white/5 p-8 rounded-3xl border border-white/10">
+                      <div className="relative h-24 w-24 rounded-2xl overflow-hidden bg-white p-2 border-2 border-primary/20">
+                        <Image src={'https://upload.wikimedia.org/wikipedia/commons/2/2c/Logo-ai-veil.png'} alt="Logo" fill className="object-contain" />
+                      </div>
+                      <div className="flex-1 space-y-2">
+                         <h3 className="text-2xl font-black text-primary uppercase italic tracking-tighter">VeiL Command Hub</h3>
+                         <p className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em]">Authorized Sector 01 Personnel Only</p>
+                      </div>
+                   </div>
+                   <h4 className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Identity Verification</h4>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="bg-white/5 p-6 rounded-2xl border border-white/5">
                          <p className="text-[9px] font-bold text-muted-foreground uppercase mb-1">Full Name</p>

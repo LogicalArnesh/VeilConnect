@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Loader2, CheckCircle2, Clock, XCircle, Download, ShieldCheck, ArrowLeft, Calendar, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -20,7 +21,17 @@ export default function ConfessionStatusPage() {
   const [loading, setLoading] = useState(false);
   const [confession, setConfession] = useState<any>(null);
   const [searched, setSearched] = useState(false);
-  const logo = PlaceHolderImages.find(img => img.id === 'team-logo');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const logoUrl = 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Logo-ai-veil.png';
+
+  useEffect(() => {
+    const sidParam = searchParams.get('sid');
+    if (sidParam && !searched) {
+      setSid(sidParam.toUpperCase());
+      performSearch(sidParam.toUpperCase());
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (confession && sid) {
@@ -28,16 +39,13 @@ export default function ConfessionStatusPage() {
     }
   }, [confession, sid]);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!sid.trim()) return;
-
+  const performSearch = async (idToSearch: string) => {
     setLoading(true);
     setSearched(true);
     setConfession(null);
 
     try {
-      const q = query(collection(db, 'confessions'), where('submissionId', '==', sid.trim().toUpperCase()), limit(1));
+      const q = query(collection(db, 'confessions'), where('submissionId', '==', idToSearch.trim().toUpperCase()), limit(1));
       const snap = await getDocs(q);
       
       if (!snap.empty) {
@@ -50,6 +58,12 @@ export default function ConfessionStatusPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!sid.trim()) return;
+    performSearch(sid);
   };
 
   const formatIST = (dateStr: string | null) => {
@@ -104,7 +118,7 @@ export default function ConfessionStatusPage() {
             )}
 
             {!searched && (
-              <div className="text-center py-20 space-y-6 border-2 border-dashed rounded-[2rem] border-white/5 bg-white/5">
+              <div className="text-center py-20 space-y-6 border-2 border-dashed rounded-[3rem] border-white/5 bg-white/5 backdrop-blur-sm">
                 <ShieldCheck className="h-20 w-20 text-secondary mx-auto opacity-20" />
                 <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.4em]">Awaiting Key Input</p>
               </div>
@@ -116,7 +130,7 @@ export default function ConfessionStatusPage() {
                   <div className="flex items-center justify-between border-b border-white/5 pb-6 print:border-gray-200">
                     <div className="flex items-center gap-4">
                       <div className="h-16 w-16 relative">
-                        {logo && <Image src={logo.imageUrl} alt="Logo" fill className="object-contain" unoptimized />}
+                        <Image src={logoUrl} alt="Logo" fill className="object-contain" unoptimized />
                       </div>
                       <div>
                         <h3 className="text-lg font-black text-primary uppercase">Confession Log Report</h3>
@@ -130,15 +144,15 @@ export default function ConfessionStatusPage() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-white/5 p-5 rounded-2xl space-y-2 border border-white/5 print:bg-gray-50 print:border-gray-200">
+                    <div className="glass-panel p-5 rounded-2xl space-y-2 print:bg-gray-50 print:border-gray-200">
                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                         <Calendar className="h-3 w-3" /> Initial Transmission
+                         <Calendar className="h-3 w-3 text-primary" /> Initial Transmission
                        </p>
                        <p className="text-xs font-bold text-foreground">{formatIST(confession.createdAt)}</p>
                     </div>
-                    <div className="bg-white/5 p-5 rounded-2xl space-y-2 border border-white/5 print:bg-gray-50 print:border-gray-200">
+                    <div className="glass-panel p-5 rounded-2xl space-y-2 print:bg-gray-50 print:border-gray-200">
                        <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest flex items-center gap-2">
-                         <Shield className="h-3 w-3" /> SECURITY STATUS
+                         <Shield className="h-3 w-3 text-secondary" /> SECURITY STATUS
                        </p>
                        <p className="text-xs font-black text-secondary">AES-256 ENCRYPTED</p>
                     </div>
@@ -156,26 +170,26 @@ export default function ConfessionStatusPage() {
                      />
                      <StatusStep 
                        title="Command Authorization" 
-                       description={confession.reviewStatus === 'accepted' ? 'Authorized by Command Sector.' : confession.reviewStatus === 'rejected' ? 'Access denied by Command Sector.' : 'Awaiting operational authorization.'} 
+                       description={confession.reviewStatus === 'accepted' ? `Authorized by ${confession.reviewStatusChangedBy || 'Command Sector'}.` : confession.reviewStatus === 'rejected' ? `Access denied by ${confession.reviewStatusChangedBy || 'Command Sector'}.` : 'Awaiting operational authorization.'} 
                        status={confession.reviewStatus === 'accepted' ? 'completed' : confession.reviewStatus === 'rejected' ? 'failed' : 'pending'} 
                        timestamp={formatIST(confession.reviewStatusChangedAt)}
                      />
                      <StatusStep 
                        title="Global Broadcast" 
-                       description={confession.publicationStatus === 'published' ? 'Broadcasting to public network.' : confession.publicationStatus === 'denied' ? 'Broadcast restricted by policy.' : 'Awaiting broadcast schedule.'} 
+                       description={confession.publicationStatus === 'published' ? `Broadcasting to public network via ${confession.publicationStatusChangedBy || 'Command'}.` : confession.publicationStatus === 'denied' ? `Broadcast restricted by ${confession.publicationStatusChangedBy || 'Command'}.` : 'Awaiting broadcast schedule.'} 
                        status={confession.publicationStatus === 'published' ? 'completed' : confession.publicationStatus === 'denied' ? 'failed' : 'pending'} 
                        timestamp={formatIST(confession.publicationStatusChangedAt)}
                      />
                   </div>
                 </div>
 
-                <div className="bg-primary/5 p-6 rounded-[1.5rem] border border-primary/10 space-y-2 print:bg-gray-50 print:border-gray-200">
+                <div className="glass-card p-6 rounded-[1.5rem] space-y-2 print:bg-gray-50 print:border-gray-200 border-primary/20 backdrop-blur-md">
                    <p className="text-[11px] font-black text-primary uppercase tracking-[0.2em] mb-2">Transcript Excerpt</p>
-                   <p className="text-xs italic text-foreground/80 font-mono">"{confession.content.substring(0, 100)}..."</p>
+                   <p className="text-xs italic text-foreground/80 font-mono leading-relaxed">"{confession.content.substring(0, 100)}..."</p>
                 </div>
 
                 <div className="flex gap-4 print:hidden">
-                   <Button onClick={() => window.print()} className="flex-1 h-14 bg-primary hover:bg-primary/90 font-black uppercase rounded-2xl text-[10px] tracking-widest">
+                    <Button onClick={() => window.print()} className="flex-1 h-14 bg-primary hover:bg-primary/90 font-black uppercase rounded-2xl text-[10px] tracking-widest shadow-glow-red">
                      <Download className="h-5 w-5 mr-3" /> Save Status Report (PDF)
                    </Button>
                 </div>

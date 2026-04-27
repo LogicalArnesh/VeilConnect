@@ -10,12 +10,14 @@ import { User, Lock, ArrowRight, AlertCircle, Clock } from 'lucide-react';
 import { validateUser } from '@/lib/users';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useAuth } from '@/firebase';
+import { signInAnonymously } from 'firebase/auth';
 import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
   const db = useFirestore();
+  const auth = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -48,6 +50,7 @@ export default function LoginPage() {
     try {
       const mockUser = validateUser(formData.userId, formData.passcode);
       if (mockUser) {
+        await signInAnonymously(auth);
         localStorage.setItem('veil_user', JSON.stringify({
           userId: mockUser.userId,
           fullName: mockUser.fullName,
@@ -81,6 +84,7 @@ export default function LoginPage() {
           return;
         }
 
+        await signInAnonymously(auth);
         localStorage.setItem('veil_user', JSON.stringify({
           userId: data.id,
           fullName: data.fullName,
