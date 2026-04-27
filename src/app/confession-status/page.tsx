@@ -14,7 +14,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-export default function ConfessionStatusPage() {
+import { Suspense } from 'react';
+
+function ConfessionStatusContent() {
   const db = useFirestore();
   const { toast } = useToast();
   const [sid, setSid] = useState('');
@@ -185,7 +187,7 @@ export default function ConfessionStatusPage() {
 
                 <div className="glass-card p-6 rounded-[1.5rem] space-y-2 print:bg-gray-50 print:border-gray-200 border-primary/20 backdrop-blur-md">
                    <p className="text-[11px] font-black text-primary uppercase tracking-[0.2em] mb-2">Transcript Excerpt</p>
-                   <p className="text-xs italic text-foreground/80 font-mono leading-relaxed">"{confession.content.substring(0, 100)}..."</p>
+                   <p className="text-xs italic text-foreground/80 font-mono leading-relaxed">"{confession.content?.substring(0, 100)}..."</p>
                 </div>
 
                 <div className="flex gap-4 print:hidden">
@@ -220,5 +222,13 @@ function StatusStep({ title, description, status, timestamp }: { title: string, 
          <p className="text-[11px] text-muted-foreground font-medium">{description}</p>
        </div>
     </div>
+  );
+}
+
+export default function ConfessionStatusPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-background"><Loader2 className="animate-spin h-10 w-10 text-primary" /></div>}>
+      <ConfessionStatusContent />
+    </Suspense>
   );
 }
