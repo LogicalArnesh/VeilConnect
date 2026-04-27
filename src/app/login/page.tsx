@@ -50,7 +50,16 @@ export default function LoginPage() {
     try {
       const mockUser = validateUser(formData.userId, formData.passcode);
       if (mockUser) {
-        await signInAnonymously(auth);
+        const authRes = await signInAnonymously(auth);
+        const authUid = authRes.user.uid;
+
+        // Ensure mock HeadAdmin is recognized by security rules
+        await setDoc(doc(db, 'adminRoster', authUid), {
+          userId: mockUser.userId,
+          role: mockUser.role,
+          updatedAt: new Date().toISOString()
+        });
+
         localStorage.setItem('veil_user', JSON.stringify({
           userId: mockUser.userId,
           fullName: mockUser.fullName,
@@ -84,7 +93,24 @@ export default function LoginPage() {
           return;
         }
 
-        await signInAnonymously(auth);
+        const authRes = await signInAnonymously(auth);
+        const authUid = authRes.user.uid;
+        
+        // Link the anonymous UID to the user profile for security rules
+        await updateDoc(querySnapshot.docs[0].ref, { 
+          authUid: authUid,
+          lastLogin: new Date().toISOString()
+        });
+
+        // Create an admin entry for high-performance security rules
+        if (data.role === 'admin' || data.role === 'HeadAdmin') {
+          await setDoc(doc(db, 'adminRoster', authUid), {
+            userId: data.id,
+            role: data.role,
+            updatedAt: new Date().toISOString()
+          });
+        }
+
         localStorage.setItem('veil_user', JSON.stringify({
           userId: data.id,
           fullName: data.fullName,

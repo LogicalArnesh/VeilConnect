@@ -92,13 +92,15 @@ export default function DashboardPage() {
       updatePayload = {
         reviewStatus: status,
         reviewStatusChangedAt: now,
-        reviewStatusChangedBy: currentUser.fullName
+        reviewStatusChangedBy: currentUser.fullName,
+        reviewStatusChangedByUserId: currentUser.userId
       };
     } else {
       updatePayload = {
         publicationStatus: status,
         publicationStatusChangedAt: now,
-        publicationStatusChangedBy: currentUser.fullName
+        publicationStatusChangedBy: currentUser.fullName,
+        publicationStatusChangedByUserId: currentUser.userId
       };
     }
 
