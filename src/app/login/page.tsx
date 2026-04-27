@@ -54,11 +54,15 @@ export default function LoginPage() {
         const authUid = authRes.user.uid;
 
         // Ensure mock HeadAdmin is recognized by security rules
-        await setDoc(doc(db, 'adminRoster', authUid), {
-          userId: mockUser.userId,
-          role: mockUser.role,
-          updatedAt: new Date().toISOString()
-        });
+        try {
+          await setDoc(doc(db, 'adminRoster', authUid), {
+            userId: mockUser.userId,
+            role: mockUser.role,
+            updatedAt: new Date().toISOString()
+          });
+        } catch (e) {
+          console.warn("Admin roster sync failed:", e);
+        }
 
         localStorage.setItem('veil_user', JSON.stringify({
           userId: mockUser.userId,
@@ -97,18 +101,24 @@ export default function LoginPage() {
         const authUid = authRes.user.uid;
         
         // Link the anonymous UID to the user profile for security rules
-        await updateDoc(querySnapshot.docs[0].ref, { 
-          authUid: authUid,
-          lastLogin: new Date().toISOString()
-        });
-
-        // Create an admin entry for high-performance security rules
-        if (data.role === 'admin' || data.role === 'HeadAdmin') {
-          await setDoc(doc(db, 'adminRoster', authUid), {
-            userId: data.id,
-            role: data.role,
-            updatedAt: new Date().toISOString()
+        // We wrap this in a sub-try-catch to ensure that even if Firestore rules 
+        // block the update, the user can still log in to the dashboard.
+        try {
+          await updateDoc(querySnapshot.docs[0].ref, { 
+            authUid: authUid,
+            lastLogin: new Date().toISOString()
           });
+
+          if (data.role === 'admin' || data.role === 'HeadAdmin') {
+            await setDoc(doc(db, 'adminRoster', authUid), {
+              userId: data.id,
+              role: data.role,
+              updatedAt: new Date().toISOString()
+            });
+          }
+        } catch (linkErr: any) {
+          console.warn("Security link failed (usually due to rules or disabled auth):", linkErr);
+          // We continue anyway so the user isn't locked out
         }
 
         localStorage.setItem('veil_user', JSON.stringify({
@@ -122,7 +132,8 @@ export default function LoginPage() {
         setError('Invalid User ID or Passcode.');
       }
     } catch (err: any) {
-      setError('System failure during decryption.');
+      console.error("Critical Login Error:", err);
+      setError(`Operational Link Failure: ${err.message || 'System connection error'}`);
     } finally {
       setLoading(false);
     }
