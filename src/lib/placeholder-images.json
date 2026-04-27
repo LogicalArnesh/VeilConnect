@@ -3,8 +3,8 @@
     {
       "id": "team-logo",
       "description": "Official VeiLConnect Identity",
-      "imageUrl": "https://storage.googleapis.com/static-studio-ai/images/3e098485-6184-4e78-9993-41c61304f561.png",
-      "imageHint": "security shield"
+      "imageUrl": "/logo.png",
+      "imageHint": "veil confessions logo"
     }
   ]
 }
