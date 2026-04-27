@@ -48,7 +48,7 @@ export function DashboardHeader({ userId, role }: DashboardHeaderProps) {
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-lg">
       <div className="flex items-center gap-4">
         <div className="relative h-10 w-10 rounded-xl overflow-hidden border border-primary/20 mr-2 bg-white p-1">
-           <Image src={logoUrl} alt="Logo" fill className="object-contain" />
+           <Image src={logoUrl} alt="Logo" fill className="object-contain" unoptimized />
         </div>
         <div className="hidden md:flex items-center gap-2 bg-secondary/30 rounded-full px-4 py-1.5 border border-border/50">
           <Search className="h-4 w-4 text-muted-foreground" />

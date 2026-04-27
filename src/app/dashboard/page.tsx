@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useFirestore } from '@/firebase';
 import { collection, onSnapshot, doc, updateDoc, deleteDoc, setDoc, addDoc, query, orderBy, limit } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
@@ -57,7 +58,6 @@ export default function DashboardPage() {
     }
     const user = JSON.parse(storedUser);
     setCurrentUser(user);
-    const logoUrl = 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Logo-ai-veil.png';
 
     const unsubAll = onSnapshot(collection(db, 'userProfiles'), (snap) => {
       setAllUsers(snap.docs.map(d => ({ ...d.data(), id: d.id })));
@@ -248,14 +248,16 @@ export default function DashboardPage() {
                       <tr key={c.id} className="hover:bg-white/5 transition-colors group">
                         <td className="py-8 pl-10">
                           <div className="flex items-center gap-4">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors"
-                              onClick={() => deleteConfession(c.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {isAdmin && (
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors"
+                                onClick={() => deleteConfession(c.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                             <div>
                               <div className="flex items-center gap-2">
                                 <span className="font-black text-primary">VeiL#{c.confessionNo}</span>
@@ -456,7 +458,7 @@ export default function DashboardPage() {
                 <div className="pt-10 border-t border-white/5 space-y-8">
                    <div className="flex flex-col md:flex-row items-center gap-8 bg-white/5 p-8 rounded-3xl border border-white/10">
                       <div className="relative h-24 w-24 rounded-2xl overflow-hidden bg-white p-2 border-2 border-primary/20">
-                        <Image src={'https://upload.wikimedia.org/wikipedia/commons/2/2c/Logo-ai-veil.png'} alt="Logo" fill className="object-contain" />
+                        <Image src={'https://upload.wikimedia.org/wikipedia/commons/2/2c/Logo-ai-veil.png'} alt="Logo" fill className="object-contain" unoptimized />
                       </div>
                       <div className="flex-1 space-y-2">
                          <h3 className="text-2xl font-black text-primary uppercase italic tracking-tighter">VeiL Command Hub</h3>
