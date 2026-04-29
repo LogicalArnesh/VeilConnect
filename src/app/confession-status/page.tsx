@@ -172,13 +172,13 @@ function ConfessionStatusContent() {
                      />
                      <StatusStep 
                        title="Command Authorization" 
-                       description={confession.reviewStatus === 'accepted' ? `Authorized by ${confession.reviewStatusChangedBy || 'Command Sector'}.` : confession.reviewStatus === 'rejected' ? `Access denied by ${confession.reviewStatusChangedBy || 'Command Sector'}.` : 'Awaiting operational authorization.'} 
+                       description={confession.reviewStatus === 'accepted' ? `Accepted and verified by administrator.` : confession.reviewStatus === 'rejected' ? `Access denied by administrator.` : 'Awaiting operational authorization.'} 
                        status={confession.reviewStatus === 'accepted' ? 'completed' : confession.reviewStatus === 'rejected' ? 'failed' : 'pending'} 
                        timestamp={formatIST(confession.reviewStatusChangedAt)}
                      />
                      <StatusStep 
                        title="Global Broadcast" 
-                       description={confession.publicationStatus === 'published' ? `Broadcasting to public network via ${confession.publicationStatusChangedBy || 'Command'}.` : confession.publicationStatus === 'denied' ? `Broadcast restricted by ${confession.publicationStatusChangedBy || 'Command'}.` : 'Awaiting broadcast schedule.'} 
+                       description={confession.publicationStatus === 'published' ? `Broadcasting to public network via administrator.` : confession.publicationStatus === 'denied' ? `Broadcast restricted by administrator.` : 'Awaiting broadcast schedule.'} 
                        status={confession.publicationStatus === 'published' ? 'completed' : confession.publicationStatus === 'denied' ? 'failed' : 'pending'} 
                        timestamp={formatIST(confession.publicationStatusChangedAt)}
                      />
@@ -217,9 +217,9 @@ function StatusStep({ title, description, status, timestamp }: { title: string, 
        <div className="space-y-1 flex-1">
          <div className="flex justify-between items-start">
            <p className="text-xs font-black uppercase tracking-[0.2em]">{title}</p>
-           {status !== 'pending' && <span className="text-[9px] font-bold text-muted-foreground bg-white/5 px-2 py-0.5 rounded uppercase">{timestamp}</span>}
+           {status !== 'pending' && <span className="text-[10px] font-black text-foreground bg-white/10 px-2 py-0.5 rounded uppercase">{timestamp}</span>}
          </div>
-         <p className="text-[11px] text-muted-foreground font-medium">{description}</p>
+         <p className="text-[11px] text-muted-foreground font-black">{description}</p>
        </div>
     </div>
   );

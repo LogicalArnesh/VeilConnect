@@ -46,6 +46,8 @@ export default function DashboardPage() {
   const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
   const confessionsQuery = useMemoFirebase(() => query(collection(db, 'confessions'), orderBy('createdAt', 'desc')), [db]);
   const { data: confessions, isLoading: isConfessionsLoading } = useCollection(confessionsQuery);
@@ -82,31 +84,40 @@ export default function DashboardPage() {
     }
   };
 
-  const setConfessionStatus = async (id: string, type: 'review' | 'publication', status: string) => {
-    setUpdatingId(id);
-    const now = new Date().toISOString();
-    const confRef = doc(db, 'confessions', id);
-    
-    let updatePayload: any = {};
-    if (type === 'review') {
-      updatePayload = {
-        reviewStatus: status,
-        reviewStatusChangedAt: now,
-        reviewStatusChangedBy: currentUser.fullName,
-        reviewStatusChangedByUserId: currentUser.userId
-      };
-    } else {
-      updatePayload = {
-        publicationStatus: status,
-        publicationStatusChangedAt: now,
-        publicationStatusChangedBy: currentUser.fullName,
-        publicationStatusChangedByUserId: currentUser.userId
-      };
-    }
+  const setConfessionStatus = async (ids: string | string[], type: 'review' | 'publication', status: string) => {
+    const idArray = Array.isArray(ids) ? ids : [ids];
+    if (idArray.length === 0) return;
 
+    if (idArray.length === 1) setUpdatingId(idArray[0]);
+    else setIsBulkUpdating(true);
+
+    const now = new Date().toISOString();
+    
     try {
-      await setDoc(confRef, updatePayload, { merge: true });
-      toast({ title: "Sector Synced", description: `${type.toUpperCase()} protocol updated.` });
+      const promises = idArray.map(async (id) => {
+        const confRef = doc(db, 'confessions', id);
+        let updatePayload: any = {};
+        if (type === 'review') {
+          updatePayload = {
+            reviewStatus: status,
+            reviewStatusChangedAt: now,
+            reviewStatusChangedBy: currentUser.fullName,
+            reviewStatusChangedByUserId: currentUser.userId
+          };
+        } else {
+          updatePayload = {
+            publicationStatus: status,
+            publicationStatusChangedAt: now,
+            publicationStatusChangedBy: currentUser.fullName,
+            publicationStatusChangedByUserId: currentUser.userId
+          };
+        }
+        return setDoc(confRef, updatePayload, { merge: true });
+      });
+
+      await Promise.all(promises);
+      toast({ title: "Sector Synced", description: `${idArray.length > 1 ? 'Bulk ' : ''}${type.toUpperCase()} protocol updated.` });
+      if (idArray.length > 1) setSelectedIds(new Set());
     } catch (err: any) {
       console.error("Firestore Update Error:", err);
       toast({ 
@@ -116,6 +127,22 @@ export default function DashboardPage() {
       });
     } finally {
       setUpdatingId(null);
+      setIsBulkUpdating(false);
+    }
+  };
+
+  const toggleSelection = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) newSelected.delete(id);
+    else newSelected.add(id);
+    setSelectedIds(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredConfessions?.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredConfessions?.map(c => c.id)));
     }
   };
 
@@ -215,21 +242,54 @@ export default function DashboardPage() {
             <Card className="mt-8 glass-card rounded-[2rem] overflow-hidden shadow-2xl border-primary/20">
               <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 md:p-10 bg-white/5">
                 <CardTitle className="text-xl md:text-2xl uppercase font-black text-primary">Confession Log Forensics</CardTitle>
-                <div className="relative max-w-sm w-full">
-                  <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
-                  <Input 
-                    placeholder="SEARCH SUBMISSION KEY..." 
-                    className="pl-12 h-12 rounded-xl bg-background/20 font-mono text-xs uppercase border-white/5 focus:bg-background/40 transition-all"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
+                <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+                  {selectedIds.size > 0 && (
+                    <div className="flex items-center gap-2 bg-primary/10 p-2 rounded-xl border border-primary/20 animate-in fade-in slide-in-from-top-4">
+                      <span className="text-[10px] font-black uppercase px-2 text-primary">{selectedIds.size} SELECTED</span>
+                      <Select onValueChange={(val) => {
+                        const [type, status] = val.split(':');
+                        setConfessionStatus(Array.from(selectedIds), type as any, status);
+                      }}>
+                        <SelectTrigger className="w-[180px] h-9 text-[9px] uppercase font-black bg-background/50 border-primary/20">
+                          <SelectValue placeholder="BULK ACTIONS" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="review:accepted">MARK ACCEPTED</SelectItem>
+                          <SelectItem value="review:rejected">MARK REJECTED</SelectItem>
+                          <SelectItem value="publication:published">MARK PUBLISHED</SelectItem>
+                          <SelectItem value="publication:denied">MARK DENIED</SelectItem>
+                          <SelectItem value="review:pending">MARK WAITING</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())} className="h-9 px-3 text-[9px] font-black uppercase text-muted-foreground hover:text-primary">Cancel</Button>
+                    </div>
+                  )}
+                  <div className="relative max-w-sm w-full">
+                    <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
+                    <Input 
+                      placeholder="SEARCH SUBMISSION KEY..." 
+                      className="pl-12 h-12 rounded-xl bg-background/20 font-mono text-xs uppercase border-white/5 focus:bg-background/40 transition-all"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="p-0 overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-muted/10 text-left text-muted-foreground uppercase text-[10px] font-black tracking-[0.3em]">
-                      <th className="py-6 pl-10">Index Key</th>
+                      <th className="py-6 pl-10">
+                        <div className="flex items-center gap-4">
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 rounded border-white/10 bg-white/5 accent-primary cursor-pointer" 
+                            checked={filteredConfessions?.length ? selectedIds.size === filteredConfessions.length : false}
+                            onChange={toggleSelectAll}
+                          />
+                          <span>Index Key</span>
+                        </div>
+                      </th>
                       <th className="py-6">Content</th>
                       <th className="py-6">Authorization</th>
                       <th className="py-6">Publication</th>
@@ -247,9 +307,15 @@ export default function DashboardPage() {
                       </tr>
                     )}
                     {filteredConfessions?.map(c => (
-                      <tr key={c.id} className="hover:bg-white/5 transition-colors group">
+                      <tr key={c.id} className={`hover:bg-white/5 transition-colors group ${selectedIds.has(c.id) ? 'bg-primary/5' : ''}`}>
                         <td className="py-8 pl-10">
                           <div className="flex items-center gap-4">
+                            <input 
+                              type="checkbox" 
+                              className="w-4 h-4 rounded border-white/10 bg-white/5 accent-primary cursor-pointer" 
+                              checked={selectedIds.has(c.id)}
+                              onChange={() => toggleSelection(c.id)}
+                            />
                             {isAdmin && (
                               <Button 
                                 variant="ghost" 

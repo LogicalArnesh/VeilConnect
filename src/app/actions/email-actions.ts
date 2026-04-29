@@ -36,11 +36,7 @@ const EMAIL_FOOTER = `
 
 const LOGO_HTML = `
   <div style="text-align: center; margin-bottom: 25px;">
-    <div style="display: inline-block; position: relative; width: 100px; height: 110px; background: ${COLOR_RED}; border-radius: 10px 10px 50% 50%; padding: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-      <div style="width: 100%; height: 100%; background: white; border-radius: 8px 8px 45% 45%; overflow: hidden;">
-        <img src="${LOGO_URL}" alt="VEIL" style="width: 100%; height: 100%; object-fit: contain;" />
-      </div>
-    </div>
+    <img src="${LOGO_URL}" alt="VeiL Logo" style="width: 80px; height: auto; display: inline-block; border-radius: 12px;" />
   </div>
 `;
 

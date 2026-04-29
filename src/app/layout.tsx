@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { AnimatedBackground } from '@/components/ui/animated-background';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +29,8 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
         <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/2/2c/Logo-ai-veil.png" />
       </head>
-      <body className="font-body antialiased bg-background text-foreground">
+      <body className="font-body antialiased bg-background text-foreground relative overflow-x-hidden">
+        <AnimatedBackground />
         <FirebaseClientProvider>
           {children}
           <Toaster />
